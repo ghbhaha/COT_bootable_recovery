@@ -763,6 +763,18 @@ prompt_and_wait() {
                 }
                 break;
 
+	    case ITEM_WIPE_ALL:
+		if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
+		{
+		    ui_print("\n-- Wiping system/data/cache...\n");
+		    erase_volume("/system");
+		    erase_volume("/data");
+		    erase_volume("/cache");
+		    ui_print("\nFull wipe complete!");
+		    if (!ui_text_visible()) return;
+		}
+		break;
+
             case ITEM_APPLY_SDCARD:
                 if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
                 {
