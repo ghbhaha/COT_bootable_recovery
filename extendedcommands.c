@@ -909,7 +909,7 @@ void show_advanced_menu()
         {
             case 0:
             {
-                reboot_wrapper("recovery");
+                __system("/sbin/reboot_recovery");
                 break;
             }
             case 1:
