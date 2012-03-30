@@ -884,7 +884,7 @@ void show_advanced_menu()
                                 NULL
     };
 
-    static char* list[] = { "Reboot Recovery",
+    static char* list[] = { "Reboot Options",
                             "Wipe Dalvik Cache",
                             "Wipe Battery Stats",
                             "Report Error",
@@ -909,9 +909,30 @@ void show_advanced_menu()
         {
             case 0:
             {
-                __system("/sbin/reboot_recovery");
-                break;
-            }
+			 static char* reboot_menu[] = {"Reboot Options",
+						       "",
+						       NULL
+			 };
+			 static char* reboot_choices[] = {"reboot system now",
+							  "reboot recovery",
+							  "reboot into fastboot bootloader",
+							  NULL
+			 };
+			 int reboot_choice = get_menu_selection(reboot_menu, reboot_choices, 0, 0);
+			 switch(reboot_choice) {
+				 case 0:
+					__system("/sbin/reboot_system");
+					break;
+				 case 1:
+					__system("/sbin/reboot_recovery");
+					break;
+				 case 2:
+					__system("/sbin/reboot_fastboot");
+					break;
+			 }
+			 if(reboot_choice == GO_BACK)
+				continue;
+		  }
             case 1:
             {
                 if (0 != ensure_path_mounted("/data"))

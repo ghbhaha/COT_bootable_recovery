@@ -714,40 +714,9 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_REBOOT:
-		{
-
-		    static char* headers[] = {  "Reboot Options",
-				                "",
-				                NULL
-		    };
-
-		    static char* list[] = { "reboot system now",
-				            "reboot recovery",
-				            "reboot into fastboot mode",
-				            NULL
-		    };
-
-		    int chosen_item = get_menu_selection(headers, list, 0, 0);
-		    switch (chosen_item)
-		    {
-			case 0:
-			    {
-				__system("/sbin/reboot_system");
-				return;
-			    }
-			case 1:
-			    {
-				__system("/sbin/reboot_recovery");
-				break;
-			    }
-			case 2:
-			    {
-				__system("/sbin/reboot_fastboot");
-				break;
-			    }
-		    }
-		    break;
-		}
+                __system("/sbin/reboot_system");
+                return;
+		    
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
