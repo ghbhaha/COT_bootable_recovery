@@ -8,3 +8,10 @@
 * Move reboot menu into advanced menu and change normal menu reboot option back to 'reboot system now'.
 * Changed fastboot option to say 'fastboot bootloader' instead of just 'fastboot mode' to hopefully negate confusion.
 * Version bump.
+
+### 04/11/2012:
+* Added custom UI color switch (allows users to change UI color from the advanced menu, currently only allows for 'red', 'cyan', 'lime' and 'orange').
+* Removed potentially hazardous sdcard options (these were disabled but we don't need them anyway).
+* Removed key test, we only have one key.
+* Removed wipe battery stats, [read why you don't need to wipe your battery stats](https://plus.google.com/105051985738280261832/posts/FV3LVtdVxPT).
+* Version bump (kf1.4)
