@@ -869,14 +869,6 @@ void show_nandroid_menu()
     }
 }
 
-void wipe_battery_stats()
-{
-    ensure_path_mounted("/data");
-    remove("/data/system/batterystats.bin");
-    ensure_path_unmounted("/data");
-    ui_print("Battery Stats wiped.\n");
-}
-
 /* Set the UI color to default red, give it it's own function to avoid
  * repeats and having to reboot on setting to default */
 void set_ui_default() {
@@ -995,7 +987,6 @@ void show_advanced_menu()
 
     static char* list[] = { "Reboot Options",
                             "Wipe Dalvik Cache",
-                            "Wipe Battery Stats",
                             "Report Error",
                             "Show log",
                             "Fix Permissions",
@@ -1053,21 +1044,15 @@ void show_advanced_menu()
             }
             case 2:
             {
-                if (confirm_selection( "Confirm wipe?", "Yes - Wipe Battery Stats"))
-                    wipe_battery_stats();
-                break;
-            }
-            case 3:
-            {
 			  handle_failure(1);
 			  break;
 		  }
-            case 4:
+            case 3:
             {
                 ui_printlogtail(12);
                 break;
             }
-            case 5:
+            case 4:
             {
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
@@ -1076,7 +1061,7 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 6: 
+            case 5: 
             {
 			  static char* ui_colors[] = {"Red (default)",
 									"Cyan",
