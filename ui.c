@@ -54,6 +54,9 @@ gr_fb_height() is 600
 #include "minui/minui.h"
 #include "recovery_ui.h"
 
+// Include extendedcommands.h in order to get our custom ui colors
+#include "extendedcommands.h"
+
 extern int __system(const char *command);
 
 #ifdef BOARD_HAS_NO_SELECT_BUTTON
@@ -244,8 +247,7 @@ static void draw_text_line(int row, const char* t) {
   }
 }
 
-//#define MENU_TEXT_COLOR 255, 160, 49, 255
-#define MENU_TEXT_COLOR 255, 0, 0, 255
+//#define MENU_TEXT_COLOR 255, 0, 0, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
@@ -280,7 +282,11 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_DOWN], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
 			draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
-            gr_color(MENU_TEXT_COLOR);
+			
+		  // Setup our text colors
+		  get_config_settings();
+            gr_color(UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3);
+            
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
                     gr_fb_width()-menu_max_height*2, (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
 
@@ -295,14 +301,14 @@ static void draw_screen_locked(void)
             else
                 j = menu_items - menu_show_start;
 
-            gr_color(MENU_TEXT_COLOR);
+            gr_color(UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3);
             for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
                 if (i == menu_top + menu_sel) {
                     gr_color(255, 255, 255, 255);
                     draw_text_line(i - menu_show_start , menu[i]);
-                    gr_color(MENU_TEXT_COLOR);
+                    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3);
                 } else {
-                    gr_color(MENU_TEXT_COLOR);
+                    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3);
                     draw_text_line(i - menu_show_start, menu[i]);
                 }
                 row++;

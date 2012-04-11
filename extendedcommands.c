@@ -877,6 +877,115 @@ void wipe_battery_stats()
     ui_print("Battery Stats wiped.\n");
 }
 
+/* Set the UI color to default red, give it it's own function to avoid
+ * repeats and having to reboot on setting to default */
+void set_ui_default() {
+	UICOLOR0 = 255;
+	UICOLOR1 = 0;
+	UICOLOR2 = 0;
+	UICOLOR3 = 255;
+}
+
+/* Get the custom UI configuration settings; as you may be able to tell
+ * this doesn't fully function yet. */
+void get_config_settings() {
+	FILE *in_file;
+	int i, j, k, l;
+
+	ensure_path_mounted("/sdcard");
+
+	if(in_file = fopen(UI_CONFIG_FILE, "r")) {
+		if(fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l)) {
+			UICOLOR0 = i;
+			UICOLOR1 = j;
+			UICOLOR2 = k;
+			UICOLOR3 = l;
+			ensure_path_unmounted("/sdcard");
+		} else {
+			set_ui_default();
+		}
+	}
+}	
+
+/* There's probably a better way to do this but for now here it is,
+ * write a config file to store the ui color to be set from the
+ * advanced menu */
+void set_config_file_contents(int i, int j, int k, int l) {
+	FILE *out_file;
+	int n;
+
+	ensure_path_mounted("/sdcard");
+	// Open the config file to confirm it's presence (to remove it).
+	if(out_file = fopen(UI_CONFIG_FILE, "r")) {
+		fclose(out_file);
+		remove(UI_CONFIG_FILE);
+	}
+	/* Regardless of if it existed prior it will be gone now.
+	 * Create the .conf file and reopen it with write privs */
+	__system("touch /sdcard/clockworkmod/.conf");
+	out_file = fopen(UI_CONFIG_FILE, "w");
+
+	// Write our integers in separate lines for easy reference
+	n = 0;
+	fprintf(out_file, "%d ", i);
+	n++;
+	fprintf(out_file, "%d ", j);
+	n++;
+	fprintf(out_file, "%d ", k);
+	n++;
+	fprintf(out_file, "%d", l);
+
+	fclose(out_file);
+	ensure_path_unmounted("/sdcard");
+}	
+
+// This should really be done with a mapping instead of a switch.
+void set_ui_color(int i) {
+	int n, m, o, p;
+	switch(i) {
+		case 0: {
+			/* Since red is the default and the only thing handled
+			 * by our config file is color, simply remove it when
+			 * selecting default */
+			ensure_path_mounted("/sdcard");
+			ui_print("Setting UI Color to Default.\n");
+			remove(UI_CONFIG_FILE);
+			ensure_path_unmounted("/sdcard");
+			// Set the default colors to avoid the need for a reboot
+			set_ui_default();
+			/* Return from the function entirely instead of just
+			 * breaking from the loop; subsequently cancelling the
+			 * later call of set_config_file_contents */
+			return;
+		}
+		case 1: {
+			ui_print("Setting UI Color to Cyan.\n");
+			n = 0;
+			m = 191;
+			o = 255;
+			p = 255;
+			break;
+		}
+		case 2: {
+			ui_print("Setting UI Color to Lime.\n");
+			n = 0;
+			m = 255;
+			o = 0;
+			p = 255;
+			break;
+		}
+		case 3: {
+			ui_print("Setting UI Color to Orange.\n");
+			n = 238;
+			m = 148;
+			o = 74;
+			p = 255;
+			break;
+		}
+	}
+	set_config_file_contents(n,m,o,p);
+}
+
 void show_advanced_menu()
 {
     static char* headers[] = {  "Advanced and Debugging Menu",
@@ -888,15 +997,9 @@ void show_advanced_menu()
                             "Wipe Dalvik Cache",
                             "Wipe Battery Stats",
                             "Report Error",
-                            "Key Test",
                             "Show log",
-#ifndef BOARD_HAS_SMALL_RECOVERY
-                            "Partition SD Card",
                             "Fix Permissions",
-#ifdef BOARD_HAS_SDCARD_INTERNAL
-                            "Partition Internal SD Card",
-#endif
-#endif
+                            "Set UI Color",
                             NULL
     };
 
@@ -955,103 +1058,16 @@ void show_advanced_menu()
                 break;
             }
             case 3:
-                handle_failure(1);
-                break;
-            case 4:
             {
-                ui_print("Outputting key codes.\n");
-                ui_print("Go back to end debugging.\n");
-                struct keyStruct{
-					int code;
-					int x;
-					int y;
-				}*key;
-                int action;
-                do
-                {
-                    key = ui_wait_key();
-					if(key->code == ABS_MT_POSITION_X)
-					{
-				        action = device_handle_mouse(key, 1);
-						ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
-					}
-					else
-					{
-				        action = device_handle_key(key->code, 1);
-						ui_print("Key: %x\n", key->code);
-					}
-                }
-                while (action != GO_BACK);
-                break;
-            }
-            case 5:
+			  handle_failure(1);
+			  break;
+		  }
+            case 4:
             {
                 ui_printlogtail(12);
                 break;
             }
-            case 6:
-            {
-
-                ui_print("Disabled for this device!\n");
-/*
-                if (confirm_selection("Confirm: SDCARD will be wiped!!", "Yes - Continue with SDCARD Partitioning"))
-                {
-                
-		static char* ext_sizes[] = { "128M",
-                                             "256M",
-                                             "512M",
-                                             "1024M",
-                                             "2048M",
-                                             "4096M",
-                                             NULL };
-
-                static char* ext_fs[] = { "ext2",
-                                          "ext3",
-                                          "ext4",
-                                          NULL };
-
-                static char* swap_sizes[] = { "0M",
-                                              "32M",
-                                              "64M",
-                                              "128M",
-                                              "256M",
-                                              NULL };
-
-                static char* ext_headers[] = { "Ext Size", "", NULL };
-                static char* ext_fs_headers[] = { "Ext File System", "", NULL };
-                static char* swap_headers[] = { "Swap Size", "", NULL };
-
-                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
-                if (ext_size == GO_BACK)
-                    continue;
-
-                int ext_fs_selected = get_menu_selection(ext_fs_headers, ext_fs, 0, 0);
-                if (ext_fs_selected == GO_BACK)
-                    continue;
-
-                int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
-                if (swap_size == GO_BACK)
-                    continue;
-
-                char sddevice[256];
-                Volume *vol = volume_for_path("/sdcard");
-                strcpy(sddevice, vol->device);
-                // we only want the mmcblk, not the partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-                char cmd[PATH_MAX];
-                setenv("SDPATH", sddevice, 1);
-                sprintf(cmd, "sdparted -es %s -ss %s -efs %s -s", ext_sizes[ext_size], swap_sizes[swap_size], ext_fs[ext_fs_selected]);
-                ui_print("Partitioning SD Card... please wait...\n");
-                if (0 == __system(cmd))
-                    ui_print("Done!\n");
-                else
-                    ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
-
-		}
-*/
-                break;
-            }
-            case 7:
+            case 5:
             {
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
@@ -1060,49 +1076,23 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 8:
+            case 6: 
             {
-                static char* ext_sizes[] = { "128M",
-                                             "256M",
-                                             "512M",
-                                             "1024M",
-                                             "2048M",
-                                             "4096M",
-                                             NULL };
+			  static char* ui_colors[] = {"Red (default)",
+									"Cyan",
+									"Lime",
+									"Orange",
+									NULL
+			  };
+			  static char* ui_header[] = {"UI Color", "", NULL};
 
-                static char* swap_sizes[] = { "0M",
-                                              "32M",
-                                              "64M",
-                                              "128M",
-                                              "256M",
-                                              NULL };
-
-                static char* ext_headers[] = { "Data Size", "", NULL };
-                static char* swap_headers[] = { "Swap Size", "", NULL };
-
-                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
-                if (ext_size == GO_BACK)
-                    continue;
-
-                int swap_size = 0;
-                if (swap_size == GO_BACK)
-                    continue;
-
-                char sddevice[256];
-                Volume *vol = volume_for_path("/emmc");
-                strcpy(sddevice, vol->device);
-                // we only want the mmcblk, not the partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-                char cmd[PATH_MAX];
-                setenv("SDPATH", sddevice, 1);
-                sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-                ui_print("Partitioning Internal SD Card... please wait...\n");
-                if (0 == __system(cmd))
-                    ui_print("Done!\n");
-                else
-                    ui_print("An error occured while partitioning your Internal SD Card. Please see /tmp/recovery.log for more details.\n");
-                break;
-            }
+			  int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
+			  if(ui_color == GO_BACK)
+				  continue;
+			  else 
+				  set_ui_color(ui_color);
+			  break;
+		  }
         }
     }
 }
