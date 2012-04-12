@@ -15,3 +15,7 @@
 * Removed key test, we only have one key.
 * Removed wipe battery stats, [read why you don't need to wipe your battery stats](https://plus.google.com/105051985738280261832/posts/FV3LVtdVxPT).
 * Version bump (kf1.4)
+
+### 04/12/2012:
+* Fixed issue with blank text on first boot.
+* Version bump (kf1.5)

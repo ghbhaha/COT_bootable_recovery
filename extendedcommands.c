@@ -887,15 +887,14 @@ void get_config_settings() {
 	ensure_path_mounted("/sdcard");
 
 	if(in_file = fopen(UI_CONFIG_FILE, "r")) {
-		if(fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l)) {
-			UICOLOR0 = i;
-			UICOLOR1 = j;
-			UICOLOR2 = k;
-			UICOLOR3 = l;
-			ensure_path_unmounted("/sdcard");
-		} else {
-			set_ui_default();
-		}
+		fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l);
+		UICOLOR0 = i;
+		UICOLOR1 = j;
+		UICOLOR2 = k;
+		UICOLOR3 = l;
+		ensure_path_unmounted("/sdcard");
+	} else {
+		set_ui_default();
 	}
 }	
 
