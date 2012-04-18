@@ -581,7 +581,11 @@ int is_safe_to_format(char* name)
 {
     char str[255];
     char* partition;
-    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs");
+    /* Add /sdcard here because formatting it could cause issues, espescially
+     * for dual boot systems also removing splash, haven't tested it but just
+     * to be safe we'll pull it, if someone wants to format their splash and
+     * confirm it's safe I'll add it back in. */    
+    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs,/sdcard,/splash");
 
     partition = strtok(str, ", ");
     while (partition != NULL) {
@@ -592,6 +596,26 @@ int is_safe_to_format(char* name)
     }
 
     return 1;
+}
+
+/* While this really shouldn't be neccessary in the fact that mounting
+ * something shouldn't normally be dangerous. However unmounting the
+ * sdcard does create issues, subsequently both it and splash are being
+ * removed as listed in above notes */
+int is_safe_to_mount(char* name) {
+	char str[255];
+	char* partition;
+	property_get("ro.ing.forbid_mount", str, "/sdcard,/splash");
+	
+	partition = strtok(str, ", ");
+	while (partition != NULL) {
+		if (strcmp(name, partition) == 0) {
+			return 0;
+		}
+		partition = strtok(NULL, ", ");
+	}
+	
+	return 1;
 }
 
 void show_partition_menu()
@@ -628,10 +652,12 @@ void show_partition_menu()
 			Volume* v = &device_volumes[i];
 			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0)
 			{
-				sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
-				sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
-				mount_menue[mountable_volumes].v = &device_volumes[i];
-				++mountable_volumes;
+				if (is_safe_to_mount(v->mount_point)) {
+					sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
+					sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
+					mount_menue[mountable_volumes].v = &device_volumes[i];
+					++mountable_volumes;
+				}
 				if (is_safe_to_format(v->mount_point)) {
 					sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
 					format_menue[formatable_volumes].v = &device_volumes[i];
@@ -928,7 +954,7 @@ void set_config_file_contents(int i, int j, int k, int l) {
 
 	fclose(out_file);
 	ensure_path_unmounted("/sdcard");
-}	
+}
 
 // This should really be done with a mapping instead of a switch.
 void set_ui_color(int i) {
@@ -958,6 +984,14 @@ void set_ui_color(int i) {
 			break;
 		}
 		case 2: {
+			ui_print("Setting UI Color to Blue.\n");
+			n = 0;
+			m = 0;
+			o = 255;
+			p = 255;
+			break;
+		}
+		case 3: {
 			ui_print("Setting UI Color to Lime.\n");
 			n = 0;
 			m = 255;
@@ -965,7 +999,15 @@ void set_ui_color(int i) {
 			p = 255;
 			break;
 		}
-		case 3: {
+		case 4: {
+			ui_print("Setting UI Color to Magenta.\n");
+			n = 255;
+			m = 0;
+			o = 255;
+			p = 255;
+			break;
+		}
+		case 5: {
 			ui_print("Setting UI Color to Orange.\n");
 			n = 238;
 			m = 148;
@@ -1064,7 +1106,9 @@ void show_advanced_menu()
             {
 			  static char* ui_colors[] = {"Red (default)",
 									"Cyan",
+									"Blue",
 									"Lime",
+									"Magenta",
 									"Orange",
 									NULL
 			  };
