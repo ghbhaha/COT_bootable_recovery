@@ -34,10 +34,10 @@ ifdef I_AM_KOUSH
 RECOVERY_NAME := ClockworkMod Recovery
 LOCAL_CFLAGS += -DI_AM_KOUSH
 else
-RECOVERY_NAME := ClockWorkMod Based Touch Recovery
+RECOVERY_NAME := ClockworkMod Based Touch Recovery
 endif
 
-RECOVERY_VERSION := CWMT v5.0.2.7-kf1.5
+RECOVERY_VERSION := CWMT v5.0.2.7-kf1.6
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2

@@ -19,3 +19,8 @@
 ### 04/12/2012:
 * Fixed issue with blank text on first boot.
 * Version bump (kf1.5)
+
+### 04/18/2012:
+* Removed sdcard/ and splash/ from format/mount options (sdcard is potentially dangerous when unmounted and could cause issues with dualboot systems, if someone would like me to add the format option back in just say so. As for splash; while I don't know of anything about it being dangerous I figured it would be best to eir on the side of caution).
+* Moar Colors!!!
+* Version bump (kf1.6)
