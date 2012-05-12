@@ -590,7 +590,11 @@ int is_safe_to_format(char* name)
 {
     char str[255];
     char* partition;
-    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs");
+    /* Add /sdcard here because formatting it could cause issues, espescially
+     * for dual boot systems also removing splash, haven't tested it but just
+     * to be safe we'll pull it, if someone wants to format their splash and
+     * confirm it's safe I'll add it back in. */
+    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs,/sdcard,/splash");
 
     partition = strtok(str, ", ");
     while (partition != NULL) {
@@ -607,7 +611,6 @@ int is_safe_to_format(char* name)
  * something shouldn't normally be dangerous. However unmounting the
  * sdcard does create issues, subsequently both it and splash are being
  * removed as listed in above notes */
-/* Remove this for some testing of the ICS mount code
 int is_safe_to_mount(char* name) {
 	char str[255];
 	char* partition;
@@ -623,7 +626,6 @@ int is_safe_to_mount(char* name) {
 	
 	return 1;
 }
-*/
 
 void show_partition_menu()
 {
@@ -658,10 +660,12 @@ void show_partition_menu()
 		for (i = 0; i < num_volumes; ++i) {
   			Volume* v = &device_volumes[i];
   			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
-    				sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
-    				sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
-    				mount_menue[mountable_volumes].v = &device_volumes[i];
-    				++mountable_volumes;
+					if (is_safe_to_mount(v->mount_point)) {
+						sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
+						sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
+						mount_menue[mountable_volumes].v = &device_volumes[i];
+						++mountable_volumes;
+					}
     				if (is_safe_to_format(v->mount_point)) {
       					sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
       					format_menue[formatable_volumes].v = &device_volumes[i];
