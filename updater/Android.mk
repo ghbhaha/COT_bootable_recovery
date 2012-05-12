@@ -30,6 +30,7 @@ LOCAL_STATIC_LIBRARIES += libflashutils libmtdutils libmmcutils libbmlutils
 LOCAL_STATIC_LIBRARIES += $(TARGET_RECOVERY_UPDATER_LIBS) $(TARGET_RECOVERY_UPDATER_EXTRA_LIBS)
 LOCAL_STATIC_LIBRARIES += libapplypatch libedify libmtdutils libminzip libz
 LOCAL_STATIC_LIBRARIES += libmincrypt libbz
+LOCAL_STATIC_LIBRARIES += libminelf
 LOCAL_STATIC_LIBRARIES += libcutils libstdc++ libc
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/..
 
@@ -74,8 +75,8 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 include $(BUILD_EXECUTABLE)
 
-
-file := $(PRODUCT_OUT)/utilities/update-binary
-ALL_PREBUILT += $(file)
-$(file) : $(TARGET_OUT)/bin/updater | $(ACP)
-	$(transform-prebuilt-to-target)
+# Removed for testing of Retouch Patch
+# file := $(PRODUCT_OUT)/utilities/update-binary
+# ALL_PREBUILT += $(file)
+# $(file) : $(TARGET_OUT)/bin/updater | $(ACP)
+# 	$(transform-prebuilt-to-target)

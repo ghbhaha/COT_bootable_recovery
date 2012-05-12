@@ -34,10 +34,10 @@ ifdef I_AM_KOUSH
 RECOVERY_NAME := ClockworkMod Recovery
 LOCAL_CFLAGS += -DI_AM_KOUSH
 else
-RECOVERY_NAME := ClockworkMod Based Touch Recovery
+RECOVERY_NAME := CWM-based Touch Recovery
 endif
 
-RECOVERY_VERSION := CWMT v5.0.2.7-kf1.6
+RECOVERY_VERSION := $(RECOVERY_NAME) v5.5.0.4-kf1.7pre
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
@@ -51,6 +51,12 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
   ) \
   )
 
+LOCAL_STATIC_LIBRARIES :=
+
+LOCAL_CFLAGS += -DUSE_EXT4
+LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_STATIC_LIBRARIES += libext4_utils libz
+
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
 # a (redundant) copy of the binary in /system/bin for user builds.
@@ -58,7 +64,6 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 
 LOCAL_MODULE_TAGS := eng
 
-LOCAL_STATIC_LIBRARIES :=
 ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
   LOCAL_SRC_FILES += default_recovery_ui.c
 else
@@ -151,6 +156,7 @@ include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/libcrecovery/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
+include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
