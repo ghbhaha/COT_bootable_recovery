@@ -24,3 +24,9 @@
 * Removed sdcard/ and splash/ from format/mount options (sdcard is potentially dangerous when unmounted and could cause issues with dualboot systems, if someone would like me to add the format option back in just say so. As for splash; while I don't know of anything about it being dangerous I figured it would be best to eir on the side of caution).
 * Moar Colors!!!
 * Version bump (kf1.6)
+
+### 05/11/2012
+* Apply patch : Retouch Binaries (backported from ICS for 3.0 boot image compat), this requires the ICS 'system/extras/ext4_utils/' repo. (need to test full build to see if this causes any issues with the rom itself).
+* Updated readme to reflect build requirements.
+* Possibly fix signature verification status on boot (needs testing).
+* Version bump (kf1.8)
