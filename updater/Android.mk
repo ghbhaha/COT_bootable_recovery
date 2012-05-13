@@ -21,7 +21,10 @@ LOCAL_SRC_FILES := $(updater_src_files)
 
 ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
 LOCAL_CFLAGS += -DUSE_EXT4
-LOCAL_C_INCLUDES += system/extras/ext4_utils
+# Use a separate extra repo from ics instead of the gb extras, used by
+# retouch binaries
+LOCAL_C_INCLUDES += system/ics_extras/ext4_utils
+# LOCAL_C_INCLUDES += system/extras/ext4_utils
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 endif
 
