@@ -54,7 +54,9 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 LOCAL_STATIC_LIBRARIES :=
 
 LOCAL_CFLAGS += -DUSE_EXT4
-LOCAL_C_INCLUDES += system/extras/ext4_utils
+# Use a local copy of the ICS ext4_utils for use by the retouch binaries
+LOCAL_C_INCLUDES += bootable/recovery/utilities/ext4_utils
+#LOCAL_C_INCLUDES += system/extras/ext4_utils
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.

@@ -37,3 +37,4 @@
 * Added call to color switch in extendedcommands.c to ensure_directory (to resolve issues with the color switch on first boot {in the event 'sdcard/clockworkmod/' doesn't exist}).
 * Cleaned up otherwise removed code from previous patch.
 * Version bump: kf1.9
+* Include ICS ext4_utils locally so's not to bork the rom.
