@@ -30,3 +30,10 @@
 * Updated readme to reflect build requirements.
 * Possibly fix signature verification status on boot (needs testing).
 * Version bump (kf1.8)
+
+### 05/12/2012
+* Removes static tag from ensure_directory in nandroid.c for external use.
+* Adds call to nandroid.h for ensure_directory.
+* Added call to color switch in extendedcommands.c to ensure_directory (to resolve issues with the color switch on first boot {in the event 'sdcard/clockworkmod/' doesn't exist}).
+* Cleaned up otherwise removed code from previous patch.
+* Version bump: kf1.9
