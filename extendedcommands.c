@@ -917,6 +917,9 @@ void get_config_settings() {
 	int i, j, k, l;
 
 	ensure_path_mounted("/sdcard");
+	/* ensure the directory exists in case this is the first boot and
+	 * we haven't performed a backup, function found in nandroid.c */
+	ensure_directory("/sdcard/clockworkmod");
 
 	if(in_file = fopen(UI_CONFIG_FILE, "r")) {
 		fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l);

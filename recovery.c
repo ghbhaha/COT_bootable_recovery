@@ -916,12 +916,6 @@ main(int argc, char **argv) {
         status = INSTALL_ERROR;  // No command specified
         // we are starting up in user initiated recovery here
         // let's set up some default options
-        
-        /* This should be set already in extendedcommands, forget about
-         * the fact that it's supposed to be 1 :P
-         * comment it out to see if the proper value is applied.
-        signature_check_enabled = 0;
-        */
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
