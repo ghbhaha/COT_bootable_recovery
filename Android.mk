@@ -37,7 +37,9 @@ else
 RECOVERY_NAME := CWM-based Touch Recovery
 endif
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v5.5.0.4-kf1.9
+# Track CWM version separately than release version.
+CWM_VERSION := v5.0.2.7+
+RECOVERY_VERSION := $(RECOVERY_NAME) $(CWM_VERSION) kf1.9
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
