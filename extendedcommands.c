@@ -893,7 +893,6 @@ void show_advanced_menu()
     };
 
     static char* list[] = { "Reboot Recovery",
-			    "Boot LG Recovery",
                             "Wipe Dalvik Cache",
                             "Report Error",
                             "Key Test",
@@ -920,11 +919,7 @@ void show_advanced_menu()
                 reboot_wrapper("recovery");
                 break;
             }
-	    case 1:
-	    {
-		// Placeholder
-	    }
-            case 2:
+            case 1:
             {
                 if (0 != ensure_path_mounted("/data"))
                     break;
@@ -939,10 +934,10 @@ void show_advanced_menu()
                 ensure_path_unmounted("/data");
                 break;
             }
-            case 3:
+            case 2:
                 handle_failure(1);
                 break;
-            case 4:
+            case 3:
             {
                 ui_print("Outputting key codes.\n");
                 ui_print("Go back to end debugging.\n");
@@ -969,12 +964,12 @@ void show_advanced_menu()
                 while (action != GO_BACK);
                 break;
             }
-            case 5:
+            case 4:
             {
                 ui_printlogtail(12);
                 break;
             }
-            case 6:
+            case 5:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
@@ -1017,7 +1012,7 @@ void show_advanced_menu()
                     ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
             }
-            case 7:
+            case 6:
             {
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
@@ -1026,7 +1021,7 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 8:
+            case 7:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
