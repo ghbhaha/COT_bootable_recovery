@@ -469,7 +469,7 @@ char* print_batt_cap() {
 
 	return full_cap_s;
 }
-	
+
 
 static char**
 prepend_title(char** headers) {
@@ -819,6 +819,9 @@ prompt_and_wait() {
             case ITEM_ADVANCED:
                 show_advanced_menu();
                 break;
+	    case ITEM_DOWNLOADROM:
+		show_download_rom_menu();
+		break;
             case ITEM_POWEROFF:
                 poweroff=1;
                 return;
@@ -942,7 +945,7 @@ main(int argc, char **argv) {
     printf("\n");
 
     int status = INSTALL_SUCCESS;
-    
+
     if (toggle_secure_fs) {
         if (strcmp(encrypted_fs_mode,"on") == 0) {
             encrypted_fs_data.mode = MODE_ENCRYPTED_FS_ENABLED;
@@ -1000,7 +1003,7 @@ main(int argc, char **argv) {
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-        
+
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
             int ret;
