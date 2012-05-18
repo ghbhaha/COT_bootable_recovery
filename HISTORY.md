@@ -38,3 +38,6 @@
 * Cleaned up otherwise removed code from previous patch.
 * Version bump: kf1.9
 * Include ICS ext4_utils locally so's not to bork the rom.
+
+### 05/18/2012
+* Included ICS ext4_utils are not being utilized properly, format options will not work unless the gingerbread versions are replaced with the included version.

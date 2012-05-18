@@ -26,7 +26,7 @@
 #include "cutils/properties.h"
 #include "firmware.h"
 #include "install.h"
-#include "make_ext4fs.h"
+#include "utilities/ext4_utils/make_ext4fs.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"

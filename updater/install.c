@@ -42,7 +42,7 @@
 #include "flashutils/flashutils.h"
 
 #ifdef USE_EXT4
-#include "make_ext4fs.h"
+#include "utilities/ext4_utils/make_ext4fs.h"
 #endif
 
 // mount(fs_type, partition_type, location, mount_point)
