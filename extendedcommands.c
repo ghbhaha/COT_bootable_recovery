@@ -916,17 +916,21 @@ void get_config_settings() {
 	FILE *in_file;
 	int i, j, k, l;
 
-	ensure_path_mounted("/sdcard");
+//	ensure_path_mounted("/sdcard");
 	/* ensure the directory exists in case this is the first boot and
 	 * we haven't performed a backup, function found in nandroid.c */
-	ensure_directory("/sdcard/clockworkmod");
+//	ensure_directory("/sdcard/clockworkmod");
 
-	if(in_file = fopen(UI_CONFIG_FILE, "r")) {
+	//if(in_file = fopen(UI_CONFIG_FILE, "r")) {
+	/* Use Koush' built in function for mounting and ensuring the
+	 * directory. */
+	if(in_file = fopen_path(UI_CONFIG_FILE, "r")) {
 		fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l);
 		UICOLOR0 = i;
 		UICOLOR1 = j;
 		UICOLOR2 = k;
 		UICOLOR3 = l;
+		fclose(in_file);
 		ensure_path_unmounted("/sdcard");
 	} else {
 		set_ui_default();
@@ -940,9 +944,12 @@ void set_config_file_contents(int i, int j, int k, int l) {
 	FILE *out_file;
 	int n;
 
-	ensure_path_mounted("/sdcard");
+	//ensure_path_mounted("/sdcard");
 	// Open the config file to confirm it's presence (to remove it).
-	if(out_file = fopen(UI_CONFIG_FILE, "r")) {
+	//if(out_file = fopen(UI_CONFIG_FILE, "r")) {
+	/* Use Koush' built in function for mounting and ensuring the
+	 * directory. */
+	if(out_file = fopen_path(UI_CONFIG_FILE, "r")) {
 		fclose(out_file);
 		remove(UI_CONFIG_FILE);
 	}

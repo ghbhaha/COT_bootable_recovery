@@ -188,16 +188,33 @@ done:
 //    if fs_size < 0, then reserve that many bytes at the end of the partition
 Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
     char* result = NULL;
+	// Track if we are using legacy (2.3) binaries.
+	int using_legacy = 0;
     if (argc != 4) {
-        return ErrorAbort(state, "%s() expects 4 args, got %d", name, argc);
+		ui_print("%s() expects 4 args got %d\n", name, argc);
+		ui_print("Checking for possible legacy binaries...\n");
+		if(argc != 3)
+			return ErrorAbort(state, "%s() expects 3 or 4 args, got %d", name, argc);
+		ui_print("Appears to be using legacy binaries...\n");
+		ui_print("If this is Android 2.3 this is expected...\n");
+		ui_print("Otherwise if you have not performed a backup, please abort and do so now.\n");
+		if(confirm_selection("Confirm installation.", "Yes - Using Legacy Binary"))
+			using_legacy = 1;
+
+		else {
+			ui_print("User aborted installation...\n");
+			return ErrorAbort(state, "User aborted installation...\n");
+		}
     }
     char* fs_type;
     char* partition_type;
     char* location;
     char* fs_size;
-    if (ReadArgs(state, argv, 4, &fs_type, &partition_type, &location, &fs_size) < 0) {
+	if(using_legacy) {
+		if (ReadArgs(state, argv, 3, &fs_type, &partition_type, &location) < 0)
+			return NULL;
+	} else if (ReadArgs(state, argv, 4, &fs_type, &partition_type, &location, &fs_size) < 0)
         return NULL;
-    }
 
     if (strlen(fs_type) == 0) {
         ErrorAbort(state, "fs_type argument to %s() can't be empty", name);
@@ -242,7 +259,12 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
         result = location;
 #ifdef USE_EXT4
     } else if (strcmp(fs_type, "ext4") == 0) {
-        int status = make_ext4fs(location, atoll(fs_size));
+		if(using_legacy) {
+			reset_ext4fs_info();
+			int status = make_ext4fs(location, NULL, NULL, 0, 0, 0);
+		} else
+			int status = make_ext4fs(location, atoll(fs_size));
+
         if (status != 0) {
             fprintf(stderr, "%s: make_ext4fs failed (%d) on %s",
                     name, status, location);
