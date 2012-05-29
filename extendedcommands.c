@@ -47,7 +47,7 @@
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
-static const char *SDCARD_UPDATE_FILE = "/sdcard/update.zip";
+static const char *SDCARD_UPDATE_FILE = "SDCARD:update.zip";
 
 void
 toggle_signature_check()
@@ -107,7 +107,7 @@ int format_non_mtd_device(const char* root)
     __system(tmp);
     sprintf(tmp, "rm -rf %s/.*", path);
     __system(tmp);
-    
+
     ensure_root_path_unmounted(root);
     return 0;
 }
@@ -130,10 +130,10 @@ void show_install_update_menu()
                                 "",
                                 NULL
     };
-    
+
     if (volume_for_path("/emmc") == NULL)
         INSTALL_MENU_ITEMS[ITEM_CHOOSE_ZIP_INT] = NULL;
-    
+
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, INSTALL_MENU_ITEMS, 0, 0);
@@ -347,8 +347,8 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
 
 void show_choose_zip_menu(const char *mount_point)
 {
-    if (ensure_path_mounted(mount_point) != 0) {
-        LOGE ("Can't mount %s\n", mount_point);
+    if (ensure_path_mounted("/sdcard") != 0) {
+        LOGE ("Can't mount /sdcard\n");
         return;
     }
 
@@ -357,14 +357,17 @@ void show_choose_zip_menu(const char *mount_point)
                                 NULL
     };
 
-    char* file = choose_file_menu(mount_point, ".zip", headers);
+    char* file = choose_file_menu("/sdcard/", ".zip", headers);
     if (file == NULL)
         return;
+    char sdcard_package_file[1024];
+    strcpy(sdcard_package_file, "SDCARD:");
+    strcat(sdcard_package_file,  file + strlen("/sdcard/"));
     static char* confirm_install  = "Confirm install?";
     static char confirm[PATH_MAX];
     sprintf(confirm, "Yes - Install %s", basename(file));
     if (confirm_selection(confirm_install, confirm))
-        install_zip(file);
+        install_zip(sdcard_package_file);
 }
 
 void show_nandroid_restore_menu(const char* path)
@@ -386,7 +389,7 @@ void show_nandroid_restore_menu(const char* path)
         return;
 
     if (confirm_selection("Confirm restore?", "Yes - Restore"))
-        nandroid_restore(file, 1, 1, 1, 1, 1, 0);
+        nandroid_restore(file, 1, 1, 1, 1, 1);
 }
 
 #ifndef BOARD_UMS_LUNFILE
@@ -546,7 +549,7 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     LOGI("Formatting unknown device.\n");
 
     if (fs_type != NULL && get_flash_type(fs_type) != UNSUPPORTED)
-        return erase_raw_partition(fs_type, device);
+        return erase_raw_partition(device);
 
     // if this is SDEXT:, don't worry about it if it does not exist.
     if (0 == strcmp(path, "/sd-ext"))
@@ -796,7 +799,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
                             "Restore wimax",
                             NULL
     };
-    
+
     if (0 != get_partition_device("wimax", tmp)) {
         // disable wimax restore option
         list[5] = NULL;
@@ -809,27 +812,27 @@ void show_nandroid_advanced_restore_menu(const char* path)
     {
         case 0:
             if (confirm_selection(confirm_restore, "Yes - Restore boot"))
-                nandroid_restore(file, 1, 0, 0, 0, 0, 0);
+                nandroid_restore(file, 1, 0, 0, 0, 0);
             break;
         case 1:
             if (confirm_selection(confirm_restore, "Yes - Restore system"))
-                nandroid_restore(file, 0, 1, 0, 0, 0, 0);
+                nandroid_restore(file, 0, 1, 0, 0, 0);
             break;
         case 2:
             if (confirm_selection(confirm_restore, "Yes - Restore data"))
-                nandroid_restore(file, 0, 0, 1, 0, 0, 0);
+                nandroid_restore(file, 0, 0, 1, 0, 0);
             break;
         case 3:
             if (confirm_selection(confirm_restore, "Yes - Restore cache"))
-                nandroid_restore(file, 0, 0, 0, 1, 0, 0);
+                nandroid_restore(file, 0, 0, 0, 1, 0);
             break;
         case 4:
             if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
-                nandroid_restore(file, 0, 0, 0, 0, 1, 0);
+                nandroid_restore(file, 0, 0, 0, 1, 0);
             break;
         case 5:
             if (confirm_selection(confirm_restore, "Yes - Restore wimax"))
-                nandroid_restore(file, 0, 0, 0, 0, 0, 1);
+                nandroid_restore(file, 0, 0, 0, 0, 1);
             break;
     }
 }
@@ -1142,31 +1145,33 @@ void show_advanced_menu()
     }
 }
 
-void write_fstab_root(char *path, FILE *file)
+void write_fstab_root(char *root_path, FILE *file)
 {
-    Volume *vol = volume_for_path(path);
-    if (vol == NULL) {
-        LOGW("Unable to get recovery.fstab info for %s during fstab generation!\n", path);
+    RootInfo *info = get_root_info_for_path(root_path);
+    if (info == NULL) {
+        LOGW("Unable to get root info for %s during fstab generation!", root_path);
         return;
     }
-
-    char device[200];
-    if (vol->device[0] != '/')
-        get_partition_device(vol->device, device);
+    char device[PATH_MAX];
+    int ret = get_root_partition_device(root_path, device);
+    if (ret == 0)
+    {
+        fprintf(file, "%s ", device);
+    }
     else
-        strcpy(device, vol->device);
+    {
+        fprintf(file, "%s ", info->device);
+    }
 
-    fprintf(file, "%s ", device);
-    fprintf(file, "%s ", path);
-    // special case rfs cause auto will mount it as vfat on samsung.
-    fprintf(file, "%s rw\n", vol->fs_type2 != NULL && strcmp(vol->fs_type, "rfs") != 0 ? "auto" : vol->fs_type);
+    fprintf(file, "%s ", info->mount_point);
+    fprintf(file, "%s %s\n", info->filesystem, info->filesystem_options == NULL ? "rw" : info->filesystem_options);
 }
 
 void create_fstab()
 {
     struct stat info;
     __system("touch /etc/mtab");
-    FILE *file = fopen("/etc/fstab", "w");
+    FILE *file = fopen("/etc/recovery.fstab", "w");
     if (file == NULL) {
         LOGW("Unable to create /etc/fstab!\n");
         return;
@@ -1249,7 +1254,7 @@ void process_volumes() {
     ui_print("in case of error.\n");
 
     nandroid_backup(backup_path);
-    nandroid_restore(backup_path, 1, 1, 1, 1, 1, 0);
+    //nandroid_restore(backup_path, 1, 1, 1, 1, 1, 0);
     ui_set_show_text(0);
 }
 
