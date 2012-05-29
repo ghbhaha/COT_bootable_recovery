@@ -151,6 +151,29 @@ static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
+// open a file given in root:path format, mounting partitions as necessary
+static FILE*
+fopen_root_path(const char *root_path, const char *mode) {
+    if (ensure_root_path_mounted(root_path) != 0) {
+        LOGE("Can't mount %s\n", root_path);
+        return NULL;
+    }
+
+    char path[PATH_MAX] = "";
+    if (translate_root_path(root_path, path, sizeof(path)) == NULL) {
+        LOGE("Bad path %s\n", root_path);
+        return NULL;
+    }
+
+    // When writing, try to create the containing directory, if necessary.
+    // Use generous permissions, the system (init.rc) will reset them.
+    if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
+
+    FILE *fp = fopen(path, mode);
+    if (fp == NULL && root_path != COMMAND_FILE) LOGE("Can't open %s\n", path);
+    return fp;
+}
+
 // open a given path, mounting partitions as necessary
 static FILE*
 fopen_path(const char *path, const char *mode) {
@@ -217,7 +240,7 @@ get_args(int *argc, char ***argv) {
 
     // --- if that doesn't work, try the command file
     if (*argc <= 1) {
-        FILE *fp = fopen_path(COMMAND_FILE, "r");
+        FILE *fp = fopen_root_path(COMMAND_FILE, "r");
         if (fp != NULL) {
             char *argv0 = (*argv)[0];
             *argv = (char **) malloc(sizeof(char *) * MAX_ARGS);
@@ -293,7 +316,7 @@ static void
 finish_recovery(const char *send_intent) {
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
-        FILE *fp = fopen_path(INTENT_FILE, "w");
+        FILE *fp = fopen_root_path(INTENT_FILE, "w");
         if (fp == NULL) {
             LOGE("Can't open %s\n", INTENT_FILE);
         } else {
@@ -303,9 +326,23 @@ finish_recovery(const char *send_intent) {
     }
 
     // Copy logs to cache so the system can find out what happened.
-    copy_log_file(LOG_FILE, true);
-    copy_log_file(LAST_LOG_FILE, false);
-    chmod(LAST_LOG_FILE, 0640);
+    FILE *log = fopen_root_path(LOG_FILE, "a");
+    if (log == NULL) {
+        LOGE("Can't open %s\n", LOG_FILE);
+    } else {
+        FILE *tmplog = fopen(TEMPORARY_LOG_FILE, "r");
+        if (tmplog == NULL) {
+            LOGE("Can't open %s\n", TEMPORARY_LOG_FILE);
+        } else {
+            static long tmplog_offset = 0;
+            fseek(tmplog, tmplog_offset, SEEK_SET);  // Since last write
+            char buf[4096];
+            while (fgets(buf, sizeof(buf), tmplog)) fputs(buf, log);
+            tmplog_offset = ftell(tmplog);
+            check_and_fclose(tmplog, TEMPORARY_LOG_FILE);
+        }
+        check_and_fclose(log, LOG_FILE);
+    }
 
     if (device_flash_type() == MTD) {
         // Reset to mormal system boot so recovery won't cycle indefinitely.
@@ -315,8 +352,10 @@ finish_recovery(const char *send_intent) {
     }
 
     // Remove the command file, so recovery won't repeat indefinitely.
-    if (ensure_path_mounted(COMMAND_FILE) != 0 ||
-        (unlink(COMMAND_FILE) && errno != ENOENT)) {
+    char path[PATH_MAX] = "";
+    if (ensure_root_path_mounted(COMMAND_FILE) != 0 ||
+        translate_root_path(COMMAND_FILE, path, sizeof(path)) == NULL ||
+        (unlink(path) && errno != ENOENT)) {
         LOGW("Can't unlink %s\n", COMMAND_FILE);
     }
 

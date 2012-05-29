@@ -122,7 +122,6 @@ char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
 #define ITEM_APPLY_SDCARD     1
 #define ITEM_SIG_CHECK        2
 #define ITEM_ASSERTS          3
-#define ITEM_CHOOSE_ZIP_INT   4
 
 void show_install_update_menu()
 {
@@ -130,9 +129,6 @@ void show_install_update_menu()
                                 "",
                                 NULL
     };
-
-    if (volume_for_path("/emmc") == NULL)
-        INSTALL_MENU_ITEMS[ITEM_CHOOSE_ZIP_INT] = NULL;
 
     for (;;)
     {
@@ -152,10 +148,7 @@ void show_install_update_menu()
                 break;
             }
             case ITEM_CHOOSE_ZIP:
-                show_choose_zip_menu("/sdcard/");
-                break;
-            case ITEM_CHOOSE_ZIP_INT:
-                show_choose_zip_menu("/emmc/");
+                show_choose_zip_menu();
                 break;
             default:
                 return;
@@ -347,7 +340,7 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
 
 void show_choose_zip_menu(const char *mount_point)
 {
-    if (ensure_path_mounted("/sdcard") != 0) {
+    if (ensure_root_path_mounted("SDCARD:") != 0) {
         LOGE ("Can't mount /sdcard\n");
         return;
     }
@@ -372,8 +365,8 @@ void show_choose_zip_menu(const char *mount_point)
 
 void show_nandroid_restore_menu(const char* path)
 {
-    if (ensure_path_mounted(path) != 0) {
-        LOGE("Can't mount %s\n", path);
+    if (ensure_root_path_mounted("SDCARD:") != 0) {
+        LOGE ("Can't mount /sdcard\n");
         return;
     }
 
@@ -638,6 +631,10 @@ int is_safe_to_format(char* name)
     return 1;
 }
 
+#define MOUNTABLE_COUNT 5
+#define MTD_COUNT 4
+#define MMC_COUNT 2
+
 void show_partition_menu()
 {
     static char* headers[] = {  "Mounts and Storage Menu",
@@ -645,129 +642,109 @@ void show_partition_menu()
                                 NULL
     };
 
-    static MountMenuEntry* mount_menue = NULL;
-    static FormatMenuEntry* format_menue = NULL;
-
     typedef char* string;
+    string mounts[MOUNTABLE_COUNT][3] = {
+        { "mount /system", "unmount /system", "SYSTEM:" },
+        { "mount /data", "unmount /data", "DATA:" },
+        { "mount /cache", "unmount /cache", "CACHE:" },
+        { "mount /sdcard", "unmount /sdcard", "SDCARD:" },
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+        { "mount /emmc", "unmount /emmc", "SDINTERNAL:" },
+#endif
+        { "mount /sd-ext", "unmount /sd-ext", "SDEXT:" }
+        };
 
-    int i, mountable_volumes, formatable_volumes;
-    int num_volumes;
-    Volume* device_volumes;
+    string mtds[MTD_COUNT][2] = {
+        { "format boot", "BOOT:" },
+        { "format system", "SYSTEM:" },
+        { "format data", "DATA:" },
+        { "format cache", "CACHE:" },
+    };
 
-    num_volumes = get_num_volumes();
-    device_volumes = get_device_volumes();
-
-    string options[255];
-
-    if(!device_volumes)
-		return;
-
-		mountable_volumes = 0;
-		formatable_volumes = 0;
-
-		mount_menue = malloc(num_volumes * sizeof(MountMenuEntry));
-		format_menue = malloc(num_volumes * sizeof(FormatMenuEntry));
-
-		for (i = 0; i < num_volumes; ++i) {
-			Volume* v = &device_volumes[i];
-			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0)
-			{
-				sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
-				sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
-				mount_menue[mountable_volumes].v = &device_volumes[i];
-				++mountable_volumes;
-				if (is_safe_to_format(v->mount_point)) {
-					sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
-					format_menue[formatable_volumes].v = &device_volumes[i];
-					++formatable_volumes;
-				}
-		    }
-		    else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
-		    {
-				sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
-				format_menue[formatable_volumes].v = &device_volumes[i];
-				++formatable_volumes;
-			}
-		}
-
+    string mmcs[MMC_COUNT][3] = {
+      { "format sdcard", "SDCARD:" },
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+      { "format internal sdcard", "SDINTERNAL:" },
+#endif
+      { "format sd-ext", "SDEXT:" }
+    };
 
     static char* confirm_format  = "Confirm format?";
     static char* confirm = "Yes - Format";
-    char confirm_string[255];
 
     for (;;)
     {
+        int ismounted[MOUNTABLE_COUNT];
+        int i;
+        static string options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1]; // mountables, format mtds, format mmcs, usb storage, null
+        for (i = 0; i < MOUNTABLE_COUNT; i++)
+        {
+            ismounted[i] = is_root_path_mounted(mounts[i][2]);
+            options[i] = ismounted[i] ? mounts[i][1] : mounts[i][0];
+        }
 
-		for (i = 0; i < mountable_volumes; i++)
-		{
-			MountMenuEntry* e = &mount_menue[i];
-			Volume* v = e->v;
-			if(is_path_mounted(v->mount_point))
-				options[i] = e->unmount;
-			else
-				options[i] = e->mount;
-		}
+        for (i = 0; i < MTD_COUNT; i++)
+        {
+            options[MOUNTABLE_COUNT + i] = mtds[i][0];
+        }
 
-		for (i = 0; i < formatable_volumes; i++)
-		{
-			FormatMenuEntry* e = &format_menue[i];
+        for (i = 0; i < MMC_COUNT; i++)
+        {
+            options[MOUNTABLE_COUNT + MTD_COUNT + i] = mmcs[i][0];
+        }
 
-			options[mountable_volumes+i] = e->txt;
-		}
-
-        options[mountable_volumes+formatable_volumes] = "mount USB storage";
-        options[mountable_volumes+formatable_volumes + 1] = NULL;
+        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT] = "mount USB storage";
+        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1] = NULL;
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
-        if (chosen_item == (mountable_volumes+formatable_volumes))
+        if (chosen_item == MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT)
         {
             show_mount_usb_storage_menu();
         }
-        else if (chosen_item < mountable_volumes)
+        else if (chosen_item < MOUNTABLE_COUNT)
         {
-			MountMenuEntry* e = &mount_menue[chosen_item];
-            Volume* v = e->v;
-
-            if (is_path_mounted(v->mount_point))
+            if (ismounted[chosen_item])
             {
-                if (0 != ensure_path_unmounted(v->mount_point))
-                    ui_print("Error unmounting %s!\n", v->mount_point);
+                if (0 != ensure_root_path_unmounted(mounts[chosen_item][2]))
+                    ui_print("Error unmounting %s!\n", mounts[chosen_item][2]);
             }
             else
             {
-                if (0 != ensure_path_mounted(v->mount_point))
-                    ui_print("Error mounting %s!\n",  v->mount_point);
+                if (0 != ensure_root_path_mounted(mounts[chosen_item][2]))
+                    ui_print("Error mounting %s!\n", mounts[chosen_item][2]);
             }
         }
-        else if (chosen_item < (mountable_volumes + formatable_volumes))
+        else if (chosen_item < MOUNTABLE_COUNT + MTD_COUNT)
         {
-            chosen_item = chosen_item - mountable_volumes;
-            FormatMenuEntry* e = &format_menue[chosen_item];
-            Volume* v = e->v;
-
-            sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
-
-            if (!confirm_selection(confirm_string, confirm))
+            chosen_item = chosen_item - MOUNTABLE_COUNT;
+            if (!confirm_selection(confirm_format, confirm))
                 continue;
-            ui_print("Formatting %s...\n", v->mount_point);
-            if (0 != format_volume(v->mount_point))
-                ui_print("Error formatting %s!\n", v->mount_point);
+            ui_print("Formatting %s...\n", mtds[chosen_item][1]);
+            if (0 != format_root_device(mtds[chosen_item][1]))
+                ui_print("Error formatting %s!\n", mtds[chosen_item][1]);
+            else
+                ui_print("Done.\n");
+        }
+        else if (chosen_item < MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT)
+        {
+            chosen_item = chosen_item - MOUNTABLE_COUNT - MTD_COUNT;
+            if (!confirm_selection(confirm_format, confirm))
+                continue;
+            ui_print("Formatting %s...\n", mmcs[chosen_item][1]);
+            if (0 != format_non_mtd_device(mmcs[chosen_item][1]))
+                ui_print("Error formatting %s!\n", mmcs[chosen_item][1]);
             else
                 ui_print("Done.\n");
         }
     }
-
-    free(mount_menue);
-    free(format_menue);
-
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
 {
-    if (ensure_path_mounted(path) != 0) {
-        LOGE ("Can't mount sdcard\n");
+    if (ensure_root_path_mounted("SDCARD:") != 0) {
+        LOGE ("Can't mount /sdcard\n");
         return;
     }
 
