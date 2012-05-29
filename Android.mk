@@ -19,7 +19,6 @@ LOCAL_SRC_FILES := \
     mounts.c \
     extendedcommands.c \
     nandroid.c \
-    legacy.c \
     ../../system/core/toolbox/reboot.c \
     firmware.c \
     edifyscripting.c \
@@ -39,7 +38,7 @@ else
 RECOVERY_NAME := CWMT Recovery
 endif
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v5.0.2.7-amend
+RECOVERY_VERSION := $(RECOVERY_NAME) v5.0.2.7-battery-ind
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
@@ -144,7 +143,6 @@ include $(BUILD_EXECUTABLE)
 
 include $(commands_recovery_local_path)/dedupe/Android.mk
 
-include $(commands_recovery_local_path)/amend/Android.mk
 include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/libcrecovery/Android.mk
@@ -154,6 +152,7 @@ include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk
 include $(commands_recovery_local_path)/edify/Android.mk
+include $(commands_recovery_local_path)/amend/Android.mk
 include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/utilities/Android.mk
