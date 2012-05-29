@@ -15,6 +15,7 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := make-update-script
 LOCAL_SRC_FILES := make-update-script.c
 include $(BUILD_HOST_EXECUTABLE)

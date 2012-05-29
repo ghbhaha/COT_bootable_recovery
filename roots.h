@@ -18,6 +18,27 @@
 #define RECOVERY_ROOTS_H_
 
 #include "common.h"
+#include "minzip/Zip.h"
+#include "mtdutils/mtdutils.h"
+
+/* Any of the "root_path" arguments can be paths with relative
+ * components, like "SYSTEM:a/b/c".
+ */
+
+/* Associate this package with the package root "PKG:".
+ */
+int register_package_root(const ZipArchive *package, const char *package_path);
+
+/* Returns non-zero iff root_path points inside a package.
+ */
+int is_package_root_path(const char *root_path);
+
+/* Takes a string like "SYSTEM:lib" and turns it into a string
+ * like "/system/lib".  The translated path is put in out_buf,
+ * and out_buf is returned if the translation succeeded.
+ */
+const char *translate_root_path(const char *root_path,
+        char *out_buf, size_t out_buf_len);
 
 // Load and parse volume data from /etc/recovery.fstab.
 void load_volume_table();
@@ -45,5 +66,10 @@ Volume* get_device_volumes();
 
 int is_data_media();
 void setup_data_media();
+
+/* "root" must be the exact name of the root; no relative path is permitted.
+ * If the named root is mounted, this will attempt to unmount it first.
+ */
+int format_root_device(const char *root);
 
 #endif  // RECOVERY_ROOTS_H_

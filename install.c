@@ -434,8 +434,8 @@ install_package(const char *path)
 
     /* Try to open the package.
      */
-    ZipArchive zip;
-    err = mzOpenZipArchive(path, &zip);
+    struct ZipArchive* zip;
+    err = mzOpenZipArchive(path, zip);
     if (err != 0) {
         LOGE("Can't open %s\n(%s)\n", path, err != -1 ? strerror(err) : "bad");
         return INSTALL_CORRUPT;
@@ -464,5 +464,5 @@ install_package(const char *path)
     }
     int ret = handle_update_script(zip, script_entry);
     register_package_root(NULL, NULL);  // Unregister package root
-    return return result;
+    return result;
 }
