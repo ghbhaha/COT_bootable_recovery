@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 
 #include "bootloader.h"
+#include "commands.h"
 #include "common.h"
 #include "cutils/properties.h"
 #include "install.h"
@@ -699,6 +700,23 @@ sdcard_directory(const char* path) {
     return result;
 }
 
+#define TEST_AMEND 0
+#if TEST_AMEND
+static void
+test_amend()
+{
+    extern int test_symtab(void);
+    extern int test_cmd_fn(void);
+    int ret;
+    LOGD("Testing symtab...\n");
+    ret = test_symtab();
+    LOGD("  returned %d\n", ret);
+    LOGD("Testing cmd_fn...\n");
+    ret = test_cmd_fn();
+    LOGD("  returned %d\n", ret);
+}
+#endif  // TEST_AMEND
+
 static void
 wipe_data(int confirm) {
     if (confirm) {
@@ -943,6 +961,14 @@ main(int argc, char **argv) {
 
     property_list(print_property, NULL);
     printf("\n");
+
+#if TEST_AMEND
+    test_amend();
+#endif
+    RecoveryCommandContext ctx = { NULL };
+    if (register_update_commands(&ctx)) {
+        LOGE("Can't install update commands\n");
+    }
 
     int status = INSTALL_SUCCESS;
 

@@ -10,6 +10,7 @@ commands_recovery_local_path := $(LOCAL_PATH)
 LOCAL_SRC_FILES := \
     recovery.c \
     bootloader.c \
+    commands.c \
     install.c \
     roots.c \
     ui.c \

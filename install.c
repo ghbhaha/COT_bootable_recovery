@@ -22,6 +22,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "amend/amend.h"
 #include "common.h"
 #include "install.h"
 #include "mincrypt/rsa.h"
@@ -41,6 +42,79 @@
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
 #define ASSUMED_UPDATE_SCRIPT_NAME  "META-INF/com/google/android/update-script"
 #define PUBLIC_KEYS_FILE "/res/keys"
+
+static const ZipEntry *
+
+find_update_script(ZipArchive *zip)
+{
+//TODO: Get the location of this script from the MANIFEST.MF file
+    return mzFindZipEntry(zip, ASSUMED_UPDATE_SCRIPT_NAME);
+}
+
+static int read_data(ZipArchive *zip, const ZipEntry *entry,
+        char** ppData, int* pLength) {
+    int len = (int)mzGetZipEntryUncompLen(entry);
+    if (len <= 0) {
+        LOGE("Bad data length %d\n", len);
+        return -1;
+    }
+    char *data = malloc(len + 1);
+    if (data == NULL) {
+        LOGE("Can't allocate %d bytes for data\n", len + 1);
+        return -2;
+    }
+    bool ok = mzReadZipEntry(zip, entry, data, len);
+    if (!ok) {
+        LOGE("Error while reading data\n");
+        free(data);
+        return -3;
+    }
+    data[len] = '\0';     // not necessary, but just to be safe
+    *ppData = data;
+    if (pLength) {
+        *pLength = len;
+    }
+    return 0;
+}
+
+static int
+handle_update_script(ZipArchive *zip, const ZipEntry *update_script_entry)
+{
+    /* Read the entire script into a buffer.
+     */
+    int script_len;
+    char* script_data;
+    if (read_data(zip, update_script_entry, &script_data, &script_len) < 0) {
+        LOGE("Can't read update script\n");
+        return INSTALL_ERROR;
+    }
+    /* Parse the script.  Note that the script and parse tree are never freed.
+     */
+    const AmCommandList *commands = parseAmendScript(script_data, script_len);
+    if (commands == NULL) {
+        LOGE("Syntax error in update script\n");
+        return INSTALL_ERROR;
+    } else {
+        UnterminatedString name = mzGetZipEntryFileName(update_script_entry);
+        LOGI("Parsed %.*s\n", name.len, name.str);
+    }
+    /* Execute the script.
+     */
+    int ret = execCommandList((ExecContext *)1, commands);
+    if (ret != 0) {
+        int num = ret;
+        char *line = NULL, *next = script_data;
+        while (next != NULL && ret-- > 0) {
+            line = next;
+            next = memchr(line, '\n', script_data + script_len - line);
+            if (next != NULL) *next++ = '\0';
+        }
+        LOGE("Failure at line %d:\n%s\n", num, next ? line : "(not found)");
+        return INSTALL_ERROR;
+    }
+    LOGI("Installation complete.\n");
+    return INSTALL_SUCCESS;
+}
 
 // The update binary ask us to install a firmware file on reboot.  Set
 // that up.  Takes ownership of type and filename.
@@ -108,21 +182,6 @@ static int
 try_update_binary(const char *path, ZipArchive *zip) {
     const ZipEntry* binary_entry =
             mzFindZipEntry(zip, ASSUMED_UPDATE_BINARY_NAME);
-    if (binary_entry == NULL) {
-        const ZipEntry* update_script_entry =
-                mzFindZipEntry(zip, ASSUMED_UPDATE_SCRIPT_NAME);
-        if (update_script_entry != NULL) {
-            ui_print("Amend scripting (update-script) is no longer supported.\n");
-            ui_print("Amend scripting was deprecated by Google in Android 1.5.\n");
-            ui_print("It was necessary to remove it when upgrading to the ClockworkMod 3.0 Gingerbread based recovery.\n");
-            ui_print("Please switch to Edify scripting (updater-script and update-binary) to create working update zip packages.\n");
-            return INSTALL_UPDATE_BINARY_MISSING;
-        }
-
-        mzCloseZipArchive(zip);
-        return INSTALL_UPDATE_BINARY_MISSING;
-    }
-
     char* binary = "/tmp/update_binary";
     unlink(binary);
     int fd = creat(binary, 0755);
@@ -385,5 +444,25 @@ install_package(const char *path)
     /* Verify and install the contents of the package.
      */
     ui_print("Installing update...\n");
-    return try_update_binary(path, &zip);
+    int result = try_update_binary(path, zip);
+        if (result == INSTALL_SUCCESS || result == INSTALL_ERROR) {
+        register_package_root(NULL, NULL);  // Unregister package root
+        return result;
+    }
+    // if INSTALL_CORRUPT is returned, this package doesn't have an
+    // update binary.  Fall back to the older mechanism of looking for
+    // an update script.
+    const ZipEntry *script_entry;
+    script_entry = find_update_script(zip);
+    if (script_entry == NULL) {
+        LOGE("Can't find update script\n");
+        return INSTALL_CORRUPT;
+    }
+    if (register_package_root(zip, path) < 0) {
+        LOGE("Can't register package root\n");
+        return INSTALL_ERROR;
+    }
+    int ret = handle_update_script(zip, script_entry);
+    register_package_root(NULL, NULL);  // Unregister package root
+    return return result;
 }
