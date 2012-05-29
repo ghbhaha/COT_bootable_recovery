@@ -80,6 +80,38 @@ int install_zip(const char* packagefilepath)
     return 0;
 }
 
+int format_non_mtd_device(const char* root)
+{
+    // if this is SDEXT:, don't worry about it.
+    if (0 == strcmp(root, "SDEXT:"))
+    {
+        struct stat st;
+        if (0 != stat("/dev/block/mmcblk0p2", &st))
+        {
+            ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
+            return 0;
+        }
+    }
+
+    char path[PATH_MAX];
+    translate_root_path(root, path, PATH_MAX);
+    if (0 != ensure_root_path_mounted(root))
+    {
+        ui_print("Error mounting %s!\n", path);
+        ui_print("Skipping format...\n");
+        return 0;
+    }
+
+    static char tmp[PATH_MAX];
+    sprintf(tmp, "rm -rf %s/*", path);
+    __system(tmp);
+    sprintf(tmp, "rm -rf %s/.*", path);
+    __system(tmp);
+    
+    ensure_root_path_unmounted(root);
+    return 0;
+}
+
 char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
                                 "apply /sdcard/update.zip",
                                 "toggle signature verification",
