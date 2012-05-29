@@ -64,9 +64,9 @@ static int detect_partition(const char *partitionType, const char *partition)
 
     return type;
 }
-int restore_raw_partition(const char* partitionType, const char *partition, const char *filename)
+int restore_raw_partition(const char *partition, const char *filename)
 {
-    int type = detect_partition(partitionType, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_restore_raw_partition(partition, filename);
@@ -79,9 +79,9 @@ int restore_raw_partition(const char* partitionType, const char *partition, cons
     }
 }
 
-int backup_raw_partition(const char* partitionType, const char *partition, const char *filename)
+int backup_raw_partition(const char *partition, const char *filename)
 {
-    int type = detect_partition(partitionType, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_backup_raw_partition(partition, filename);
@@ -90,14 +90,13 @@ int backup_raw_partition(const char* partitionType, const char *partition, const
         case BML:
             return cmd_bml_backup_raw_partition(partition, filename);
         default:
-            printf("unable to detect device type");
             return -1;
     }
 }
 
-int erase_raw_partition(const char* partitionType, const char *partition)
+int erase_raw_partition(const char *partition)
 {
-    int type = detect_partition(partitionType, partition);
+    int type = device_flash_type();
     switch (type) {
         case MTD:
             return cmd_mtd_erase_raw_partition(partition);

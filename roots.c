@@ -32,34 +32,32 @@
 #include "extendedcommands.h"
 #include "extracommands.h"
 
-typedef struct {
-    const char *name;
-    const char *device;
-    const char *device2;  // If the first one doesn't work (may be NULL)
-    const char *partition_name;
-    const char *mount_point;
-    const char *filesystem;
-    const char *filesystem_options;
-} RootInfo;
-
 /* Canonical pointers.
 xxx may just want to use enums
  */
+static const char g_default_device[] = "@\0g_default_device";
 static const char g_mtd_device[] = "@\0g_mtd_device";
 static const char g_raw[] = "@\0g_raw";
 static const char g_package_file[] = "@\0g_package_file";
 
 static RootInfo g_roots[] = {
-    { "BOOT:", g_mtd_device, NULL, "boot", NULL, g_raw, NULL },
-    { "CACHE:", g_mtd_device, NULL, "cache", "/cache", "yaffs2", NULL },
-    { "DATA:", g_mtd_device, NULL, "userdata", "/data", "yaffs2", NULL },
-    { "MISC:", g_mtd_device, NULL, "misc", NULL, g_raw, NULL },
+    { "BOOT:", g_default_device, NULL, "boot", NULL, g_raw, NULL },
+    { "CACHE:", BOARD_CACHE_DEVICE, NULL, "cache", "/cache", BOARD_CACHE_FILESYSTEM, BOARD_CACHE_FILESYSTEM_OPTIONS },
+    { "DATA:", BOARD_DATA_DEVICE, NULL, "userdata", "/data", BOARD_DATA_FILESYSTEM, BOARD_DATA_FILESYSTEM_OPTIONS },
+#ifdef BOARD_HAS_DATADATA
+    { "DATADATA:", BOARD_DATADATA_DEVICE, NULL, "datadata", "/datadata", BOARD_DATADATA_FILESYSTEM, BOARD_DATADATA_FILESYSTEM_OPTIONS },
+#endif
+    { "MISC:", g_default_device, NULL, "misc", NULL, g_raw, NULL },
+    { "PERSIST:", g_default_device, NULL, "persist", NULL, g_raw, NULL },
     { "PACKAGE:", NULL, NULL, NULL, NULL, g_package_file, NULL },
-    { "RECOVERY:", g_mtd_device, NULL, "recovery", "/", g_raw, NULL },
-    { "SDCARD:", "/dev/block/mmcblk0p1", "/dev/block/mmcblk0", NULL, "/sdcard", "vfat", NULL },
-    { "SDEXT:", "/dev/block/mmcblk0p2", NULL, NULL, "/sd-ext", "auto", NULL },
-    { "SYSTEM:", g_mtd_device, NULL, "system", "/system", "yaffs2", NULL },
-    { "MBM:", g_mtd_device, NULL, "mbm", NULL, g_raw, NULL },
+    { "RECOVERY:", g_default_device, NULL, "recovery", "/", g_raw, NULL },
+    { "SDCARD:", BOARD_SDCARD_DEVICE_PRIMARY, BOARD_SDCARD_DEVICE_SECONDARY, NULL, "/sdcard", "vfat", NULL },
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+    { "SDINTERNAL:", BOARD_SDCARD_DEVICE_INTERNAL, NULL, NULL, "/emmc", "vfat", NULL },
+#endif
+    { "SDEXT:", BOARD_SDEXT_DEVICE, NULL, NULL, "/sd-ext", BOARD_SDEXT_FILESYSTEM, NULL },
+    { "SYSTEM:", BOARD_SYSTEM_DEVICE, NULL, "system", "/system", BOARD_SYSTEM_FILESYSTEM, BOARD_SYSTEM_FILESYSTEM_OPTIONS },
+    { "MBM:", g_default_device, NULL, "mbm", NULL, g_raw, NULL },
     { "TMP:", NULL, NULL, NULL, "/tmp", NULL, NULL },
 };
 #define NUM_ROOTS (sizeof(g_roots) / sizeof(g_roots[0]))
@@ -233,6 +231,8 @@ ensure_root_path_mounted(const char *root_path)
 {
     const RootInfo *info = get_root_info_for_path(root_path);
     if (info == NULL) {
+	ui_print(root_path, "\n");
+	ui_print("Info = NULL\n");
         return -1;
     }
 
@@ -245,35 +245,31 @@ ensure_root_path_mounted(const char *root_path)
 
     /* It's not mounted.
      */
-    if (info->device == g_mtd_device) {
-        if (info->partition_name == NULL) {
-            return -1;
-        }
-//TODO: make the mtd stuff scan once when it needs to
-        mtd_scan_partitions();
-        const MtdPartition *partition;
-        partition = mtd_find_partition_by_name(info->partition_name);
-        if (partition == NULL) {
-            return -1;
-        }
-        return mtd_mount_partition(partition, info->mount_point,
-                info->filesystem, 0);
-    }
-
     if (info->device == NULL || info->mount_point == NULL ||
         info->filesystem == NULL ||
         info->filesystem == g_raw ||
         info->filesystem == g_package_file) {
+	ui_print("Nothing works here\n");
         return -1;
+    }
+
+    if (info->device == g_default_device) {
+        if (info->partition_name == NULL) {
+	    ui_print("Partition name = NULL\n");
+            return -1;
+        }
+        return mount_partition(info->partition_name, info->mount_point, info->filesystem, 0);
     }
 
     mkdir(info->mount_point, 0755);  // in case it doesn't already exist
     if (mount_internal(info->device, info->mount_point, info->filesystem, info->filesystem_options)) {
         if (info->device2 == NULL) {
+	    ui_print("First cant mount\n");
             LOGE("Can't mount %s\n(%s)\n", info->device, strerror(errno));
             return -1;
         } else if (mount(info->device2, info->mount_point, info->filesystem,
                 MS_NOATIME | MS_NODEV | MS_NODIRATIME, "")) {
+	    ui_print("Second cant mount\n");
             LOGE("Can't mount %s (or %s)\n(%s)\n",
                     info->device, info->device2, strerror(errno));
             return -1;
@@ -313,6 +309,19 @@ ensure_root_path_unmounted(const char *root_path)
     return unmount_mounted_volume(volume);
 }
 
+int
+get_root_partition_device(const char *root_path, char *device)
+{
+    const RootInfo *info = get_root_info_for_path(root_path);
+    if (info == NULL)
+    {
+        return NULL;
+    }
+    if (info->device == g_default_device)
+        return get_partition_device(info->partition_name, device);
+    return info->device;
+}
+
 const MtdPartition *
 get_root_mtd_partition(const char *root_path)
 {
@@ -348,7 +357,8 @@ format_root_device(const char *root)
         LOGW("format_root_device: can't resolve \"%s\"\n", root);
         return -1;
     }
-    if (info->mount_point != NULL && info->device == g_mtd_device) {
+
+    if (info->mount_point != NULL && info->device == g_default_device) {
         /* Don't try to format a mounted device.
          */
         int ret = ensure_root_path_unmounted(root);
@@ -360,33 +370,18 @@ format_root_device(const char *root)
 
     /* Format the device.
      */
-    if (info->device == g_mtd_device) {
-        mtd_scan_partitions();
-        const MtdPartition *partition;
-        partition = mtd_find_partition_by_name(info->partition_name);
-        if (partition == NULL) {
-            LOGW("format_root_device: can't find mtd partition \"%s\"\n",
-                    info->partition_name);
-            return -1;
-        }
-        if (info->filesystem == g_raw || !strcmp(info->filesystem, "yaffs2")) {
-            MtdWriteContext *write = mtd_write_partition(partition);
-            if (write == NULL) {
-                LOGW("format_root_device: can't open \"%s\"\n", root);
-                return -1;
-            } else if (mtd_erase_blocks(write, -1) == (off_t) -1) {
-                LOGW("format_root_device: can't erase \"%s\"\n", root);
-                mtd_write_close(write);
-                return -1;
-            } else if (mtd_write_close(write)) {
-                LOGW("format_root_device: can't close \"%s\"\n", root);
-                return -1;
-            } else {
-                return 0;
-            }
-        }
+    if (info->device == g_default_device) {
+        int ret = 0;
+        if (info->filesystem == g_raw)
+            ret = erase_raw_partition(info->partition_name);
+        else
+            ret = erase_partition(info->partition_name, info->filesystem);
+        
+        if (ret != 0)
+            LOGE("Error erasing device %s\n", info->device);
+        return ret;
     }
-    
+
     return format_non_mtd_device(root);
 }
 
@@ -428,9 +423,9 @@ void load_volume_table() {
     device_volumes[0].fs_options2 = NULL;
     num_volumes = 1;
 
-    FILE* fstab = fopen("/etc/recovery.fstab", "r");
+    FILE* fstab = fopen("/etc/fstab", "r");
     if (fstab == NULL) {
-        LOGE("failed to open /etc/recovery.fstab (%s)\n", strerror(errno));
+        LOGE("failed to open /etc/fstab (%s)\n", strerror(errno));
         return;
     }
 

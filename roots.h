@@ -19,7 +19,83 @@
 
 #include "common.h"
 #include "minzip/Zip.h"
+#include "flashutils/flashutils.h"
 #include "mtdutils/mtdutils.h"
+#include "mmcutils/mmcutils.h"
+
+#ifndef BOARD_USES_MMCUTILS
+#define DEFAULT_FILESYSTEM "yaffs2"
+#else
+#define DEFAULT_FILESYSTEM "ext3"
+#endif
+
+#ifndef BOARD_SDCARD_DEVICE_PRIMARY
+#define BOARD_SDCARD_DEVICE_PRIMARY "/dev/block/mmcblk0p1"
+#endif
+
+#ifndef BOARD_SDCARD_DEVICE_SECONDARY
+#define BOARD_SDCARD_DEVICE_SECONDARY "/dev/block/mmcblk0"
+#endif
+
+#ifndef BOARD_SDCARD_DEVICE_INTERNAL
+#define BOARD_SDCARD_DEVICE_INTERNAL g_default_device
+#endif
+
+#ifndef BOARD_SDEXT_DEVICE
+#define BOARD_SDEXT_DEVICE "/dev/block/mmcblk0p2"
+#endif
+
+#ifndef BOARD_SDEXT_FILESYSTEM
+#define BOARD_SDEXT_FILESYSTEM "auto"
+#endif
+
+#ifndef BOARD_DATA_DEVICE
+#define BOARD_DATA_DEVICE g_default_device
+#endif
+
+#ifndef BOARD_DATA_FILESYSTEM
+#define BOARD_DATA_FILESYSTEM DEFAULT_FILESYSTEM
+#endif
+
+#ifndef BOARD_DATADATA_DEVICE
+#define BOARD_DATADATA_DEVICE g_default_device
+#endif
+
+#ifndef BOARD_DATADATA_FILESYSTEM
+#define BOARD_DATADATA_FILESYSTEM DEFAULT_FILESYSTEM
+#endif
+
+#ifndef BOARD_CACHE_DEVICE
+#define BOARD_CACHE_DEVICE g_default_device
+#endif
+
+#ifndef BOARD_CACHE_FILESYSTEM
+#define BOARD_CACHE_FILESYSTEM DEFAULT_FILESYSTEM
+#endif
+
+#ifndef BOARD_SYSTEM_DEVICE
+#define BOARD_SYSTEM_DEVICE g_default_device
+#endif
+
+#ifndef BOARD_SYSTEM_FILESYSTEM
+#define BOARD_SYSTEM_FILESYSTEM DEFAULT_FILESYSTEM
+#endif
+
+#ifndef BOARD_DATA_FILESYSTEM_OPTIONS
+#define BOARD_DATA_FILESYSTEM_OPTIONS NULL
+#endif
+
+#ifndef BOARD_CACHE_FILESYSTEM_OPTIONS
+#define BOARD_CACHE_FILESYSTEM_OPTIONS NULL
+#endif
+
+#ifndef BOARD_DATADATA_FILESYSTEM_OPTIONS
+#define BOARD_DATADATA_FILESYSTEM_OPTIONS NULL
+#endif
+
+#ifndef BOARD_SYSTEM_FILESYSTEM_OPTIONS
+#define BOARD_SYSTEM_FILESYSTEM_OPTIONS NULL
+#endif
 
 /* Any of the "root_path" arguments can be paths with relative
  * components, like "SYSTEM:a/b/c".
@@ -71,5 +147,15 @@ void setup_data_media();
  * If the named root is mounted, this will attempt to unmount it first.
  */
 int format_root_device(const char *root);
+
+typedef struct {
+    const char *name;
+    const char *device;
+    const char *device2;  // If the first one doesn't work (may be NULL)
+    const char *partition_name;
+    const char *mount_point;
+    const char *filesystem;
+    const char *filesystem_options;
+} RootInfo;
 
 #endif  // RECOVERY_ROOTS_H_

@@ -17,7 +17,15 @@
 #ifndef _RECOVERY_VERIFIER_H
 #define _RECOVERY_VERIFIER_H
 
+#include "minzip/Zip.h"
 #include "mincrypt/rsa.h"
+
+/*
+ * Check the digital signature (as applied by jarsigner) on a Zip archive.
+ * Every file in the archive must be signed by one of the supplied RSA keys.
+ */
+bool verify_jar_signature(const ZipArchive *pArchive,
+        const RSAPublicKey *pKeys, int numKeys);
 
 /* Look in the file for a signature footer, and verify that it
  * matches one of the given keys.  Return one of the constants below.
