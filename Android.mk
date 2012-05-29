@@ -58,16 +58,11 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 
 LOCAL_MODULE_TAGS := eng
 
-LOCAL_STATIC_LIBRARIES :=
-ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
-  LOCAL_SRC_FILES += default_recovery_ui.c
-else
-  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
-endif
+LOCAL_SRC_FILES += default_recovery_ui.c
 
-LOCAL_STATIC_LIBRARIES += librebootrecovery
+LOCAL_STATIC_LIBRARIES := librebootrecovery
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
-LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
+LOCAL_STATIC_LIBRARIES += libminzip libunz libamend libmincrypt
 
 LOCAL_STATIC_LIBRARIES += libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
@@ -84,7 +79,7 @@ LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 include $(BUILD_EXECUTABLE)
 
-RECOVERY_LINKS := edify busybox flash_image dump_image mkyaffs2image unyaffs erase_image nandroid reboot volume setprop
+RECOVERY_LINKS := amend edify busybox flash_image dump_image mkyaffs2image unyaffs erase_image nandroid reboot volume setprop
 
 # nc is provided by external/netcat
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
