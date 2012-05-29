@@ -326,10 +326,15 @@ const MtdPartition *
 get_root_mtd_partition(const char *root_path)
 {
     const RootInfo *info = get_root_info_for_path(root_path);
-    if (info == NULL || info->device != g_mtd_device ||
+    if (info == NULL || info->device != g_default_device ||
             info->partition_name == NULL)
     {
+#ifdef BOARD_HAS_MTD_CACHE
+        if (strcmp(root_path, "CACHE:") != 0)
+            return NULL;
+#else
         return NULL;
+#endif
     }
     mtd_scan_partitions();
     return mtd_find_partition_by_name(info->partition_name);
@@ -423,7 +428,7 @@ void load_volume_table() {
     device_volumes[0].fs_options2 = NULL;
     num_volumes = 1;
 
-    FILE* fstab = fopen("/etc/fstab", "r");
+    FILE* fstab = fopen("/etc/recovery.fstab", "r");
     if (fstab == NULL) {
         LOGE("failed to open /etc/fstab (%s)\n", strerror(errno));
         return;

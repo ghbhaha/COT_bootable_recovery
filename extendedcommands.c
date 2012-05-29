@@ -116,7 +116,6 @@ char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
                                 "apply /sdcard/update.zip",
                                 "toggle signature verification",
                                 "toggle script asserts",
-                                "choose zip from internal sdcard",
                                 NULL };
 #define ITEM_CHOOSE_ZIP       0
 #define ITEM_APPLY_SDCARD     1
@@ -1148,21 +1147,21 @@ void create_fstab()
 {
     struct stat info;
     __system("touch /etc/mtab");
-    FILE *file = fopen("/etc/recovery.fstab", "w");
+    FILE *file = fopen("/etc/fstab", "w");
     if (file == NULL) {
         LOGW("Unable to create /etc/fstab!\n");
         return;
     }
     Volume *vol = volume_for_path("/boot");
     if (NULL != vol && strcmp(vol->fs_type, "mtd") != 0 && strcmp(vol->fs_type, "emmc") != 0 && strcmp(vol->fs_type, "bml") != 0)
-         write_fstab_root("/boot", file);
-    write_fstab_root("/cache", file);
-    write_fstab_root("/data", file);
-    write_fstab_root("/datadata", file);
-    write_fstab_root("/emmc", file);
-    write_fstab_root("/system", file);
-    write_fstab_root("/sdcard", file);
-    write_fstab_root("/sd-ext", file);
+    write_fstab_root("CACHE:", file);
+    write_fstab_root("DATA:", file);
+#ifdef BOARD_HAS_DATADATA
+    write_fstab_root("DATADATA:", file);
+#endif
+    write_fstab_root("SYSTEM:", file);
+    write_fstab_root("SDCARD:", file);
+    write_fstab_root("SDEXT:", file);
     fclose(file);
     LOGI("Completed outputting fstab.\n");
 }
