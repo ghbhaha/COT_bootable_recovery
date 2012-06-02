@@ -328,7 +328,8 @@ int nandroid_backup(const char* backup_path)
 
 typedef int (*format_function)(char* root);
 
-static void ensure_directory(const char* dir) {
+// remove static tag from this to allow us to make use of it elseware
+void ensure_directory(const char* dir) {
     char tmp[PATH_MAX];
     sprintf(tmp, "mkdir -p %s", dir);
     __system(tmp);
