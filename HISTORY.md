@@ -41,3 +41,6 @@
 
 ### 05/18/2012
 * Included ICS ext4_utils are not being utilized properly, format options will not work unless the gingerbread versions are replaced with the included version.
+
+### 06/03/2012
+* Added partition sdcard back into extended commands (still disabled) for rom manager compat.

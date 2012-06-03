@@ -1040,7 +1040,8 @@ void show_advanced_menu()
                             "Wipe Dalvik Cache",
                             "Report Error",
                             "Show log",
-                            "Fix Permissions",
+							"Partition SD Card",
+							"Fix Permissions",
                             "Set UI Color",
                             NULL
     };
@@ -1103,6 +1104,11 @@ void show_advanced_menu()
             }
             case 4:
             {
+				ui_print("Disabled for this device!\n");
+				break;
+			}
+            case 5:
+            {
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
                 ui_print("Fixing permissions...\n");
@@ -1110,7 +1116,7 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 5: 
+            case 6: 
             {
 			  static char* ui_colors[] = {"Red (default)",
 									"Cyan",
