@@ -17,6 +17,9 @@
 #include <linux/input.h>
 #include "recovery_ui.h"
 
+// Include extendedcommands.h in order to get our custom ui colors
+#include "extendedcommands.h"
+
 //these are included in the original kernel's linux/input.h but are missing from AOSP
 
 #ifndef SYN_MT_REPORT
@@ -78,28 +81,29 @@ static int ui_log_stdout = 1;
 static int selMenuIcon = 0;
 
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
-    { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    { &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    { &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
+	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
 	{ &gMenuIcon[MENU_BACK],      "icon_back" },
-    { &gMenuIcon[MENU_DOWN],  	  "icon_down" },
-    { &gMenuIcon[MENU_UP], 		  "icon_up" },
-    { &gMenuIcon[MENU_SELECT],    "icon_select" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select" },
 	{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
-    { &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
-    { &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
-    { &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
-    { &gProgressBarIndeterminate[0],    "indeterminate1" },
-    { &gProgressBarIndeterminate[1],    "indeterminate2" },
-    { &gProgressBarIndeterminate[2],    "indeterminate3" },
-    { &gProgressBarIndeterminate[3],    "indeterminate4" },
-    { &gProgressBarIndeterminate[4],    "indeterminate5" },
-    { &gProgressBarIndeterminate[5],    "indeterminate6" },
-    { &gProgressBarEmpty,               "progress_empty" },
-    { &gProgressBarFill,                "progress_fill" },
-    { NULL,                             NULL },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
+    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
+    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
+    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
+    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
+    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
+    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
+    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
+    	{ &gProgressBarEmpty,               "progress_empty" },
+    	{ &gProgressBarFill,                "progress_fill" },
+    	{ NULL,                             NULL },
 };
 
 static gr_surface gCurrentIcon = NULL;
@@ -230,8 +234,7 @@ static void draw_text_line(int row, const char* t) {
   }
 }
 
-//#define MENU_TEXT_COLOR 255, 160, 49, 255
-#define MENU_TEXT_COLOR 0, 191, 255, 255
+//#define MENU_TEXT_COLOR 255, 0, 0, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
@@ -265,7 +268,10 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_DOWN], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
 			draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
-            gr_color(MENU_TEXT_COLOR);
+            // Setup our text colors
+	    get_config_settings();
+	    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
                     gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
 
@@ -280,14 +286,14 @@ static void draw_screen_locked(void)
             else
                 j = menu_items - menu_show_start;
 
-            gr_color(MENU_TEXT_COLOR);
+            gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
             for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
                 if (i == menu_top + menu_sel) {
                     gr_color(255, 255, 255, 255);
                     draw_text_line(i - menu_show_start , menu[i]);
-                    gr_color(MENU_TEXT_COLOR);
+                    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
                 } else {
-                    gr_color(MENU_TEXT_COLOR);
+                    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
                     draw_text_line(i - menu_show_start, menu[i]);
                 }
                 row++;

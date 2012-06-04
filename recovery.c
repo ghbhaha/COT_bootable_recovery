@@ -877,7 +877,8 @@ prompt_and_wait() {
                 show_advanced_menu();
                 break;
 	    case ITEM_DOWNLOADROM:
-		show_download_rom_menu();
+		//show_download_rom_menu();
+		poweroff=1;
 		break;
             case ITEM_POWEROFF:
                 poweroff=1;
@@ -1067,7 +1068,19 @@ main(int argc, char **argv) {
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
-        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	if (UICOLOR3 == 0) {
+		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	} else if (UICOLOR3 == 1) {
+		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	} else if (UICOLOR3 == 2) {
+		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	} else if (UICOLOR3 == 3) {
+		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	} else if (UICOLOR3 == 4) {
+		ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+	} else {
+		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	}
 
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
