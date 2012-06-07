@@ -896,13 +896,13 @@ void wipe_battery_stats()
 }
 */
 
-/* Set the UI color to default red, give it it's own function to avoid
- * repeats and having to reboot on setting to default */
+/* Set the UI color to default (hydro), give it it's own function to
+ * avoid repeats and having to reboot on setting to default. */
 void set_ui_default() {
 	UICOLOR0 = 0;
 	UICOLOR1 = 191;
 	UICOLOR2 = 255;
-	UICOLOR3 = 0;
+	UICOLOR3 = HYDRO_UI;
 }
 
 /* Get the custom UI configuration settings; as you may be able to tell
@@ -920,6 +920,7 @@ void get_config_settings() {
 		UICOLOR1 = j;
 		UICOLOR2 = k;
 		UICOLOR3 = l;
+		fclose(in_file);
 		ensure_path_unmounted("/sdcard");
 	} else {
 		set_ui_default();
@@ -931,7 +932,6 @@ void get_config_settings() {
  * advanced menu */
 void set_config_file_contents(int i, int j, int k, int l) {
 	FILE *out_file;
-	int n;
 
 	ensure_path_mounted("/sdcard");
 	// Open the config file to confirm it's presence (to remove it).
@@ -944,25 +944,26 @@ void set_config_file_contents(int i, int j, int k, int l) {
 	__system("touch /sdcard/clockworkmod/.conf");
 	out_file = fopen(UI_CONFIG_FILE, "w");
 
-	// Write our integers in separate lines for easy reference
-	n = 0;
+	// Write our integers to 1 line separated by a space
 	fprintf(out_file, "%d ", i);
-	n++;
 	fprintf(out_file, "%d ", j);
-	n++;
 	fprintf(out_file, "%d ", k);
-	n++;
 	fprintf(out_file, "%d", l);
 
 	fclose(out_file);
 	ensure_path_unmounted("/sdcard");
 }	
 
-// This should really be done with a mapping instead of a switch.
+/* This should really be done with a struct instead of a switch...
+ * 
+ * n, m and o are to be tracked as our html color codes as UICOLOR0,
+ * UICOLOR1 and UICOLOR2 respectively. P is always equal to the case
+ * but should be defined by the UI color in use these colors are
+ * defined in common.h */
 void set_ui_color(int i) {
 	int n, m, o, p;
 	switch(i) {
-		case 0: {
+		case HYDRO_UI: {
 			/* Since Hydro is the default and the only thing handled
 			 * by our config file is color, simply remove it when
 			 * selecting default */
@@ -977,36 +978,36 @@ void set_ui_color(int i) {
 			 * later call of set_config_file_contents */
 			return;
 		}
-		case 1: {
+		case BLOOD_RED_UI: {
 			ui_print("Setting UI Color to Blood Red.\n");
 			n = 255;
 			m = 0;
 			o = 0;
-			p = 1;
+			p = BLOOD_RED_UI;
 			break;
 		}
-		case 2: {
+		case KEY_LIME_PIE_UI: {
 			ui_print("Setting UI Color to Key Lime Pie.\n");
 			n = 0;
 			m = 255;
 			o = 0;
-			p = 2;
+			p = KEY_LIME_PIE_UI;
 			break;
 		}
-		case 3: {
+		case CITRUS_ORANGE_UI: {
 			ui_print("Setting UI Color to Citrus Orange.\n");
 			n = 238;
 			m = 148;
 			o = 74;
-			p = 3;
+			p = CITRUS_ORANGE_UI;
 			break;
 		}
-		case 4: {
+		case DOODERBUTT_BLUE_UI: {
 			ui_print("Setting UI Color to Dooderbutt Blue.\n");
 			n = 0;
 			m = 0;
 			o = 255;
-			p = 4;
+			p = DOODERBUTT_BLUE_UI;
 			break;
 		}
 	}

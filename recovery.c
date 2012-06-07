@@ -1068,19 +1068,18 @@ main(int argc, char **argv) {
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
-	if (UICOLOR3 == 0) {
-		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-	} else if (UICOLOR3 == 1) {
-		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-	} else if (UICOLOR3 == 2) {
-		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-	} else if (UICOLOR3 == 3) {
-		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-	} else if (UICOLOR3 == 4) {
-		ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-	} else {
-		ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-	}
+        
+        // Append cases as neccessary
+        switch(UICOLOR3) {
+			// Use a define (in common.h) for easier color reference.
+			case DOODERBUTT_BLUE_UI:
+				ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+				break;
+			// Anything other than 4 is the clockwork icon
+			default:
+				ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+				break;
+		}
 
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
