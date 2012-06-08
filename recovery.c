@@ -531,8 +531,8 @@ static int compare_string(const void* a, const void* b) {
 }
 
 static int
-update_directory(const char* path, const char* unmount_when_done) {
-    ensure_path_mounted(path);
+sdcard_directory(const char* path) {
+    ensure_path_mounted(SDCARD_ROOT);
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
                                    path,
@@ -543,9 +543,7 @@ update_directory(const char* path, const char* unmount_when_done) {
     d = opendir(path);
     if (d == NULL) {
         LOGE("error opening %s: %s\n", path, strerror(errno));
-        if (unmount_when_done != NULL) {
-            ensure_path_unmounted(unmount_when_done);
-        }
+        ensure_path_unmounted(SDCARD_ROOT);
         return 0;
     }
 
@@ -610,7 +608,7 @@ update_directory(const char* path, const char* unmount_when_done) {
         char* item = zips[chosen_item];
         int item_len = strlen(item);
         if (chosen_item == 0) {          // item 0 is always "../"
-            // go up but continue browsing (if the caller is update_directory)
+            // go up but continue browsing (if the caller is sdcard_directory)
             result = -1;
             break;
         } else if (item[item_len-1] == '/') {
@@ -620,7 +618,7 @@ update_directory(const char* path, const char* unmount_when_done) {
             strlcat(new_path, "/", PATH_MAX);
             strlcat(new_path, item, PATH_MAX);
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
-            result = update_directory(new_path, unmount_when_done);
+            result = sdcard_directory(new_path);
             if (result >= 0) break;
         } else {
             // selected a zip file:  attempt to install it, and return
@@ -633,9 +631,7 @@ update_directory(const char* path, const char* unmount_when_done) {
             ui_print("\n-- Install %s ...\n", path);
             set_sdcard_update_bootloader_message();
             char* copy = copy_sideloaded_package(new_path);
-            if (unmount_when_done != NULL) {
-                ensure_path_unmounted(unmount_when_done);
-            }
+            ensure_path_unmounted(SDCARD_ROOT);
             if (copy) {
                 result = install_package(copy);
                 free(copy);
@@ -651,9 +647,7 @@ update_directory(const char* path, const char* unmount_when_done) {
     free(zips);
     free(headers);
 
-    if (unmount_when_done != NULL) {
-        ensure_path_unmounted(unmount_when_done);
-    }
+    ensure_path_unmounted(SDCARD_ROOT);
     return result;
 }
 
@@ -856,7 +850,7 @@ main(int argc, char **argv) {
         }
     }
 
-    //LOGI("device_recovery_start()\n");
+    LOGI("device_recovery_start()\n");
     device_recovery_start();
 
     printf("Command:");
@@ -905,7 +899,6 @@ main(int argc, char **argv) {
     } else if (wipe_data) {
         if (device_wipe_data()) status = INSTALL_ERROR;
         if (erase_volume("/data")) status = INSTALL_ERROR;
-        if (has_datadata() && erase_volume("/datadata")) status = INSTALL_ERROR;
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Data wipe failed.\n");
     } else if (wipe_cache) {

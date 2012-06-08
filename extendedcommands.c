@@ -438,9 +438,6 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         LOGE("unknown volume \"%s\"\n", path);
         return -1;
     }
-    if (strstr(path, "/data") == path && volume_for_path("/sdcard") == NULL && is_data_media()) {
-        return format_unknown_device(NULL, path, NULL);
-    }
     if (strcmp(fs_type, "ramdisk") == 0) {
         // you can't format the ramdisk.
         LOGE("can't format_volume \"%s\"", path);
@@ -595,7 +592,6 @@ int is_safe_to_format(char* name)
      * to be safe we'll pull it, if someone wants to format their splash and
      * confirm it's safe I'll add it back in. */
     property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs,/sdcard,/splash");
-
     partition = strtok(str, ", ");
     while (partition != NULL) {
         if (strcmp(name, partition) == 0) {
@@ -687,39 +683,36 @@ void show_partition_menu()
 
     for (;;)
     {
-    		for (i = 0; i < mountable_volumes; i++)
-    		{
-    			MountMenuEntry* e = &mount_menue[i];
-    			Volume* v = e->v;
-    			if(is_path_mounted(v->mount_point))
-    				options[i] = e->unmount;
-    			else
-    				options[i] = e->mount;
-    		}
+		for (i = 0; i < mountable_volumes; i++)
+		{
+			MountMenuEntry* e = &mount_menue[i];
+			Volume* v = e->v;
+			if(is_path_mounted(v->mount_point))
+				options[i] = e->unmount;
+			else
+				options[i] = e->mount;
+		}
 
-    		for (i = 0; i < formatable_volumes; i++)
-    		{
-    			FormatMenuEntry* e = &format_menue[i];
+		for (i = 0; i < formatable_volumes; i++)
+		{
+			FormatMenuEntry* e = &format_menue[i];
 
-    			options[mountable_volumes+i] = e->txt;
-    		}
+			options[mountable_volumes+i] = e->txt;
+		}
 
-        if (!is_data_media()) {
-          options[mountable_volumes + formatable_volumes] = "mount USB storage";
-          options[mountable_volumes + formatable_volumes + 1] = NULL;
-        }
-        else {
-          options[mountable_volumes + formatable_volumes] = NULL;
-        }
+        options[mountable_volumes+formatable_volumes] = "mount USB storage";
+        options[mountable_volumes+formatable_volumes + 1] = NULL;
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
-        if (chosen_item == (mountable_volumes+formatable_volumes)) {
+        if (chosen_item == (mountable_volumes+formatable_volumes))
+        {
             show_mount_usb_storage_menu();
         }
-        else if (chosen_item < mountable_volumes) {
-			      MountMenuEntry* e = &mount_menue[chosen_item];
+        else if (chosen_item < mountable_volumes)
+        {
+			MountMenuEntry* e = &mount_menue[chosen_item];
             Volume* v = e->v;
 
             if (is_path_mounted(v->mount_point))
@@ -844,7 +837,7 @@ void show_nandroid_menu()
                             NULL
     };
 
-    if (volume_for_path("/emmc") == NULL || volume_for_path("/sdcard") == NULL && is_data_media())
+    if (volume_for_path("/emmc") == NULL)
         list[3] = NULL;
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
