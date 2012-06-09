@@ -1,3 +1,5 @@
+#define DEFINE_VARIABLES
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>

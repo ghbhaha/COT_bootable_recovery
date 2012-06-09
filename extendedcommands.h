@@ -1,3 +1,9 @@
+#ifdef DEFINE_VARIABLES
+#define EXTERN /* nothing */
+#else
+#define EXTERN extern
+#endif /* DEFINE_VARIABLES */
+
 extern int signature_check_enabled;
 extern int script_assert_enabled;
 
@@ -67,7 +73,7 @@ int run_and_remove_extendedcommand();
 // Define a location for our configuration file
 static const char *UI_CONFIG_FILE = "/sdcard/clockworkmod/.conf";
 
-int UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3;
+EXTERN int UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3;
 
 void set_ui_color(int i);
 

@@ -270,7 +270,6 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
             // Setup our text colors
 	    get_config_settings();
-	    LOGI("%s %s\n", "UI_UICOLOR3: ", UICOLOR3);
 	    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,

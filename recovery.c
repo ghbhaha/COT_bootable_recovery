@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -49,7 +48,7 @@
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 #define ABS_MT_POSITION_Y 0x36  /* Center Y ellipse position */
 
-//extern int UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3;
+extern int UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3;
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
@@ -1073,6 +1072,7 @@ main(int argc, char **argv) {
         
         // Append cases as neccessary
 	//get_config_settings();
+	extern int UICOLOR3;
 	LOGI("%s %s\n", "REC_UICOLOR3: ", UICOLOR3);
         switch(UICOLOR3) {
 			// Use a define (in common.h) for easier color reference.
