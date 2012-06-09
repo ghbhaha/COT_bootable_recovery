@@ -1010,6 +1010,7 @@ void set_ui_color(int i) {
 			m = 0;
 			o = 255;
 			p = DOODERBUTT_BLUE_UI;
+			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
 			break;
 		}
 	}
