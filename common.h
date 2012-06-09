@@ -56,7 +56,7 @@ int ui_get_showing_back_button();
 void ui_set_showing_back_button(int showBackButton);
 
 // Throw this in here to easier tell which UI color is which
-#define HYDRO_UI			0
+#define HYDRO_UI		0
 #define BLOOD_RED_UI		1
 #define KEY_LIME_PIE_UI		2
 #define CITRUS_ORANGE_UI	3
