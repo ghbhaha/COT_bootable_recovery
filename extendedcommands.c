@@ -1093,7 +1093,6 @@ void show_advanced_menu()
 		    set_ui_color(ui_color);
 		break;
 	    }
-        }
 		case 8:
 		{
 			format_root_device("MISC:");
@@ -1101,6 +1100,7 @@ void show_advanced_menu()
 			reboot(RB_AUTOBOOT);
 			break;
 		}
+        }
     }
 }
 
