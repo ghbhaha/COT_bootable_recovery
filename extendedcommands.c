@@ -1,5 +1,3 @@
-#define DEFINE_VARIABLES
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -44,6 +42,8 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
+
+//#include "colorific.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
@@ -897,140 +897,6 @@ void wipe_battery_stats()
     ui_print("Battery Stats wiped.\n");
 }
 */
-
-/* Set the UI color to default (hydro), give it it's own function to
- * avoid repeats and having to reboot on setting to default. */
-void set_ui_default() {
-	UICOLOR0 = 0;
-	UICOLOR1 = 191;
-	UICOLOR2 = 255;
-	UICOLOR3 = HYDRO_UI;
-	//ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-}
-
-/* Get the custom UI configuration settings; as you may be able to tell
- * this doesn't fully function yet. */
-void get_config_settings() {
-	FILE *in_file;
-	int i, j, k, l;
-
-	ensure_path_mounted("/sdcard");
-	ensure_directory("/sdcard/clockworkmod");
-
-	if(in_file = fopen(UI_CONFIG_FILE, "r")) {
-		fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l);
-		UICOLOR0 = i;
-		UICOLOR1 = j;
-		UICOLOR2 = k;
-		UICOLOR3 = l;
-		fclose(in_file);
-		ensure_path_unmounted("/sdcard");
-		/*switch(UICOLOR3) {
-			// Use a define (in common.h) for easier color reference.
-			case DOODERBUTT_BLUE_UI:
-				ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-				break;
-			// Anything other than 4 is the clockwork icon
-			default:
-				ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-				break;
-		}*/
-	} else {
-		set_ui_default();
-	}
-}	
-
-/* There's probably a better way to do this but for now here it is,
- * write a config file to store the ui color to be set from the
- * advanced menu */
-void set_config_file_contents(int i, int j, int k, int l) {
-	FILE *out_file;
-
-	ensure_path_mounted("/sdcard");
-	// Open the config file to confirm it's presence (to remove it).
-	if(out_file = fopen(UI_CONFIG_FILE, "r")) {
-		fclose(out_file);
-		remove(UI_CONFIG_FILE);
-	}
-	/* Regardless of if it existed prior it will be gone now.
-	 * Create the .conf file and reopen it with write privs */
-	__system("touch /sdcard/clockworkmod/.conf");
-	out_file = fopen(UI_CONFIG_FILE, "w");
-
-	// Write our integers to 1 line separated by a space
-	fprintf(out_file, "%d ", i);
-	fprintf(out_file, "%d ", j);
-	fprintf(out_file, "%d ", k);
-	fprintf(out_file, "%d", l);
-
-	fclose(out_file);
-	ensure_path_unmounted("/sdcard");
-}	
-
-/* This should really be done with a struct instead of a switch...
- * 
- * n, m and o are to be tracked as our html color codes as UICOLOR0,
- * UICOLOR1 and UICOLOR2 respectively. P is always equal to the case
- * but should be defined by the UI color in use these colors are
- * defined in common.h */
-void set_ui_color(int i) {
-	int n, m, o, p;
-	switch(i) {
-		case HYDRO_UI: {
-			/* Since Hydro is the default and the only thing handled
-			 * by our config file is color, simply remove it when
-			 * selecting default */
-			ensure_path_mounted("/sdcard");
-			ui_print("Setting UI Color to Default.\n");
-			remove(UI_CONFIG_FILE);
-			ensure_path_unmounted("/sdcard");
-			// Set the default colors to avoid the need for a reboot
-			set_ui_default();
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			/* Return from the function entirely instead of just
-			 * breaking from the loop; subsequently cancelling the
-			 * later call of set_config_file_contents */
-			return;
-		}
-		case BLOOD_RED_UI: {
-			ui_print("Setting UI Color to Blood Red.\n");
-			n = 255;
-			m = 0;
-			o = 0;
-			p = BLOOD_RED_UI;
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-		}
-		case KEY_LIME_PIE_UI: {
-			ui_print("Setting UI Color to Key Lime Pie.\n");
-			n = 0;
-			m = 255;
-			o = 0;
-			p = KEY_LIME_PIE_UI;
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-		}
-		case CITRUS_ORANGE_UI: {
-			ui_print("Setting UI Color to Citrus Orange.\n");
-			n = 238;
-			m = 148;
-			o = 74;
-			p = CITRUS_ORANGE_UI;
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-		}
-		case DOODERBUTT_BLUE_UI: {
-			ui_print("Setting UI Color to Dooderbutt Blue.\n");
-			n = 0;
-			m = 0;
-			o = 255;
-			p = DOODERBUTT_BLUE_UI;
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-			break;
-		}
-	}
-	set_config_file_contents(n,m,o,p);
-}
 
 void show_download_rom_menu()
 {

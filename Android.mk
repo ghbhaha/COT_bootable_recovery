@@ -23,7 +23,8 @@ LOCAL_SRC_FILES := \
     ../../system/core/toolbox/reboot.c \
     firmware.c \
     edifyscripting.c \
-    setprop.c
+    setprop.c \
+	colorific.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)

@@ -41,6 +41,7 @@
 #include "roots.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
+#include "colorific.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
@@ -1067,9 +1068,7 @@ main(int argc, char **argv) {
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
-        
         // Append cases as neccessary
-		LOGI("%s %s\n", "REC_UICOLOR3: ", UICOLOR3);
         ui_dyn_background();
 
         if (extendedcommand_file_exists()) {

@@ -1,9 +1,3 @@
-#ifdef DEFINE_VARIABLES
-#define EXTERN /* nothing */
-#else
-#define EXTERN extern
-#endif /* DEFINE_VARIABLES */
-
 extern int signature_check_enabled;
 extern int script_assert_enabled;
 
@@ -66,15 +60,3 @@ void show_install_update_menu();
 int confirm_selection(const char* title, const char* confirm);
 
 int run_and_remove_extendedcommand();
-
-/* Everything below this has been hacked in for the purpose of custom
- * UI colors */
-
-// Define a location for our configuration file
-static const char *UI_CONFIG_FILE = "/sdcard/clockworkmod/.conf";
-
-EXTERN int UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3;
-
-void set_ui_color(int i);
-
-void get_config_settings();

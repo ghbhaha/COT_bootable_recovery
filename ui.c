@@ -44,6 +44,7 @@
 #include "common.h"
 #include "minui/minui.h"
 #include "recovery_ui.h"
+#include "colorific.h"
 
 extern int __system(const char *command);
 
@@ -658,7 +659,7 @@ void ui_set_background(int icon)
 
 void ui_dyn_background()
 {
-	switch(UICOLOR3) {
+	switch(bg_icon) {
 		case DOODERBUTT_BLUE_UI:
 			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
 			break;
