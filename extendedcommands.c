@@ -905,6 +905,7 @@ void set_ui_default() {
 	UICOLOR1 = 191;
 	UICOLOR2 = 255;
 	UICOLOR3 = HYDRO_UI;
+	//ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 }
 
 /* Get the custom UI configuration settings; as you may be able to tell
@@ -924,6 +925,16 @@ void get_config_settings() {
 		UICOLOR3 = l;
 		fclose(in_file);
 		ensure_path_unmounted("/sdcard");
+		/*switch(UICOLOR3) {
+			// Use a define (in common.h) for easier color reference.
+			case DOODERBUTT_BLUE_UI:
+				ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+				break;
+			// Anything other than 4 is the clockwork icon
+			default:
+				ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+				break;
+		}*/
 	} else {
 		set_ui_default();
 	}
@@ -975,6 +986,7 @@ void set_ui_color(int i) {
 			ensure_path_unmounted("/sdcard");
 			// Set the default colors to avoid the need for a reboot
 			set_ui_default();
+			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 			/* Return from the function entirely instead of just
 			 * breaking from the loop; subsequently cancelling the
 			 * later call of set_config_file_contents */
@@ -986,6 +998,7 @@ void set_ui_color(int i) {
 			m = 0;
 			o = 0;
 			p = BLOOD_RED_UI;
+			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 			break;
 		}
 		case KEY_LIME_PIE_UI: {
@@ -994,6 +1007,7 @@ void set_ui_color(int i) {
 			m = 255;
 			o = 0;
 			p = KEY_LIME_PIE_UI;
+			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 			break;
 		}
 		case CITRUS_ORANGE_UI: {
@@ -1002,6 +1016,7 @@ void set_ui_color(int i) {
 			m = 148;
 			o = 74;
 			p = CITRUS_ORANGE_UI;
+			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 			break;
 		}
 		case DOODERBUTT_BLUE_UI: {

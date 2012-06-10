@@ -95,6 +95,7 @@ struct keyStruct{
 };
 
 void ui_set_background(int icon);
+void ui_dyn_background();
 
 // Get a malloc'd copy of the screen image showing (only) the specified icon.
 // Also returns the width, height, and bits per pixel of the returned image.
