@@ -17,16 +17,21 @@
 #ifndef _COLORIFIC_H
 #define _COLORIFIC_H
 
-/* Everything below this has been hacked in for the purpose of custom
- * UI colors */
+// Throw this in here to easier tell which UI color is which
+#define HYDRO_UI		0
+#define BLOOD_RED_UI		1
+#define KEY_LIME_PIE_UI		2
+#define CITRUS_ORANGE_UI	3
+#define DOODERBUTT_BLUE_UI	4
 
 // Define a location for our configuration file
 extern const char *UI_CONFIG_FILE;
 
-extern int UICOLOR0, UICOLOR1, UICOLOR2, bg_icon;
+int UICOLOR0, UICOLOR1, UICOLOR2, bg_icon;
 
 extern void set_ui_color(int i);
 
 extern void get_config_settings();
 
+void ui_dyn_background();
 #endif

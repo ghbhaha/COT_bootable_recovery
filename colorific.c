@@ -204,3 +204,17 @@ void set_ui_color(int i) {
 	}
 	set_config_file_contents(n,m,o,p);
 }
+
+void ui_dyn_background()
+{
+	LOGI("%s %i\n", "DYN_BG: ", bg_icon);
+	switch(bg_icon) {
+		case DOODERBUTT_BLUE_UI:
+			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+			break;
+    	// Anything other than 4 is the clockwork icon
+		default:
+			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+			break;
+	}
+}

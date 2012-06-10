@@ -657,19 +657,6 @@ void ui_set_background(int icon)
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
-void ui_dyn_background()
-{
-	switch(bg_icon) {
-		case DOODERBUTT_BLUE_UI:
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-			break;
-    	// Anything other than 4 is the clockwork icon
-		default:
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-	}
-}
-
 void ui_show_indeterminate_progress()
 {
     pthread_mutex_lock(&gUpdateMutex);
