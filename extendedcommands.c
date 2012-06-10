@@ -955,7 +955,8 @@ void show_advanced_menu()
 #ifndef BOARD_HAS_SMALL_RECOVERY
                             "Partition SD Card",
                             "Fix Permissions",
-			    "Set UI Color",
+			    			"Set UI Color",
+							"Fix Recovery Boot Loop",
 #endif
                             NULL
     };
@@ -1093,6 +1094,13 @@ void show_advanced_menu()
 		break;
 	    }
         }
+		case 8:
+		{
+			format_root_device("MISC:");
+			format_root_device("PERSIST:");
+			reboot(RB_AUTOBOOT);
+			break;
+		}
     }
 }
 
