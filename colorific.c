@@ -220,10 +220,19 @@ void ui_dyn_background()
 {
 	LOGI("%s %i\n", "DYN_BG:", bg_icon);
 	switch(bg_icon) {
+		case BLOOD_RED_UI:
+			ui_set_background(BACKGROUND_ICON_BLOODRED);
+			break;
+		case KEY_LIME_PIE_UI:
+			ui_set_background(BACKGROUND_ICON_KEYLIMEPIE);
+			break;
+		case CITRUS_ORANGE_UI:
+			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);
+			break;
 		case DOODERBUTT_BLUE_UI:
 			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
 			break;
-    	// Anything other than 4 is the clockwork icon
+    	// Anything else is the clockwork icon
 		default:
 			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 			break;

@@ -955,8 +955,8 @@ void show_advanced_menu()
 #ifndef BOARD_HAS_SMALL_RECOVERY
                             "Partition SD Card",
                             "Fix Permissions",
-			    "Set UI Color",
-			    "Fix Recovery Boot Loop",
+			    			"Set UI Color",
+							"Fix Recovery Boot Loop",
 #endif
                             NULL
     };
