@@ -140,6 +140,13 @@ void set_config_file_contents(int i, int j, int k, int l) {
 	ensure_path_unmounted("/sdcard");
 }
 
+void set_bg_icon(int icon) {
+	LOGI("%s %i\n", "CO_ICON:", icon);
+	bg_icon = icon;
+	LOGI("%s %i\n", "CO_BG:", bg_icon);
+	return;
+}
+
 /* This should really be done with a struct instead of a switch...
  * 
  * n, m and o are to be tracked as our html color codes as UICOLOR0,
@@ -159,7 +166,7 @@ void set_ui_color(int i) {
 			ensure_path_unmounted("/sdcard");
 			// Set the default colors to avoid the need for a reboot
 			set_ui_default();
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+			ui_dyn_background();
 			/* Return from the function entirely instead of just
 			 * breaking from the loop; subsequently cancelling the
 			 * later call of set_config_file_contents */
@@ -171,7 +178,8 @@ void set_ui_color(int i) {
 			m = 0;
 			o = 0;
 			p = BLOOD_RED_UI;
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+			bg_icon = BLOOD_RED_UI;
+			ui_dyn_background();
 			break;
 		}
 		case KEY_LIME_PIE_UI: {
@@ -180,7 +188,8 @@ void set_ui_color(int i) {
 			m = 255;
 			o = 0;
 			p = KEY_LIME_PIE_UI;
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+			bg_icon = KEY_LIME_PIE_UI;
+			ui_dyn_background();
 			break;
 		}
 		case CITRUS_ORANGE_UI: {
@@ -189,7 +198,8 @@ void set_ui_color(int i) {
 			m = 148;
 			o = 74;
 			p = CITRUS_ORANGE_UI;
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+			bg_icon = CITRUS_ORANGE_UI;
+			ui_dyn_background();
 			break;
 		}
 		case DOODERBUTT_BLUE_UI: {
@@ -198,7 +208,8 @@ void set_ui_color(int i) {
 			m = 0;
 			o = 255;
 			p = DOODERBUTT_BLUE_UI;
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+			bg_icon = DOODERBUTT_BLUE_UI;
+			ui_dyn_background();
 			break;
 		}
 	}
@@ -207,7 +218,7 @@ void set_ui_color(int i) {
 
 void ui_dyn_background()
 {
-	LOGI("%s %i\n", "DYN_BG: ", bg_icon);
+	LOGI("%s %i\n", "DYN_BG:", bg_icon);
 	switch(bg_icon) {
 		case DOODERBUTT_BLUE_UI:
 			ui_set_background(BACKGROUND_ICON_DOODERBUTT);

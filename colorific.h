@@ -34,4 +34,6 @@ extern void set_ui_color(int i);
 extern void get_config_settings();
 
 void ui_dyn_background();
+
+void set_bg_icon(int icon);
 #endif

@@ -1069,7 +1069,9 @@ main(int argc, char **argv) {
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         // Append cases as neccessary
-        ui_dyn_background();
+
+		get_config_settings();
+		ui_dyn_background();
 
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
