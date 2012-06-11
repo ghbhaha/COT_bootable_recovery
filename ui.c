@@ -91,14 +91,43 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-	{ &gMenuIcon[MENU_BACK],      "icon_back" },
+		{ &gMenuIcon[MENU_BACK],      "icon_back" },
     	{ &gMenuIcon[MENU_DOWN],  	  "icon_down" },
     	{ &gMenuIcon[MENU_UP], 		  "icon_up" },
     	{ &gMenuIcon[MENU_SELECT],    "icon_select" },
-	{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
     	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
     	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
     	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
+    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
+    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
+    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
+    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
+    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
+    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
+    	{ &gProgressBarEmpty,               "progress_empty" },
+    	{ &gProgressBarFill,                "progress_fill" },
+    	{ NULL,                             NULL },
+};
+
+static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[] = {
+	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
+		{ &gMenuIcon[MENU_BACK],      "icon_back_br" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_br" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up_br" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select_br" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_br" },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_br" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_br" },
+    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_br" },
     	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
     	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
     	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
@@ -613,17 +642,36 @@ void ui_init(void)
     if (text_cols > MAX_COLS - 1) text_cols = MAX_COLS - 1;
 
     int i;
-    for (i = 0; BITMAPS[i].name != NULL; ++i) {
-        int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
-        if (result < 0) {
-            if (result == -2) {
-                LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
-            } else {
-                LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
-            }
-            *BITMAPS[i].surface = NULL;
-        }
-    }
+	get_config_settings();
+	switch(bg_icon) {
+		case BLOOD_RED_UI:
+			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS_BLOODRED[i].name);
+            			} else {
+                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_BLOODRED[i].name, result);
+            			}
+            		*BITMAPS_BLOODRED[i].surface = NULL;
+        			}
+    			}
+			break;
+		default:
+			for (i = 0; BITMAPS[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
+            			} else {
+                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+            			}
+            		*BITMAPS[i].surface = NULL;
+        			}
+    			}
+			break;
+	}
+
 
     memset(&actPos, 0, sizeof(actPos));
     memset(&grabPos, 0, sizeof(grabPos));

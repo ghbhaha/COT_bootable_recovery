@@ -937,11 +937,11 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
-
+	load_volume_table();
+    process_volumes();
     ui_init();
     //ui_print(EXPAND(RECOVERY_VERSION)"\n");
-    load_volume_table();
-    process_volumes();
+    
     LOGI("Processing arguments.\n");
     get_args(&argc, &argv);
 
