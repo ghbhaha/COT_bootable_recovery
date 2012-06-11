@@ -97,7 +97,7 @@ void get_config_settings() {
 		LOGI("%s %i\n", "EC_UICOLOR2: ", UICOLOR2);
 		LOGI("%s %i\n", "EC_bg_icon: ", bg_icon);
 		fclose(in_file);
-		ensure_path_unmounted("/sdcard");
+		//ensure_path_unmounted("/sdcard");
 		/*switch(bg_icon) {
 			// Use a define (in common.h) for easier color reference.
 			case DOODERBUTT_BLUE_UI:
