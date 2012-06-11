@@ -139,6 +139,93 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[
     	{ NULL,                             NULL },
 };
 
+static const struct { gr_surface* surface; const char *name; } BITMAPS_KEYLIME[] = {
+	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
+		{ &gMenuIcon[MENU_BACK],      "icon_back_kl" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_kl" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up_kl" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select_kl" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_kl" },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_kl" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_kl" },
+    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_kl" },
+    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
+    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
+    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
+    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
+    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
+    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
+    	{ &gProgressBarEmpty,               "progress_empty" },
+    	{ &gProgressBarFill,                "progress_fill" },
+    	{ NULL,                             NULL },
+};
+
+static const struct { gr_surface* surface; const char *name; } BITMAPS_ORANGE[] = {
+	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
+		{ &gMenuIcon[MENU_BACK],      "icon_back_co" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_co" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up_co" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select_co" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_co" },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_co" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_co" },
+    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_co" },
+    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
+    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
+    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
+    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
+    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
+    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
+    	{ &gProgressBarEmpty,               "progress_empty" },
+    	{ &gProgressBarFill,                "progress_fill" },
+    	{ NULL,                             NULL },
+};
+
+static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUTT[] = {
+	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
+		{ &gMenuIcon[MENU_BACK],      "icon_back_db" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_db" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up_db" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select_db" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_db" },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_db" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_db" },
+    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_db" },
+    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
+    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
+    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
+    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
+    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
+    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
+    	{ &gProgressBarEmpty,               "progress_empty" },
+    	{ &gProgressBarFill,                "progress_fill" },
+    	{ NULL,                             NULL },
+};
+
 static gr_surface gCurrentIcon = NULL;
 
 static enum ProgressBarType {
@@ -654,6 +741,45 @@ void ui_init(void)
                 			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_BLOODRED[i].name, result);
             			}
             		*BITMAPS_BLOODRED[i].surface = NULL;
+        			}
+    			}
+			break;
+		case KEY_LIME_PIE_UI:
+			for (i = 0; BITMAPS_KEYLIME[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS_KEYLIME[i].name, BITMAPS_KEYLIME[i].surface);
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS_KEYLIME[i].name);
+            			} else {
+                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_KEYLIME[i].name, result);
+            			}
+            		*BITMAPS_KEYLIME[i].surface = NULL;
+        			}
+    			}
+			break;
+		case CITRUS_ORANGE_UI:
+			for (i = 0; BITMAPS_ORANGE[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface);
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS_ORANGE[i].name);
+            			} else {
+                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_ORANGE[i].name, result);
+            			}
+            		*BITMAPS_ORANGE[i].surface = NULL;
+        			}
+    			}
+			break;
+		case DOODERBUTT_BLUE_UI:
+			for (i = 0; BITMAPS_DOODERBUTT[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface);
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS_DOODERBUTT[i].name);
+            			} else {
+                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_DOODERBUTT[i].name, result);
+            			}
+            		*BITMAPS_DOODERBUTT[i].surface = NULL;
         			}
     			}
 			break;
