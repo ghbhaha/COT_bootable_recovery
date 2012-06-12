@@ -921,7 +921,6 @@ void get_config_settings() {
 		UICOLOR2 = k;
 		UICOLOR3 = l;
 		fclose(in_file);
-		ensure_path_unmounted("/sdcard");
 	} else {
 		set_ui_default();
 	}

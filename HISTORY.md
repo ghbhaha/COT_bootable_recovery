@@ -44,3 +44,7 @@
 
 ### 06/03/2012
 * Added partition sdcard back into extended commands (still disabled) for rom manager compat.
+
+### 06/12/2012
+* Cleaned up some unneeded changes that were brought in w/ retouch.
+* Fixed sdcard mounting bug.
