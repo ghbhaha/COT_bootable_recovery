@@ -144,6 +144,8 @@ int res_create_surface(const char* name, gr_surface* pSurface) {
             }
         }
     } else {
+	// THIS CODE RIGHT HERE READS THE RGB VALUES
+	// OF THE BG AND UI BUTTON IMAGES
         for (y = 0; y < (int)height; ++y) {
             unsigned char* pRow = pData + y * stride;
             png_read_row(png_ptr, pRow, NULL);
