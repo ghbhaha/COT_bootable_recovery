@@ -510,7 +510,6 @@ char* print_batt_cap() {
 	return full_cap_s;
 }
 
-
 static char**
 prepend_title(char** headers) {
     char* title[] = { EXPAND(RECOVERY_VERSION),
@@ -876,10 +875,6 @@ prompt_and_wait() {
             case ITEM_ADVANCED:
                 show_advanced_menu();
                 break;
-	    case ITEM_DOWNLOADROM:
-		//show_download_rom_menu();
-		poweroff=1;
-		break;
             case ITEM_POWEROFF:
                 poweroff=1;
                 return;

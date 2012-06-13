@@ -898,48 +898,6 @@ void wipe_battery_stats()
 }
 */
 
-void show_download_rom_menu()
-{
-    static char* headers[] = {  "ROM Download Menu",
-			        "",
-			        NULL
-    };
-
-    static char* list[] = { "HydroROM ZVJ",
-			    "GingerROM ZVJ",
-			    "CyanogenMod 7 ZVD",
-			    "CyanogenMod 9 ZVD",
-			    NULL
-    };
-
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-            case 0:
-            {
-                ui_print("Downloading latest version of HydroROM...");
-                break;
-            }
-	    case 1:
-	    {
-		ui_print("Downloading latest version of GingerROM...");
-	    }
-	    case 2:
-	    {
-		ui_print("Downloading latest version of CM7...");
-	    }
-	    case 3:
-	    {
-		ui_print("Downloading latest version of CM9...");
-	    }
-	}
-    }
-}
-
 void show_advanced_menu()
 {
     static char* headers[] = {  "Advanced and Debugging Menu",
