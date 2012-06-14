@@ -635,11 +635,7 @@ static void *input_thread(void *cookie)
                     oldMousePos[actPos.num] = mousePos[actPos.num];
                     mousePos[actPos.num] = actPos;
                     int curPos[] = {actPos.pressure, actPos.x, actPos.y};
-                    if(actPos.y < 400) {
-                        continue;
-                    } else {
-                        ui_handle_mouse_input(curPos);
-                    }
+                    ui_handle_mouse_input(curPos);
                   }
 
                   memset(&actPos,0,sizeof(actPos));
