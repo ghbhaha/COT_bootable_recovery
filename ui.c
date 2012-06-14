@@ -589,6 +589,9 @@ static void *input_thread(void *cookie)
           } while (got_data==-1);
 
             if (ev.type == EV_SYN) {
+                if (actPos.y < 400) {
+                    continue;
+                }
                 // end of a multitouch point
                 if (ev.code == SYN_MT_REPORT) {
                   if (actPos.num>=0 && actPos.num<MAX_MT_POINTS) {
@@ -631,8 +634,12 @@ static void *input_thread(void *cookie)
                     }
                     oldMousePos[actPos.num] = mousePos[actPos.num];
                     mousePos[actPos.num] = actPos;
-					int curPos[] = {actPos.pressure, actPos.x, actPos.y};
-                    ui_handle_mouse_input(curPos);
+                    int curPos[] = {actPos.pressure, actPos.x, actPos.y};
+                    if(actPos.y < 400) {
+                        continue;
+                    } else {
+                        ui_handle_mouse_input(curPos);
+                    }
                   }
 
                   memset(&actPos,0,sizeof(actPos));
