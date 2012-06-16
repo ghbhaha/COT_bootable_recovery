@@ -27,12 +27,8 @@
 bool verify_jar_signature(const ZipArchive *pArchive,
         const RSAPublicKey *pKeys, int numKeys);
 
-/* Look in the file for a signature footer, and verify that it
- * matches one of the given keys.  Return one of the constants below.
- */
-int verify_file(const char* path, const RSAPublicKey *pKeys, unsigned int numKeys);
-
-#define VERIFY_SUCCESS        0
-#define VERIFY_FAILURE        1
+#define VERIFY_SUCCESS        true
+#define VERIFY_FAILURE        false
 
 #endif  /* _RECOVERY_VERIFIER_H */
+
