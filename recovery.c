@@ -963,6 +963,14 @@ int run_script_file(void) {
 			if (strcmp(command, "install") == 0) {
 				// Install zip
 				ui_print("Installing zip file '%s'\n", value);
+				for (i = 20; i > 0; i--) {
+					ui_print("Waiting for SD Card to mount (%ds)\n", i);
+					if (ensure_path_mounted(SDCARD_ROOT) ==0) {
+						ui_print("SD Card Mounted...\nContinuing...\n");
+						break;
+					}
+					sleep(1);
+				}
 				ret_val = install_zip(value);
 				if (ret_val != INSTALL_SUCCESS) {
 					LOGE("Error installing zip file '%s'\n", value);
@@ -1317,7 +1325,6 @@ main(int argc, char **argv) {
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
-        // Append cases as neccessary
 
 		get_config_settings();
 		ui_dyn_background();

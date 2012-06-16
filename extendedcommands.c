@@ -339,6 +339,7 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
     return return_value;
 }
 
+// Redo this off of ICS a bit (just a little, not entirely lol) ;)
 void show_choose_zip_menu(const char *mount_point)
 {
     if (ensure_root_path_mounted("SDCARD:") != 0) {
@@ -351,17 +352,14 @@ void show_choose_zip_menu(const char *mount_point)
                                 NULL
     };
 
-    char* file = choose_file_menu("/sdcard/", ".zip", headers);
+    char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
-    char sdcard_package_file[1024];
-    strcpy(sdcard_package_file, "SDCARD:");
-    strcat(sdcard_package_file,  file + strlen("/sdcard/"));
     static char* confirm_install  = "Confirm install?";
     static char confirm[PATH_MAX];
     sprintf(confirm, "Yes - Install %s", basename(file));
     if (confirm_selection(confirm_install, confirm))
-        install_zip(sdcard_package_file);
+        install_zip(file);
 }
 
 void show_nandroid_restore_menu(const char* path)
