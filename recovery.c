@@ -1321,7 +1321,9 @@ main(int argc, char **argv) {
         status = INSTALL_ERROR;  // No command specified
         // we are starting up in user initiated recovery here
         // let's set up some default options
-        signature_check_enabled = 0;
+
+        // WHY???
+        // signature_check_enabled = 0;
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);

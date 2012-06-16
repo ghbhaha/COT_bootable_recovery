@@ -117,6 +117,7 @@ static const ZipEntry *verifySignature(const ZipArchive *pArchive,
                 !strncmp(rsaName.str + rsaName.len - sizeof(rsa) + 1,
                          rsa, sizeof(rsa) - 1)) {
             char *sfName = malloc(rsaName.len - sizeof(rsa) + sizeof(sf) + 1);
+            LOGI("Sfname: %s\n", sfName);
             if (sfName == NULL) {
                 LOGE("Can't allocate %d bytes for filename\n", rsaName.len);
                 continue;
@@ -126,7 +127,7 @@ static const ZipEntry *verifySignature(const ZipArchive *pArchive,
             strncpy(sfName, rsaName.str, rsaName.len - sizeof(rsa) + 1);
             strcpy(sfName + rsaName.len - sizeof(rsa) + 1, sf);
             const ZipEntry *sfEntry = mzFindZipEntry(pArchive, sfName);
-
+            LOGI("Sfname: %s\n", sfName);
             if (sfEntry == NULL) {
                 LOGW("Missing signature file %s\n", sfName);
                 free(sfName);
@@ -156,8 +157,8 @@ static const ZipEntry *verifySignature(const ZipArchive *pArchive,
         }
     }
 
-	    LOGE("No signature (%d files)\n", mzZipEntryCount(pArchive));
-	    return NULL;
+	LOGE("No signature (%d files)\n", mzZipEntryCount(pArchive));
+	return NULL;
 }
 
 

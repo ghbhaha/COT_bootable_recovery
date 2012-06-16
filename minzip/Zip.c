@@ -1147,3 +1147,4 @@ bool mzExtractRecursive(const ZipArchive *pArchive,
 
     return ok;
 }
+

@@ -211,3 +211,4 @@ bool mzExtractRecursive(const ZipArchive *pArchive,
         void (*callback)(const char *fn, void*), void *cookie);
 
 #endif /*_MINZIP_ZIP*/
+
