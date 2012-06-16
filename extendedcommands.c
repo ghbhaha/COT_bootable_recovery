@@ -149,7 +149,7 @@ void show_install_update_menu()
                 break;
             }
             case ITEM_CHOOSE_ZIP:
-                show_choose_zip_menu();
+                show_choose_zip_menu("/sdcard/");
                 break;
             default:
                 return;
