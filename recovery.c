@@ -769,6 +769,15 @@ print_property(const char *key, const char *name, void *cookie) {
 }
 
 // open recovery script code
+void delayed_reboot() {
+	int i;
+	for (i = 3; i > 0; i--) {
+		ui_print("Rebooting system in (%d)\n", i);
+		sleep(1);
+	}
+	__system("/sbin/reboot_system");
+}
+
 static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openrecoveryscript";
 static const char *SCRIPT_FILE_TMP = "/tmp/openrecoveryscript";
 #define SCRIPT_COMMAND_SIZE 512
@@ -798,6 +807,7 @@ int check_for_script_file(void) {
 
 int run_script_file(void) {
 	FILE *fp = fopen(SCRIPT_FILE_TMP, "r");
+	struct stat st;
 	int ret_val = 0, cindex, line_len, i, remove_nl;
 	char script_line[SCRIPT_COMMAND_SIZE], command[SCRIPT_COMMAND_SIZE],
 		 value[SCRIPT_COMMAND_SIZE], mount[SCRIPT_COMMAND_SIZE],
@@ -810,8 +820,20 @@ int run_script_file(void) {
 	int ors_boot = 0;
 	int ors_andsec = 0;
 	int ors_sdext = 0;
+	int ors_no_confirm = 0;
 
 	if (fp != NULL) {
+		for (i = 20; i > 0; i--) {
+			ui_print("Waiting for SD Card to mount (%ds)\n", i);
+			if (ensure_path_mounted(SDCARD_ROOT) ==0) {
+				ui_print("SD Card Mounted...\nContinuing...\n");
+				break;
+			}
+			sleep(1);
+		}
+		if (stat("sdcard/clockworkmod/.orsnoconfirm", &st) == 0) {
+			ors_no_confirm = 1;
+		}
 		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
 			cindex = 0;
 			line_len = strlen(script_line);
@@ -841,17 +863,10 @@ int run_script_file(void) {
 				strncpy(command, script_line, line_len - remove_nl + 1);
 				ui_print("command is: '%s' and there is no value\n", command);
 			}
+			
 			if (strcmp(command, "install") == 0) {
 				// Install zip
 				ui_print("Installing zip file '%s'\n", value);
-				for (i = 20; i > 0; i--) {
-					ui_print("Waiting for SD Card to mount (%ds)\n", i);
-					if (ensure_path_mounted(SDCARD_ROOT) ==0) {
-						ui_print("SD Card Mounted...\nContinuing...\n");
-						break;
-					}
-					sleep(1);
-				}
 				ret_val = install_zip(value);
 				if (ret_val != INSTALL_SUCCESS) {
 					LOGE("Error installing zip file '%s'\n", value);
@@ -860,30 +875,39 @@ int run_script_file(void) {
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
-					ui_print("-- Wiping Cache Partition...\n");
-					erase_volume("/cache");
-					ui_print("-- Cache Partition Wipe Complete!\n");
+					if(ors_no_confirm || confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
+						ui_print("-- Wiping Cache Partition...\n");
+						erase_volume("/cache");
+						ui_print("-- Cache Partition Wipe Complete!\n");
+					} else {
+						ui_print("Skipping cache wipe...\n");
+					}
 				} else if (strcmp(value, "dalvik") == 0 || strcmp(value, "dalvick") == 0 || strcmp(value, "dalvikcache") == 0 || strcmp(value, "dalvickcache") == 0) {
-					ui_print("-- Wiping Dalvik Cache...\n");
 					if (0 != ensure_path_mounted("/data")) {
 						ret_val = 1;
 						break;
 					}
 					ensure_path_mounted("/sd-ext");
 					ensure_path_mounted("/cache");
-					if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+					if(ors_no_confirm || confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+						ui_print("-- Wiping Dalvik Cache...\n");
 						__system("rm -r /data/dalvik-cache");
 						__system("rm -r /cache/dalvik-cache");
 						__system("rm -r /sd-ext/dalvik-cache");
 						ui_print("Dalvik Cache wiped.\n");
+						ensure_path_unmounted("/data");
+						ui_print("-- Dalvik Cache Wipe Complete!\n");
+					} else {
+						ui_print("Skipping dalvik wipe...\n");
 					}
-					ensure_path_unmounted("/data");
-
-					ui_print("-- Dalvik Cache Wipe Complete!\n");
 				} else if (strcmp(value, "data") == 0 || strcmp(value, "/data") == 0 || strcmp(value, "factory") == 0 || strcmp(value, "factoryreset") == 0) {
-					ui_print("-- Wiping Data Partition...\n");
-					wipe_data(0);
-					ui_print("-- Data Partition Wipe Complete!\n");
+					if(ors_no_confirm || confirm_selection("Confirm wipe?", "Yes - Wipe Data")) {
+						ui_print("-- Wiping Data Partition...\n");
+						wipe_data(0);
+						ui_print("-- Data Partition Wipe Complete!\n");
+					} else {
+						ui_print("Skipping data wipe...\n");
+					}
 				} else {
 					LOGE("Error with wipe command value: '%s'\n", value);
 					ret_val = 1;
@@ -924,7 +948,7 @@ int run_script_file(void) {
 					}
 				}
 
-				ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
+				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
 				nandroid_backup(backup_path);
 				ui_print("Backup complete!\n");
 			} else if (strcmp(command, "restore") == 0) {
@@ -955,23 +979,23 @@ int run_script_file(void) {
 							ors_cache = 1;
 							ui_print("Cache\n");
 						} else if (value2[i] == 'R' || value2[i] == 'r') {
-							ui_print("Option for recovery ignored in CWMR\n");
+							//ui_print("Option for recovery ignored in CWMR\n");
 						} else if (value2[i] == '1') {
-							ui_print("%s\n", "Option for special1 ignored in CWMR");
+							//ui_print("%s\n", "Option for special1 ignored in CWMR");
 						} else if (value2[i] == '2') {
-							ui_print("%s\n", "Option for special1 ignored in CWMR");
+							//ui_print("%s\n", "Option for special1 ignored in CWMR");
 						} else if (value2[i] == '3') {
-							ui_print("%s\n", "Option for special1 ignored in CWMR");
+							//ui_print("%s\n", "Option for special1 ignored in CWMR");
 						} else if (value2[i] == 'B' || value2[i] == 'b') {
 							ors_boot = 1;
 							ui_print("Boot\n");
 						} else if (value2[i] == 'A' || value2[i] == 'a') {
-							ui_print("Option for android secure ignored in CWMR\n");
+							//ui_print("Option for android secure ignored in CWMR\n");
 						} else if (value2[i] == 'E' || value2[i] == 'e') {
 							ors_sdext = 1;
 							ui_print("SD-Ext\n");
 						} else if (value2[i] == 'M' || value2[i] == 'm') {
-							ui_print("MD5 check skip option ignored in CWMR\n");
+							//ui_print("MD5 check skip option ignored in CWMR\n");
 						}
 					}
 				} else
@@ -998,16 +1022,22 @@ int run_script_file(void) {
 				ui_print("Unmounted '%s'\n", mount);
 			} else if (strcmp(command, "set") == 0) {
 				// Set value
+				/*
 				tok = strtok(value, " ");
 				strcpy(value1, tok);
 				tok = strtok(NULL, " ");
 				strcpy(value2, tok);
 				ui_print("Setting function disabled in CWMR: '%s' to '%s'\n", value1, value2);
+				*/
 			} else if (strcmp(command, "mkdir") == 0) {
 				// Make directory (recursive)
 				ui_print("Recursive mkdir disabledin CWMR: '%s'\n", value);
 			} else if (strcmp(command, "reboot") == 0) {
 				// Reboot
+				ui_print("Reboot command found...\n");
+				fclose(fp);
+				ensure_path_unmounted("sdcard/");
+				delayed_reboot();
 			} else if (strcmp(command, "cmd") == 0) {
 				if (cindex != 0) {
 					__system(value);
@@ -1021,6 +1051,10 @@ int run_script_file(void) {
 		}
 		fclose(fp);
 		ui_print("Done processing script file\n");
+		if(stat("sdcard/clockworkmod/.orsalwaysreboot", &st) == 0) {
+			ensure_path_unmounted("sdcard/");
+			delayed_reboot();
+		}
 	} else {
 		LOGE("Error opening script file '%s'\n");
 		return 1;
