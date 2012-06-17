@@ -44,7 +44,7 @@
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
 
-//#include "colorific.h"
+#include "colorific.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
@@ -63,6 +63,22 @@ void toggle_script_asserts()
 {
     script_assert_enabled = !script_assert_enabled;
     ui_print("Script Asserts: %s\n", script_assert_enabled ? "Enabled" : "Disabled");
+}
+
+void toggle_ui_debugging()
+{
+	switch(UI_COLOR_DEBUG) {
+		case 0: {
+			ui_print("Enabling UI color debugging; will disable again on reboot.\n");
+			UI_COLOR_DEBUG = 1;
+			break;
+		}
+		default: {
+			ui_print("Disabling UI color debugging.\n");
+			UI_COLOR_DEBUG = 0;
+			break;
+		}
+	}
 }
 
 int install_zip(const char* packagefilepath)
@@ -896,21 +912,61 @@ void show_nandroid_menu()
     }
 }
 
+void show_advanced_debugging_menu()
+{
+	static char* headers[] = { "Debugging Options",
+								 "",
+								 NULL
+	};
+	
+	static char* list[] = { "Fix Permissions",
+							 "Report Error",
+							 "Show log",
+							 "Toggle UI Debugging",
+							 NULL
+	};
+	
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+		if(chosen_item == GO_BACK)
+			break;
+		switch(chosen_item)
+		{
+			case 0:
+			{
+				ensure_path_mounted("/system");
+                ensure_path_mounted("/data");
+                ui_print("Fixing permissions...\n");
+                __system("fix_permissions");
+                ui_print("Done!\n");
+                break;
+            }
+            case 1:
+				handle_failure(1);
+				break;
+			case 2:
+				ui_printlogtail(12);
+				break;
+			case 3:
+				toggle_ui_debugging();
+				break;
+		}
+	}
+}
 
 void show_advanced_menu()
 {
-    static char* headers[] = {  "Advanced and Debugging Menu",
+    static char* headers[] = {  "Advanced Options and Settings Menu",
                                 "",
                                 NULL
     };
 
     static char* list[] = { "Reboot Options",
                             "Wipe Dalvik Cache",
-                            "Report Error",
-                            "Show log",
 							"Partition SD Card",
-							"Fix Permissions",
                             "Set UI Color",
+                            "Debugging Options",
                             NULL
     };
 
@@ -923,30 +979,30 @@ void show_advanced_menu()
         {
             case 0:
             {
-			 static char* reboot_menu[] = {"Reboot Options",
-						       "",
-						       NULL
-			 };
-			 static char* reboot_choices[] = {"reboot system now",
-							  "reboot recovery",
-							  "reboot into fastboot bootloader",
-							  NULL
-			 };
-			 int reboot_choice = get_menu_selection(reboot_menu, reboot_choices, 0, 0);
-			 switch(reboot_choice) {
-				 case 0:
-					__system("/sbin/reboot_system");
-					break;
-				 case 1:
-					__system("/sbin/reboot_recovery");
-					break;
-				 case 2:
-					__system("/sbin/reboot_fastboot");
-					break;
-			 }
-			 if(reboot_choice == GO_BACK)
-				continue;
-		  }
+				static char* reboot_menu[] = {"Reboot Options",
+											"",
+											NULL
+				};
+				static char* reboot_choices[] = {"reboot system now",
+												"reboot recovery",
+												"reboot into fastboot bootloader",
+												NULL
+				};
+				int reboot_choice = get_menu_selection(reboot_menu, reboot_choices, 0, 0);
+				switch(reboot_choice) {
+					case 0:
+						__system("/sbin/reboot_system");
+						break;
+					case 1:
+						__system("/sbin/reboot_recovery");
+						break;
+					case 2:
+						__system("/sbin/reboot_fastboot");
+						break;
+				}
+				if(reboot_choice == GO_BACK)
+					continue;
+			}
             case 1:
             {
                 if (0 != ensure_path_mounted("/data"))
@@ -963,45 +1019,29 @@ void show_advanced_menu()
                 break;
             }
             case 2:
-				handle_failure(1);
-				break;
-            case 3:
-            {
-                ui_printlogtail(12);
-                break;
-            }
-            case 4:
-            {
 				ui_print("Disabled for this device!\n");
 				break;
+			case 3:
+			{
+				static char* ui_colors[] = {"Hydro (default)",
+											"Blood Red",
+											"Key Lime Pie",
+											"Citrus Orange",
+											"Dooderbutt Blue",
+											NULL
+				};
+				static char* ui_header[] = {"UI Color", "", NULL};
+				
+				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
+				if(ui_color == GO_BACK)
+					continue;
+				else 
+					set_ui_color(ui_color);
+				break;
 			}
-            case 5:
-            {
-                ensure_path_mounted("/system");
-                ensure_path_mounted("/data");
-                ui_print("Fixing permissions...\n");
-                __system("fix_permissions");
-                ui_print("Done!\n");
-                break;
-            }
-	    case 6:
-	    {
-		static char* ui_colors[] = {"Hydro (default)",
-			"Blood Red",
-			"Key Lime Pie",
-			"Citrus Orange",
-			"Dooderbutt Blue",
-			NULL
-		};
-		static char* ui_header[] = {"UI Color", "", NULL};
-
-			  int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
-			  if(ui_color == GO_BACK)
-				  continue;
-			  else 
-				  set_ui_color(ui_color);
-			  break;
-		  }
+			case 4:
+				show_advanced_debugging_menu();
+				break;
         }
     }
 }

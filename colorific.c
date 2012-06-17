@@ -63,6 +63,12 @@ int UICOLOR2 = 0;
 int bg_icon = 0;
 const char *UI_CONFIG_FILE = "/sdcard/clockworkmod/.conf";
 
+/*
+ * Silence the debug logs; clogs up recovery.log, enable (temporarily)
+ * from Advanced > Debugging.
+ */
+int UI_COLOR_DEBUG = 0;
+
 /* Set the UI color to default (hydro), give it it's own function to
  * avoid repeats and having to reboot on setting to default. */
 void set_ui_default() {
@@ -70,11 +76,12 @@ void set_ui_default() {
 	UICOLOR1 = 191;
 	UICOLOR2 = 255;
 	bg_icon = HYDRO_UI;
-	LOGI("%s %i\n", "ECDEF_UICOLOR0: ", UICOLOR0);
-	LOGI("%s %i\n", "ECDEF_UICOLOR1: ", UICOLOR1);
-	LOGI("%s %i\n", "ECDEF_UICOLOR2: ", UICOLOR2);
-	LOGI("%s %i\n", "ECDEF_bg_icon: ", bg_icon);
-	//ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	if(UI_COLOR_DEBUG) {
+		LOGI("%s %i\n", "ECDEF_UICOLOR0: ", UICOLOR0);
+		LOGI("%s %i\n", "ECDEF_UICOLOR1: ", UICOLOR1);
+		LOGI("%s %i\n", "ECDEF_UICOLOR2: ", UICOLOR2);
+		LOGI("%s %i\n", "ECDEF_bg_icon: ", bg_icon);
+	}
 }
 
 /* Get the custom UI configuration settings; as you may be able to tell
@@ -92,22 +99,13 @@ void get_config_settings() {
 		UICOLOR1 = j;
 		UICOLOR2 = k;
 		bg_icon = l;
-		LOGI("%s %i\n", "EC_UICOLOR0: ", UICOLOR0);
-		LOGI("%s %i\n", "EC_UICOLOR1: ", UICOLOR1);
-		LOGI("%s %i\n", "EC_UICOLOR2: ", UICOLOR2);
-		LOGI("%s %i\n", "EC_bg_icon: ", bg_icon);
+		if(UI_COLOR_DEBUG) {
+			LOGI("%s %i\n", "EC_UICOLOR0: ", UICOLOR0);
+			LOGI("%s %i\n", "EC_UICOLOR1: ", UICOLOR1);
+			LOGI("%s %i\n", "EC_UICOLOR2: ", UICOLOR2);
+			LOGI("%s %i\n", "EC_bg_icon: ", bg_icon);
+		}
 		fclose(in_file);
-		//ensure_path_unmounted("/sdcard");
-		/*switch(bg_icon) {
-			// Use a define (in common.h) for easier color reference.
-			case DOODERBUTT_BLUE_UI:
-				ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-				break;
-			// Anything other than 4 is the clockwork icon
-			default:
-				ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-				break;
-		}*/
 	} else {
 		set_ui_default();
 	}
@@ -141,9 +139,13 @@ void set_config_file_contents(int i, int j, int k, int l) {
 }
 
 void set_bg_icon(int icon) {
-	LOGI("%s %i\n", "CO_ICON:", icon);
+	if(UI_COLOR_DEBUG) {
+		LOGI("%s %i\n", "CO_ICON:", icon);
+	}
 	bg_icon = icon;
-	LOGI("%s %i\n", "CO_BG:", bg_icon);
+	if(UI_COLOR_DEBUG) {
+		LOGI("%s %i\n", "CO_BG:", bg_icon);
+	}
 	return;
 }
 
@@ -218,7 +220,9 @@ void set_ui_color(int i) {
 
 void ui_dyn_background()
 {
-	LOGI("%s %i\n", "DYN_BG:", bg_icon);
+	if(UI_COLOR_DEBUG) {
+		LOGI("%s %i\n", "DYN_BG:", bg_icon);
+	}
 	switch(bg_icon) {
 		case BLOOD_RED_UI:
 			ui_set_background(BACKGROUND_ICON_BLOODRED);
