@@ -43,7 +43,7 @@
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
 
-//#include "colorific.h"
+#include "colorific.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
@@ -62,6 +62,22 @@ void toggle_script_asserts()
 {
     script_assert_enabled = !script_assert_enabled;
     ui_print("Script Asserts: %s\n", script_assert_enabled ? "Enabled" : "Disabled");
+}
+
+void toggle_ui_debugging()
+{
+	switch(UI_COLOR_DEBUG) {
+		case 0: {
+			ui_print("Enabling UI color debugging; will disable again on reboot.\n");
+			UI_COLOR_DEBUG = 1;
+			break;
+		}
+		default: {
+			ui_print("Disabling UI color debugging.\n");
+			UI_COLOR_DEBUG = 0;
+			break;
+		}
+	}
 }
 
 int install_zip(const char* packagefilepath)
@@ -896,24 +912,99 @@ void wipe_battery_stats()
 }
 */
 
+void show_advanced_debugging_menu()
+{
+	static char* headers[] = { "Debugging Options",
+								"",
+								NULL
+	};
+	
+	static char* list[] = { "Fix Permissions",
+							"Fix Recovery Boot Loop",
+							"Report Error",
+							"Key Test",
+							"Show log",
+							"Toggle UI Debugging",
+							NULL
+	};
+	
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+		if(chosen_item == GO_BACK)
+			break;
+		switch(chosen_item)
+		{
+			case 0:
+			{
+				ensure_path_mounted("/system");
+				ensure_path_mounted("/data");
+				ui_print("Fixing permissions...\n");
+				__system("fix_permissions");
+				ui_print("Done!\n");
+				break;
+			}
+			case 1:
+			{
+				format_root_device("MISC:");
+				format_root_device("PERSIST:");
+				reboot(RB_AUTOBOOT);
+				break;	
+			}
+			case 2:
+				handle_failure(1);
+				break;
+			case 3:
+			{
+				ui_print("Outputting key codes.\n");
+				ui_print("Go back to end debugging.\n");
+				struct keyStruct{
+					int code;
+					int x;
+					int y;
+				}*key;
+				int action;
+				do
+				{
+					key = ui_wait_key();
+					if(key->code == ABS_MT_POSITION_X)
+					{
+						action = device_handle_mouse(key, 1);
+						ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
+					}
+					else
+					{
+						action = device_handle_key(key->code, 1);
+						ui_print("Key: %x\n", key->code);
+					}
+				}
+				while (action != GO_BACK);
+				break;
+			}
+			case 4:
+				ui_printlogtail(12);
+				break;
+			case 5:
+				toggle_ui_debugging();
+				break;
+		}
+	}
+}
+
 void show_advanced_menu()
 {
-    static char* headers[] = {  "Advanced and Debugging Menu",
+    static char* headers[] = {  "Advanced Options",
                                 "",
                                 NULL
     };
 
     static char* list[] = { "Reboot Recovery",
                             "Wipe Dalvik Cache",
-                            "Report Error",
-                            "Key Test",
-                            "Show log",
 #ifndef BOARD_HAS_SMALL_RECOVERY
                             "Partition SD Card",
-                            "Fix Permissions",
-			    			"Set UI Color",
-							"Fix Recovery Boot Loop",
 #endif
+			    			"Set UI Color",
+			    			"Debugging Options",			    			
                             NULL
     };
 
@@ -925,10 +1016,8 @@ void show_advanced_menu()
         switch (chosen_item)
         {
             case 0:
-            {
                 reboot_wrapper("recovery");
                 break;
-            }
             case 1:
             {
                 if (0 != ensure_path_mounted("/data"))
@@ -945,41 +1034,6 @@ void show_advanced_menu()
                 break;
             }
             case 2:
-                handle_failure(1);
-                break;
-            case 3:
-            {
-                ui_print("Outputting key codes.\n");
-                ui_print("Go back to end debugging.\n");
-                struct keyStruct{
-					int code;
-					int x;
-					int y;
-				}*key;
-                int action;
-                do
-                {
-                    key = ui_wait_key();
-					if(key->code == ABS_MT_POSITION_X)
-					{
-				        action = device_handle_mouse(key, 1);
-						ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
-					}
-					else
-					{
-				        action = device_handle_key(key->code, 1);
-						ui_print("Key: %x\n", key->code);
-					}
-                }
-                while (action != GO_BACK);
-                break;
-            }
-            case 4:
-            {
-                ui_printlogtail(12);
-                break;
-            }
-            case 5:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
@@ -1022,40 +1076,27 @@ void show_advanced_menu()
                     ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
             }
-            case 6:
+            case 3:
             {
-                ensure_path_mounted("/system");
-                ensure_path_mounted("/data");
-                ui_print("Fixing permissions...\n");
-                __system("fix_permissions");
-                ui_print("Done!\n");
-                break;
-            }
-	    case 7:
-	    {
-		static char* ui_colors[] = {"Hydro (default)",
-			"Blood Red",
-			"Key Lime Pie",
-			"Citrus Orange",
-			"Dooderbutt Blue",
-			NULL
-		};
-		static char* ui_header[] = {"UI Color", "", NULL};
-
-		int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
-		if(ui_color == GO_BACK)
-		    continue;
-		else
-		    set_ui_color(ui_color);
-		break;
-	    }
-		case 8:
-		{
-			format_root_device("MISC:");
-			format_root_device("PERSIST:");
-			reboot(RB_AUTOBOOT);
-			break;
-		}
+				static char* ui_colors[] = {"Hydro (default)",
+											"Blood Red",
+											"Key Lime Pie",
+											"Citrus Orange",
+											"Dooderbutt Blue",
+											NULL
+				};
+				static char* ui_header[] = {"UI Color", "", NULL};
+				
+				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
+				if(ui_color == GO_BACK)
+					continue;
+				else
+					set_ui_color(ui_color);
+				break;
+			}
+			case 4:
+				show_advanced_debugging_menu();
+				break;
         }
     }
 }
