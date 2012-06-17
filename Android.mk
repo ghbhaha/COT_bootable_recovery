@@ -33,7 +33,7 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_NAME := Cannibal Open Touch
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v1.0.8_ui_test1
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.0.8_ui_test2
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
@@ -62,11 +62,12 @@ LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 LOCAL_MODULE_TAGS := eng
 
-ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
+# Ignore custom mapping for now, will tweak it in the device repo later.
+#ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
   LOCAL_SRC_FILES += default_recovery_ui.c
-else
-  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
-endif
+#else
+#  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
+#endif
 
 LOCAL_STATIC_LIBRARIES += librebootrecovery
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
