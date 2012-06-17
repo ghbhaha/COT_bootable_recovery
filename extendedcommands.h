@@ -60,15 +60,3 @@ void show_install_update_menu();
 int confirm_selection(const char* title, const char* confirm);
 
 int run_and_remove_extendedcommand();
-
-/* Everything below this has been hacked in for the purpose of custom
- * UI colors */
-
-// Define a location for our configuration file
-static const char *UI_CONFIG_FILE = "/sdcard/clockworkmod/.conf";
-
-int UICOLOR0, UICOLOR1, UICOLOR2, UICOLOR3;
-
-void set_ui_color(int i);
-
-void get_config_settings();

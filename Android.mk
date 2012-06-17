@@ -21,7 +21,8 @@ LOCAL_SRC_FILES := \
     ../../system/core/toolbox/reboot.c \
     firmware.c \
     edifyscripting.c \
-    setprop.c
+    setprop.c \
+	colorific.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -30,16 +31,9 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-ifdef I_AM_KOUSH
-RECOVERY_NAME := ClockworkMod Recovery
-LOCAL_CFLAGS += -DI_AM_KOUSH
-else
-RECOVERY_NAME := CWM-based Touch Recovery
-endif
+RECOVERY_NAME := Cannibal Open Touch
 
-# Track CWM version separately than release version.
-CWM_VERSION := v5.0.2.7+
-RECOVERY_VERSION := $(RECOVERY_NAME) $(CWM_VERSION) kf1.9+
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.0.8+kftest
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2

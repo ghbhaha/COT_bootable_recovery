@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -41,6 +40,7 @@
 #include "roots.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
+#include "colorific.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
@@ -1075,11 +1075,11 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
-
-    ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
-    load_volume_table();
+	load_volume_table();
     process_volumes();
+    ui_init();
+    //ui_print(EXPAND(RECOVERY_VERSION)"\n");
+
     LOGI("Processing arguments.\n");
     get_args(&argc, &argv);
 

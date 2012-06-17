@@ -44,6 +44,8 @@
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
 
+//#include "colorific.h"
+
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
 int signature_check_enabled = 1;
@@ -894,132 +896,6 @@ void show_nandroid_menu()
     }
 }
 
-/* Set the UI color to default red, give it it's own function to avoid
- * repeats and having to reboot on setting to default */
-void set_ui_default() {
-	UICOLOR0 = 255;
-	UICOLOR1 = 0;
-	UICOLOR2 = 0;
-	UICOLOR3 = 255;
-}
-
-/* Get the custom UI configuration settings; as you may be able to tell
- * this doesn't fully function yet. */
-void get_config_settings() {
-	FILE *in_file;
-	int i, j, k, l;
-
-	ensure_path_mounted("/sdcard");
-	/* ensure the directory exists in case this is the first boot and
-	 * we haven't performed a backup, function found in nandroid.c */
-	ensure_directory("/sdcard/clockworkmod");
-
-	if(in_file = fopen(UI_CONFIG_FILE, "r")) {
-		fscanf(in_file, "%d%d%d%d", &i, &j, &k, &l);
-		UICOLOR0 = i;
-		UICOLOR1 = j;
-		UICOLOR2 = k;
-		UICOLOR3 = l;
-		fclose(in_file);
-	} else {
-		set_ui_default();
-	}
-}	
-
-/* There's probably a better way to do this but for now here it is,
- * write a config file to store the ui color to be set from the
- * advanced menu */
-void set_config_file_contents(int i, int j, int k, int l) {
-	FILE *out_file;
-	int n;
-
-	ensure_path_mounted("/sdcard");
-	// Open the config file to confirm it's presence (to remove it).
-	if(out_file = fopen(UI_CONFIG_FILE, "r")) {
-		fclose(out_file);
-		remove(UI_CONFIG_FILE);
-	}
-	/* Regardless of if it existed prior it will be gone now.
-	 * Create the .conf file and reopen it with write privs */
-	__system("touch /sdcard/clockworkmod/.conf");
-	out_file = fopen(UI_CONFIG_FILE, "w");
-
-	// Write our integers in separate lines for easy reference
-	n = 0;
-	fprintf(out_file, "%d ", i);
-	n++;
-	fprintf(out_file, "%d ", j);
-	n++;
-	fprintf(out_file, "%d ", k);
-	n++;
-	fprintf(out_file, "%d", l);
-
-	fclose(out_file);
-	ensure_path_unmounted("/sdcard");
-}
-
-// This should really be done with a mapping instead of a switch.
-void set_ui_color(int i) {
-	int n, m, o, p;
-	switch(i) {
-		case 0: {
-			/* Since red is the default and the only thing handled
-			 * by our config file is color, simply remove it when
-			 * selecting default */
-			ensure_path_mounted("/sdcard");
-			ui_print("Setting UI Color to Default.\n");
-			remove(UI_CONFIG_FILE);
-			ensure_path_unmounted("/sdcard");
-			// Set the default colors to avoid the need for a reboot
-			set_ui_default();
-			/* Return from the function entirely instead of just
-			 * breaking from the loop; subsequently cancelling the
-			 * later call of set_config_file_contents */
-			return;
-		}
-		case 1: {
-			ui_print("Setting UI Color to Cyan.\n");
-			n = 0;
-			m = 191;
-			o = 255;
-			p = 255;
-			break;
-		}
-		case 2: {
-			ui_print("Setting UI Color to Blue.\n");
-			n = 0;
-			m = 0;
-			o = 255;
-			p = 255;
-			break;
-		}
-		case 3: {
-			ui_print("Setting UI Color to Lime.\n");
-			n = 0;
-			m = 255;
-			o = 0;
-			p = 255;
-			break;
-		}
-		case 4: {
-			ui_print("Setting UI Color to Magenta.\n");
-			n = 255;
-			m = 0;
-			o = 255;
-			p = 255;
-			break;
-		}
-		case 5: {
-			ui_print("Setting UI Color to Orange.\n");
-			n = 238;
-			m = 148;
-			o = 74;
-			p = 255;
-			break;
-		}
-	}
-	set_config_file_contents(n,m,o,p);
-}
 
 void show_advanced_menu()
 {
@@ -1108,17 +984,16 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 6: 
-            {
-			  static char* ui_colors[] = {"Red (default)",
-									"Cyan",
-									"Blue",
-									"Lime",
-									"Magenta",
-									"Orange",
-									NULL
-			  };
-			  static char* ui_header[] = {"UI Color", "", NULL};
+	    case 6:
+	    {
+		static char* ui_colors[] = {"Hydro (default)",
+			"Blood Red",
+			"Key Lime Pie",
+			"Citrus Orange",
+			"Dooderbutt Blue",
+			NULL
+		};
+		static char* ui_header[] = {"UI Color", "", NULL};
 
 			  int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
 			  if(ui_color == GO_BACK)
