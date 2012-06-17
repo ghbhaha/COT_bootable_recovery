@@ -48,3 +48,6 @@
 ### 06/12/2012
 * Cleaned up some unneeded changes that were brought in w/ retouch.
 * Fixed sdcard mounting bug.
+
+### 06/16/2012
+* Add initial support for the OpenRecoveryScript Engine.
