@@ -51,3 +51,7 @@
 
 ### 06/16/2012
 * Add initial support for the OpenRecoveryScript Engine.
+
+### 06/17/2012
+* Rebrand; since a very early period this recovery has been the sister recovery to the Team Hydro recovery for the Optimus S, in effort to better support both devices these are being brought closer in line. To that end rename as 'Cannibal Open Touch' to match the new Team Hydro version.
+* Replace color switch with colorific from COTR.
