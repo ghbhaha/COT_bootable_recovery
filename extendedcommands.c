@@ -81,13 +81,13 @@ void toggle_ui_debugging()
 	}
 }
 
-int install_zip(const char* packagefilepath)
+int install_zip(const char* packagefilepath, int dummy)
 {
     ui_print("\n-- Installing: %s\n", packagefilepath);
     if (device_flash_type() == MTD) {
         set_sdcard_update_bootloader_message();
     }
-    int status = install_package(packagefilepath);
+    int status = install_package(packagefilepath, dummy);
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
@@ -135,7 +135,7 @@ void show_install_update_menu()
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
-                    install_zip(SDCARD_UPDATE_FILE);
+                    install_zip(SDCARD_UPDATE_FILE, 0);
                 break;
             }
             case ITEM_CHOOSE_ZIP:
@@ -351,7 +351,7 @@ void show_choose_zip_menu(const char *mount_point)
     static char confirm[PATH_MAX];
     sprintf(confirm, "Yes - Install %s", basename(file));
     if (confirm_selection(confirm_install, confirm))
-        install_zip(file);
+        install_zip(file, 0);
 }
 
 void show_nandroid_restore_menu(const char* path)

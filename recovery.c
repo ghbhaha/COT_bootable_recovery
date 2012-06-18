@@ -633,7 +633,7 @@ sdcard_directory(const char* path) {
             char* copy = copy_sideloaded_package(new_path);
             ensure_path_unmounted(SDCARD_ROOT);
             if (copy) {
-                result = install_package(copy);
+                result = install_package(copy, 0);
                 free(copy);
             } else {
                 result = INSTALL_ERROR;
@@ -733,7 +733,7 @@ prompt_and_wait() {
                 if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
                 {
                     ui_print("\n-- Install from sdcard...\n");
-                    int status = install_package(SDCARD_PACKAGE_FILE);
+                    int status = install_package(SDCARD_PACKAGE_FILE, 0);
                     if (status != INSTALL_SUCCESS) {
                         ui_set_background(BACKGROUND_ICON_ERROR);
                         ui_print("Installation aborted.\n");
@@ -808,7 +808,7 @@ int check_for_script_file(void) {
 int run_script_file(void) {
 	FILE *fp = fopen(SCRIPT_FILE_TMP, "r");
 	struct stat st;
-	int ret_val = 0, cindex, line_len, i, remove_nl;
+	int ret_val = 0, cindex, line_len, i, err, remove_nl;
 	char script_line[SCRIPT_COMMAND_SIZE], command[SCRIPT_COMMAND_SIZE],
 		 value[SCRIPT_COMMAND_SIZE], mount[SCRIPT_COMMAND_SIZE],
 		 value1[SCRIPT_COMMAND_SIZE], value2[SCRIPT_COMMAND_SIZE];
@@ -867,10 +867,23 @@ int run_script_file(void) {
 			if (strcmp(command, "install") == 0) {
 				// Install zip
 				ui_print("Installing zip file '%s'\n", value);
-				ret_val = install_zip(value);
-				if (ret_val != INSTALL_SUCCESS) {
-					LOGE("Error installing zip file '%s'\n", value);
-					ret_val = 1;
+				if (signature_check_enabled) {
+					i = check_package_signature(value);
+					if(i == INSTALL_CORRUPT && confirm_selection("Confirm install?","Yes - Failed Signature Check!")) {
+						ret_val = install_zip(value, 1);
+						if(ret_val != INSTALL_SUCCESS) {
+							LOGE("Error installing zip file '%s'\n", value);
+							ret_val = 1;
+						}
+					} else {
+						ui_print("Skipping package installation...\n");
+					}
+				} else {
+					ret_val = install_zip(value, 0);
+					if (ret_val != INSTALL_SUCCESS) {
+						LOGE("Error installing zip file '%s'\n", value);
+						ret_val = 1;
+					}
 				}
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe
@@ -1190,7 +1203,7 @@ main(int argc, char **argv) {
 	}
 	
     if (update_package != NULL) {
-        status = install_package(update_package);
+        status = install_package(update_package, 0);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (wipe_data) {
         if (device_wipe_data()) status = INSTALL_ERROR;
