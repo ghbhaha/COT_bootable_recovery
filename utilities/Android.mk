@@ -27,13 +27,8 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 
-<<<<<<< HEAD
-endif
-=======
 # Retouch patch, remove most of this
 # endif
->>>>>>> d98eb7cacaa4
-
 #include $(CLEAR_VARS)
 #LOCAL_MODULE := e2fsck
 #LOCAL_MODULE_TAGS := eng
