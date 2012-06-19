@@ -390,7 +390,9 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
             // Setup our text colors
 	    get_config_settings();
-		LOGI("%s %i\n", "UI_BG:", bg_icon);
+	    if(UI_COLOR_DEBUG) {
+			LOGI("%s %i\n", "UI_BG:", bg_icon);
+		}
 		set_bg_icon(bg_icon);
 	    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
