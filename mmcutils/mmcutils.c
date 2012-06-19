@@ -316,52 +316,26 @@ mmc_find_partition_by_name(const char *name)
     return NULL;
 }
 
-#define MKE2FS_BIN      "/sbin/mke2fs"
-#define TUNE2FS_BIN     "/sbin/tune2fs"
-#define E2FSCK_BIN      "/sbin/e2fsck"
-
-int
-run_exec_process ( char **argv) {
-    pid_t pid;
-    int status;
-    pid = fork();
-    if (pid == 0) {
-        execv(argv[0], argv);
-        fprintf(stderr, "E:Can't run (%s)\n",strerror(errno));
-        _exit(-1);
-    }
-
-    waitpid(pid, &status, 0);
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        return 1;
-    }
-    return 0;
-}
-
 int
 format_ext3_device (const char *device) {
-#ifdef BOARD_HAS_LARGE_FILESYSTEM
-    char *const mke2fs[] = {MKE2FS_BIN, "-j", "-q", device, NULL};
-    char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
-#else
-    char *const mke2fs[] = {MKE2FS_BIN, "-j", device, NULL};
-    char *const tune2fs[] = {TUNE2FS_BIN, "-j", "-C", "1", device, NULL};
-#endif
+    char *const mke2fs[] = {"mke2fs", "-j", device, NULL};
+    char *const tune2fs[] = {"tune2fs", "-j", "-C", "1", device, NULL};
+
     // Run mke2fs
-    if(run_exec_process(mke2fs)) {
+    if(cannibal_mke2fs_main(3, mke2fs)) {
         printf("failure while running mke2fs\n");
         return -1;
     }
 
     // Run tune2fs
-    if(run_exec_process(tune2fs)) {
+    if(cannibal_tune2fs_main(5, tune2fs)) {
         printf("failure while running mke2fs\n");
         return -1;
     }
 
     // Run e2fsck
-    char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck)) {
+    char *const e2fsck[] = {"e2fsck", "-fy", device, NULL};
+    if(cannibal_e2fsck_main(3, e2fsck)) {
         printf("failure while running e2fsck\n");
         return -1;
     }
@@ -372,18 +346,18 @@ format_ext3_device (const char *device) {
 int
 format_ext2_device (const char *device) {
     // Run mke2fs
-    char *const mke2fs[] = {MKE2FS_BIN, device, NULL};
-    if(run_exec_process(mke2fs))
+    char *const mke2fs[] = {"mke2fs", device, NULL};
+    if(cannibal_mke2fs_main(2, mke2fs))
         return -1;
 
     // Run tune2fs
-    char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
-    if(run_exec_process(tune2fs))
+    char *const tune2fs[] = {"tune2fs", "-C", "1", device, NULL};
+    if(cannibal_tune2fs_main(4, tune2fs))
         return -1;
 
     // Run e2fsck
-    char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck))
+    char *const e2fsck[] = {"e2fsck", "-fy", device, NULL};
+    if(cannibal_e2fsck_main(3, e2fsck))
         return -1;
 
     return 0;
