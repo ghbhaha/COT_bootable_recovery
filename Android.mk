@@ -40,7 +40,7 @@ else
 RECOVERY_NAME := Cannibal Open Touch
 endif
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v1.0.8
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.0.9a
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
@@ -53,6 +53,11 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
     $(eval LOCAL_CFLAGS += -D$(board_define)=\"$($(board_define))\") \
   ) \
   )
+
+LOCAL_STATIC_LIBRARIES :=
+LOCAL_CFLAGS += -DUSE_EXT4
+LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
@@ -151,6 +156,7 @@ include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/libcrecovery/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
+include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk

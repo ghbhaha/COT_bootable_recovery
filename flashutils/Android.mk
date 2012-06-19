@@ -25,7 +25,6 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := flash_image.c
 LOCAL_MODULE := flash_image
 LOCAL_MODULE_TAGS := eng
-#LOCAL_STATIC_LIBRARIES += $(BOARD_FLASH_LIBRARY)
 LOCAL_STATIC_LIBRARIES := libflashutils libmtdutils libmmcutils libbmlutils
 LOCAL_STATIC_LIBRARIES += libcannibal_e2fsck libcannibal_tune2fs libcannibal_mke2fs
 LOCAL_SHARED_LIBRARIES := libcutils libc
