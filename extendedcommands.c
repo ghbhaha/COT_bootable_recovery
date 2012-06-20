@@ -926,9 +926,6 @@ void show_nandroid_menu()
                             NULL
     };
 
-    if (volume_for_path("/emmc") == NULL)
-        list[3] = NULL;
-
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
     {

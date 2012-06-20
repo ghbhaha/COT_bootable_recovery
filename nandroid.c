@@ -216,7 +216,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
 {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     
-    if (ensure_path_mounted("/sdcard") != 0)
+    if (ensure_root_path_mounted("SDCARD:") != 0)
         return print_and_error("Can't mount /sdcard\n");
     
     int ret;
@@ -235,20 +235,30 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     sprintf(tmp, "mkdir -p %s", backup_path);
     __system(tmp);
 
-    if (boot && 0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+    if (boot) {
+        ui_print("Backing up boot...\n");
+        sprintf(tmp, "%s/%s", backup_path, "boot.img");
+        ret = backup_raw_partition("boot", tmp);
+        if (0 != ret)
+            return print_and_error("Error while dumping boot image!\n");
+    }
+
+    if (recovery) {
+        ui_print("Backing up recovery...\n");
+        sprintf(tmp, "%s/%s", backup_path, "recovery.img");
+        ret = backup_raw_partition("recovery", tmp);
+        if (0 != ret)
+            return print_and_error("Error while dumping recovery image!\n");
+    }
+
+    if (system && 0 != (ret = nandroid_backup_partition(backup_path, "SYSTEM:")))
         return ret;
 
-    if (recovery && 0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
-        return ret;
-
-    if (system && 0 != (ret = nandroid_backup_partition(backup_path, "/system")))
-        return ret;
-
-    if (data && 0 != (ret = nandroid_backup_partition(backup_path, "/data")))
+    if (data && 0 != (ret = nandroid_backup_partition(backup_path, "DATA:")))
         return ret;
 
     if (data && has_datadata()) {
-        if (0 != (ret = nandroid_backup_partition(backup_path, "/datadata")))
+        if (0 != (ret = nandroid_backup_partition(backup_path, "DATADATA:")))
             return ret;
     }
 
@@ -258,11 +268,11 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     }
     else
     {
-        if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
+        if (0 != (ret = nandroid_backup_partition_extended(backup_path, "SDCARD:/.android_secure", 0)))
             return ret;
     }
 
-    if (cache && 0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
+    if (cache && 0 != (ret = nandroid_backup_partition_extended(backup_path, "CACHE:", 0)))
         return ret;
 
     Volume *vol = volume_for_path("/sd-ext");
@@ -272,9 +282,9 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     }
     else if (sdext)
     {
-        if (0 != ensure_path_mounted("/sd-ext"))
+        if (0 != ensure_root_path_mounted("SDEXT:"))
             ui_print("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
-        else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
+        else if (0 != (ret = nandroid_backup_partition(backup_path, "SDEXT:")))
             return ret;
     }
 
