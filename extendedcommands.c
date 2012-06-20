@@ -884,11 +884,6 @@ void show_nandroid_advanced_restore_menu(const char* path)
                             NULL
     };
 
-    if (0 != get_partition_device("wimax", tmp)) {
-        // disable wimax restore option
-        list[5] = NULL;
-    }
-
     static char* confirm_restore  = "Confirm restore?";
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
