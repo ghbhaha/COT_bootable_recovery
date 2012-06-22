@@ -763,6 +763,7 @@ void show_partition_menu()
 
 void show_nandroid_advanced_backup_menu(){
     static char* advancedheaders[] = { "Choose the partitions to backup.",
+                                        "",
 					NULL
     };
 

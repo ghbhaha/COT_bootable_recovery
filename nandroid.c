@@ -140,7 +140,7 @@ int nandroid_backup(const char* backup_path)
     uint64_t sdcard_free = bavail * bsize;
     uint64_t sdcard_free_mb = sdcard_free / (uint64_t)(1024 * 1024);
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-    if (sdcard_free_mb < 150)
+    if (sdcard_free_mb < 400)
         ui_print("There may not be enough free space to complete backup... continuing...\n");
     
     char tmp[PATH_MAX];
@@ -228,7 +228,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     uint64_t sdcard_free = bavail * bsize;
     uint64_t sdcard_free_mb = sdcard_free / (uint64_t)(1024 * 1024);
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-    if (sdcard_free_mb < 150)
+    if (sdcard_free_mb < 400)
         ui_print("There may not be enough free space to complete backup... continuing...\n");
     
     char tmp[PATH_MAX];
