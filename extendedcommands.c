@@ -387,6 +387,31 @@ void show_view_and_delete_backups(const char *mount_point, const char *backup_pa
 	}
 }
 
+void delete_old_backups(const char *mount_point)
+{
+	if (ensure_path_mounted(mount_point) != 0) {
+		LOGE("Can't mount %s\n", mount_point);
+		return;
+	}
+
+	static char* headers[] = { "Choose a backup to delete",
+								 "",
+								 NULL
+	};
+
+	char* file = choose_file_menu(mount_point, NULL, headers);
+	if(file == NULL)
+		return;
+	static char* confirm_delete = "Confirm delete?";
+	static char confirm[PATH_MAX];
+	sprintf(confirm, "Yes - Delete %s", basename(file));
+	if(confirm_selection(confirm_delete, confirm)) {
+		static char* tmp[PATH_MAX];
+		sprintf(tmp, "rm -rf %s", file);
+		__system(tmp);
+	}
+}
+
 int show_lowspace_menu(int i, const char* backup_path)
 {
 	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
@@ -398,7 +423,7 @@ int show_lowspace_menu(int i, const char* backup_path)
 	#define ITEM_CANCEL_BACKUP 2
 
 	static char* headers[] = { "Limited space available!",
-				"",
+								"",
                                 "There may not be enough space",
                                 "to continue backup.",
                                 "",
@@ -1028,6 +1053,7 @@ void show_nandroid_menu()
                             "restore",
                             "advanced backup",
                             "advanced restore",
+                            "delete old backups",
                             NULL
     };
 
@@ -1060,6 +1086,9 @@ void show_nandroid_menu()
             break;
         case 3:
             show_nandroid_advanced_restore_menu("/sdcard");
+            break;
+        case 4:
+            delete_old_backups("/sdcard/clockworkmod/backup/");
             break;
     }
 }
