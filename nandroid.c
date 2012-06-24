@@ -42,6 +42,8 @@
 #include "flashutils/flashutils.h"
 #include <libgen.h>
 
+#define LIMITED_SPACE 800
+
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
     time_t t = time(NULL);
@@ -224,6 +226,22 @@ int nandroid_backup_partition(const char* backup_path, const char* root) {
     return nandroid_backup_partition_extended(backup_path, root, 1);
 }
 
+int recalc_sdcard_space(const char* backup_path)
+{
+	struct statfs s;
+	int ret;
+	Volume* volume = volume_for_path(backup_path);
+	//static char mount_point = "/sdcard/"
+	if (0 != (ret = statfs(volume->mount_point, &s))) {
+		return print_and_error("Can't mount sdcard.\n");
+	}
+	uint64_t bavail = s.f_bavail;
+    uint64_t bsize = s.f_bsize;
+    uint64_t sdcard_free = bavail * bsize;
+    uint64_t sdcard_free_mb = sdcard_free / (uint64_t)(1024 * 1024);
+    return sdcard_free_mb;
+}
+
 int nandroid_backup(const char* backup_path)
 {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
@@ -239,13 +257,15 @@ int nandroid_backup(const char* backup_path)
     struct statfs s;
     if (0 != (ret = statfs(volume->mount_point, &s)))
         return print_and_error("Unable to stat backup path.\n");
-    uint64_t bavail = s.f_bavail;
-    uint64_t bsize = s.f_bsize;
-    uint64_t sdcard_free = bavail * bsize;
-    uint64_t sdcard_free_mb = sdcard_free / (uint64_t)(1024 * 1024);
+    
+    uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
+
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-    if (sdcard_free_mb < 150)
-        ui_print("There may not be enough free space to complete backup... continuing...\n");
+    if (sdcard_free_mb < LIMITED_SPACE) {
+        if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
+			return 0;
+		}
+	}
     
     char tmp[PATH_MAX];
     sprintf(tmp, "mkdir -p %s", backup_path);
@@ -297,7 +317,7 @@ int nandroid_backup(const char* backup_path)
     vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s))
     {
-        ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
+        //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
     }
     else
     {
