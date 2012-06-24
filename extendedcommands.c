@@ -360,7 +360,66 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
     return return_value;
 }
 
-// Redo this off of ICS a bit (just a little, not entirely lol) ;)
+void show_view_and_delete_backups(const char *mount_point, const char *backup_path)
+{
+	if (ensure_path_mounted(mount_point) != 0) {
+		LOGE("Can't mount %s\n", mount_point);
+		return;
+	}
+
+	static char* headers[] = { "Choose a backup to delete",
+								 "",
+								 NULL
+	};
+
+	char* file = choose_file_menu(mount_point, NULL, headers);
+	if(file == NULL)
+		return;
+	static char* confirm_delete = "Confirm delete?";
+	static char confirm[PATH_MAX];
+	sprintf(confirm, "Yes - Delete %s", basename(file));
+	if(confirm_selection(confirm_delete, confirm)) {
+		static char* tmp[PATH_MAX];
+		sprintf(tmp, "rm -rf %s", file);
+		__system(tmp);
+		uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
+		ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+	}
+}
+
+int show_lowspace_menu(int i, const char* backup_path)
+{
+	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
+											"View and delete old backups",
+											"Cancel backup",
+											NULL };
+	#define ITEM_CONTINUE_BACKUP 0
+	#define ITEM_VIEW_DELETE_BACKUPS 1
+	#define ITEM_CANCEL_BACKUP 2
+
+	static char* headers[] = { "There is a limited ammount of free space...",
+								"",
+								NULL
+	};
+
+	for (;;) {
+		int chosen_item = get_menu_selection(headers, LOWSPACE_MENU_ITEMS, 0, 0);
+		switch(chosen_item) {
+			case ITEM_CONTINUE_BACKUP: {
+				static char tmp;
+				ui_print("Proceeding with backup.\n");
+				return 0;
+			}
+			case ITEM_VIEW_DELETE_BACKUPS:
+				show_view_and_delete_backups("/sdcard/clockworkmod/backup/",backup_path);
+				break;
+			default:
+				ui_print("Cancelling backup.\n");
+				return 1;
+		}
+	}
+}
+
 void show_choose_zip_menu(const char *mount_point)
 {
     if (ensure_root_path_mounted("SDCARD:") != 0) {
@@ -999,6 +1058,16 @@ void show_nandroid_menu()
             break;
     }
 }
+
+/* We don't need to wipe battery stats. EVER. Dianne Hackborn said so.
+void wipe_battery_stats()
+{
+    ensure_path_mounted("/data");
+    remove("/data/system/batterystats.bin");
+    ensure_path_unmounted("/data");
+    ui_print("Battery Stats wiped.\n");
+}
+*/
 
 void show_advanced_debugging_menu()
 {
