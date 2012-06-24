@@ -397,7 +397,7 @@ int show_lowspace_menu(int i, const char* backup_path)
 	#define ITEM_VIEW_DELETE_BACKUPS 1
 	#define ITEM_CANCEL_BACKUP 2
 
-	static char* headers[] = { "There is a limited ammount of free space...",
+	static char* headers[] = { "There is a limited amount of free space...",
 								"",
 								NULL
 	};
@@ -435,7 +435,7 @@ void show_choose_zip_menu(const char *mount_point)
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
-    
+
     struct stat info;
     if (0 == stat("/sdcard/clockworkmod/.cotconfirmnandroid", &info)) {
         static char* confirm_install = "Confirm install?";
@@ -444,7 +444,7 @@ void show_choose_zip_menu(const char *mount_point)
         if (confirm_selection(confirm_install, confirm)) {
             install_zip(file);
         }
-    
+
     } else {
         static char* confirm_install  = "Make a nandroid backup?";
         static char confirm[PATH_MAX];
@@ -616,7 +616,7 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         }
         return 0;
     }
- 
+
     if (strcmp(v->mount_point, path) != 0) {
         return format_unknown_device(v->device, path, NULL);
     }
@@ -876,7 +876,7 @@ void show_nandroid_advanced_backup_menu(){
     backup_list[4] = 1;
     backup_list[5] = 1;
 
-  
+
 
     list[6] = "Perform Backup";
     list[7] = NULL;
@@ -887,12 +887,12 @@ void show_nandroid_advanced_backup_menu(){
 	    	list[0] = "Backup boot: Yes";
 	    else
 	    	list[0] = "Backup boot: No";
-	
+
 	    if (backup_list[1] == 1)
 	    	list[1] = "Backup recovery: Yes";
 	    else
 	    	list[1] = "Backup recovery: No";
-	
+
 	    if (backup_list[2] == 1)
     		list[2] = "Backup system: Yes";
 	    else
@@ -901,17 +901,17 @@ void show_nandroid_advanced_backup_menu(){
 	    if (backup_list[3] == 1)
 	    	list[3] = "Backup data: Yes";
 	    else
-	    	list[3] = "Backup data: No";   
+	    	list[3] = "Backup data: No";
 
 	    if (backup_list[4] == 1)
 	    	list[4] = "Backup cache: Yes";
 	    else
-	    	list[4] = "Backup cache: No";   
-	
+	    	list[4] = "Backup cache: No";
+
 	    if (backup_list[5] == 1)
 	    	list[5] = "Backup sd-ext: Yes";
 	    else
-	    	list[5] = "Backup sd-ext: No"; 
+	    	list[5] = "Backup sd-ext: No";
 
     	int chosen_item = get_menu_selection (advancedheaders, list, 0, 0);
 	switch (chosen_item) {
@@ -925,10 +925,10 @@ void show_nandroid_advanced_backup_menu(){
 	    case 3: backup_list[3] = !backup_list[3];
 		    break;
 	    case 4: backup_list[4] = !backup_list[4];
-		    break;	
+		    break;
 	    case 5: backup_list[5] = !backup_list[5];
 		    break;
-	    
+
 	    case 6: cont = 0;
 	    	    break;
 	}
@@ -946,7 +946,7 @@ void show_nandroid_advanced_backup_menu(){
    }
 
    return nandroid_advanced_backup(backup_path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
-     
+
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
@@ -1075,7 +1075,7 @@ void show_advanced_debugging_menu()
 								"",
 								NULL
 	};
-	
+
 	static char* list[] = { "Fix Permissions",
 							"Fix Recovery Boot Loop",
 							"Report Error",
@@ -1084,7 +1084,7 @@ void show_advanced_debugging_menu()
 							"Toggle UI Debugging",
 							NULL
 	};
-	
+
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -1106,7 +1106,7 @@ void show_advanced_debugging_menu()
 				format_root_device("MISC:");
 				format_root_device("PERSIST:");
 				reboot(RB_AUTOBOOT);
-				break;	
+				break;
 			}
 			case 2:
 				handle_failure(1);
@@ -1161,7 +1161,7 @@ void show_advanced_menu()
                             "Partition SD Card",
 #endif
 			    			"Set UI Color",
-			    			"Debugging Options",			    			
+			    			"Debugging Options",
                             NULL
     };
 
@@ -1243,7 +1243,7 @@ void show_advanced_menu()
 											NULL
 				};
 				static char* ui_header[] = {"UI Color", "", NULL};
-				
+
 				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
 				if(ui_color == GO_BACK)
 					continue;
@@ -1310,13 +1310,13 @@ int bml_check_volume(const char *path) {
         ensure_path_unmounted(path);
         return 0;
     }
-    
+
     Volume *vol = volume_for_path(path);
     if (vol == NULL) {
         LOGE("Unable process volume! Skipping...\n");
         return 0;
     }
-    
+
     ui_print("%s may be rfs. Checking...\n", path);
     char tmp[PATH_MAX];
     sprintf(tmp, "mount -t rfs %s %s", vol->device, path);
@@ -1345,12 +1345,12 @@ void process_volumes() {
     if (has_datadata())
         ret |= bml_check_volume("/datadata");
     ret |= bml_check_volume("/cache");
-    
+
     if (ret == 0) {
         ui_print("Done!\n");
         return;
     }
-    
+
     char backup_path[PATH_MAX];
     time_t t = time(NULL);
     char backup_name[PATH_MAX];
