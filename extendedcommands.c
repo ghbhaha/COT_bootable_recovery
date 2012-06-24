@@ -397,8 +397,12 @@ int show_lowspace_menu(int i, const char* backup_path)
 	#define ITEM_VIEW_DELETE_BACKUPS 1
 	#define ITEM_CANCEL_BACKUP 2
 
-	static char* headers[] = { "There is a limited amount of free space...",
+	static char* headers[] = { "Limited space available!",
 								"",
+                                "There may not be enough space",
+                                "to continue backup.",
+                                "",
+                                "What would you like to do?",
 								NULL
 	};
 
