@@ -403,6 +403,7 @@ int show_lowspace_menu(int i, const char* backup_path)
                                 "to continue backup.",
                                 "",
                                 "What would you like to do?",
+                                "",
 								NULL
 	};
 
