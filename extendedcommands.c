@@ -1202,7 +1202,7 @@ void process_volumes() {
     ui_print("in case of error.\n");
 
     nandroid_backup(backup_path);
-    nandroid_restore(backup_path, 1, 1, 1, 1, 1);
+    nandroid_restore(backup_path, 1, 1, 1, 1, 1, 0);
     ui_set_show_text(0);
 }
 
