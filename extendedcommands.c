@@ -376,11 +376,28 @@ void show_choose_zip_menu(const char *mount_point)
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
-    static char* confirm_install  = "Confirm install?";
+    static char* confirm_install  = "Make a nandroid backup?";
     static char confirm[PATH_MAX];
-    sprintf(confirm, "Yes - Install %s", basename(file));
-    if (confirm_selection(confirm_install, confirm))
+    sprintf(confirm, "Yes - Make a backup");
+    if (!confirm_nandroid_backup(confirm_install, confirm)) {
         install_zip(file);
+    } else {
+        char backup_path[PATH_MAX];
+        time_t t = time(NULL);
+        struct tm *tmp = localtime(&t);
+        if (tmp == NULL)
+        {
+            struct timeval tp;
+            gettimeofday(&tp, NULL);
+            sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+        }
+        else
+        {
+            strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+        }
+        nandroid_backup(backup_path);
+        install_zip(file);
+    }
 }
 
 void show_nandroid_restore_menu(const char* path)
@@ -460,6 +477,30 @@ int confirm_selection(const char* title, const char* confirm)
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
+    char* items[] = { "No",
+                      "No",
+                      "No",
+                      "No",
+                      "No",
+                      "No",
+                      "No",
+                      confirm, //" Yes -- wipe partition",   // [7
+                      "No",
+                      "No",
+                      "No",
+                      NULL };
+
+    int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
+    return chosen_item == 7;
+}
+
+int confirm_nandroid_backup(const char* title, const char* confirm)
+{
+    struct stat info;
+    if (0 == stat("/sdcard/clockworkmod/.cotconfirmnandroid", &info))
+        return 0;
+
+    char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
     char* items[] = { "No",
                       "No",
                       "No",
@@ -668,9 +709,6 @@ void show_partition_menu()
         { "mount /data", "unmount /data", "DATA:" },
         { "mount /cache", "unmount /cache", "CACHE:" },
         { "mount /sdcard", "unmount /sdcard", "SDCARD:" },
-#ifdef BOARD_HAS_SDCARD_INTERNAL
-        { "mount /emmc", "unmount /emmc", "SDINTERNAL:" },
-#endif
         { "mount /sd-ext", "unmount /sd-ext", "SDEXT:" }
         };
 
@@ -683,9 +721,6 @@ void show_partition_menu()
 
     string mmcs[MMC_COUNT][3] = {
       { "format sdcard", "SDCARD:" },
-#ifdef BOARD_HAS_SDCARD_INTERNAL
-      { "format internal sdcard", "SDINTERNAL:" },
-#endif
       { "format sd-ext", "SDEXT:" }
     };
 
@@ -959,16 +994,6 @@ void show_nandroid_menu()
             break;
     }
 }
-
-/* We don't need to wipe battery stats. EVER. Dianne Hackborn said so.
-void wipe_battery_stats()
-{
-    ensure_path_mounted("/data");
-    remove("/data/system/batterystats.bin");
-    ensure_path_unmounted("/data");
-    ui_print("Battery Stats wiped.\n");
-}
-*/
 
 void show_advanced_debugging_menu()
 {
