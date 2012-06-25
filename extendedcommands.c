@@ -407,11 +407,28 @@ void show_choose_zip_menu(const char *mount_point)
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
-    static char* confirm_install  = "Confirm install?";
+    static char* confirm_install  = "Make a nandroid backup?";
     static char confirm[PATH_MAX];
-    sprintf(confirm, "Yes - Install %s", basename(file));
-    if (confirm_selection(confirm_install, confirm))
+    sprintf(confirm, "Yes - Make a backup");
+    if (!confirm_nandroid_backup(confirm_install, confirm)) {
         install_zip(file, 0);
+	} else {
+        char backup_path[PATH_MAX];
+        time_t t = time(NULL);
+        struct tm *tmp = localtime(&t);
+        if (tmp == NULL)
+        {
+            struct timeval tp;
+            gettimeofday(&tp, NULL);
+            sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+        }
+        else
+        {
+            strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+        }
+        nandroid_backup(backup_path);
+        install_zip(file);
+    }
 }
 
 void show_nandroid_restore_menu(const char* path)
@@ -491,6 +508,21 @@ int confirm_selection(const char* title, const char* confirm)
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
+    char* items[] = { "No",
+                      confirm, //" Yes -- wipe partition",   // [1]
+                      NULL };
+
+    int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
+    return chosen_item == 1;
+}
+
+int confirm_nandroid_backup(const char* title, const char* confirm)
+{
+    struct stat info;
+    if (0 == stat("/sdcard/clockworkmod/.cotconfirmnandroid", &info))
+        return 0;
+
+    char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
     char* items[] = { "No",
                       confirm, //" Yes -- wipe partition",   // [1]
                       NULL };

@@ -59,6 +59,8 @@ void show_install_update_menu();
 
 int confirm_selection(const char* title, const char* confirm);
 
+int confirm_nandroid_backup(const char* title, const char* confirm);
+
 int run_and_remove_extendedcommand();
 
 int show_lowspace_menu(int i, const char* backup_path);
