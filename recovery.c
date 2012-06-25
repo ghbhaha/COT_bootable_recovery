@@ -184,7 +184,7 @@ static void
 get_args(int *argc, char ***argv) {
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
-    if (device_flash_type() == MTD || device_flash_type() == MMC) {
+    if (device_flash_type() == MTD) {
         get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
     }
 
@@ -243,7 +243,9 @@ get_args(int *argc, char ***argv) {
         strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
         strlcat(boot.recovery, "\n", sizeof(boot.recovery));
     }
-    set_bootloader_message(&boot);
+    if (device_flash_type() == MTD) {
+        set_bootloader_message(&boot);
+    }
 }
 
 void
@@ -509,6 +511,9 @@ get_menu_selection(char** headers, char** items, int menu_only,
             wrap_count++;
             if (wrap_count == 3) {
                 wrap_count = 0;
+				/*
+				 * This is not needed for the kindle...
+				 */
                 if (ui_get_showing_back_button()) {
                     //ui_print("Back menu button disabled.\n");
                     //ui_set_showing_back_button(0);
@@ -657,13 +662,7 @@ wipe_data(int confirm) {
         static char** title_headers = NULL;
 
         if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of ALL user data?",
-                                "following partitions will be WIPED:",
-                                "   /data",
-				"   /cache",
-				"   /sd-ext",
-				"   /sdcard/.android_secure",
-                                "",
+            char* headers[] = { "Confirm wipe of all user data?",
                                 "  THIS CAN NOT BE UNDONE.",
                                 "",
                                 NULL };
@@ -680,7 +679,7 @@ wipe_data(int confirm) {
         }
     }
 
-    ui_print("\n-- Performing Factory Reset...\n");
+    ui_print("\n-- Wiping data...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
@@ -689,7 +688,7 @@ wipe_data(int confirm) {
     }
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
-    ui_print("Factory Reset complete.\n");
+    ui_print("Data wipe complete.\n");
 }
 
 static void
@@ -728,6 +727,17 @@ prompt_and_wait() {
                     if (!ui_text_visible()) return;
                 }
                 break;
+			case ITEM_WIPE_ALL:
+				if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
+				{
+					ui_print("\n-- Wiping system, data, cache...\n");
+					erase_volume("/system");
+					erase_volume("/data");
+					erase_volume("/cache");
+					ui_print("\nFull wipe complete!\n");
+					if (!ui_text_visible()) return;
+				}
+				break;
             case ITEM_INSTALL_ZIP:
                 show_install_update_menu();
                 break;
@@ -847,7 +857,6 @@ int run_script_file(void) {
 				strncpy(command, script_line, line_len - remove_nl + 1);
 				ui_print("command is: '%s' and there is no value\n", command);
 			}
-			
 			if (strcmp(command, "install") == 0) {
 				// Install zip
 				ui_print("Installing zip file '%s'\n", value);
@@ -1172,7 +1181,7 @@ main(int argc, char **argv) {
     printf("\n");
 
     int status = INSTALL_SUCCESS;
-    
+
     if (toggle_secure_fs) {
         if (strcmp(encrypted_fs_mode,"on") == 0) {
             encrypted_fs_data.mode = MODE_ENCRYPTED_FS_ENABLED;
@@ -1185,7 +1194,6 @@ main(int argc, char **argv) {
             status = INSTALL_ERROR;
         }
 	}
-	
     if (update_package != NULL) {
         status = install_package(update_package, 0);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
@@ -1224,10 +1232,10 @@ main(int argc, char **argv) {
         }
     }
 
-    if (status != INSTALL_SUCCESS && !is_user_initiated_recovery)
-		ui_set_background(BACKGROUND_ICON_ERROR);
-    if (status != INSTALL_SUCCESS || ui_text_visible())
+    if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) ui_set_background(BACKGROUND_ICON_ERROR);
+    if (status != INSTALL_SUCCESS || ui_text_visible()) {
         prompt_and_wait();
+    }
 
     // If there is a radio image pending, reboot now to install it.
     maybe_install_firmware_update(send_intent);
