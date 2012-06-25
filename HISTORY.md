@@ -58,3 +58,11 @@
 * Repurposed advanced menu and moved debugging options in sub-menu.
 * Fix up ORS Engine and allow for autoconfirm and autoreboot.
 * General code cleanup to start bringing in line with the TH side of COTR.
+
+### 06/24/2012
+* More inline with COTR for the Optimus S/V.
+* Added nandroid backup prompt when installing package.
+* Added 'wipe-all'
+* Nandroid backups will now fail if there is less than 800MB left on sdcard/; prompts have been added to backup anyway (not recommended), delete old backups or cancel backup.
+* Added 'delete old backups' menu item into the "backup and restore" menu.
+* Removed emmc stuffs from ICS; we're not using it.
