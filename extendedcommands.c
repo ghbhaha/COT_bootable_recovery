@@ -1056,52 +1056,46 @@ void show_nandroid_menu()
                             "delete old backups",
                             NULL
     };
-
-    int chosen_item = get_menu_selection(headers, list, 0, 0);
-    switch (chosen_item)
-    {
-        case 0:
-            {
-                char backup_path[PATH_MAX];
-                time_t t = time(NULL);
-                struct tm *tmp = localtime(&t);
-                if (tmp == NULL)
-                {
-                    struct timeval tp;
-                    gettimeofday(&tp, NULL);
-                    sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-                }
-                else
-                {
-                    strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
-                }
-                nandroid_backup(backup_path);
-            }
-            break;
-        case 1:
-            show_nandroid_restore_menu("/sdcard");
-            break;
-        case 2:
-            show_nandroid_advanced_backup_menu();
-            break;
-        case 3:
-            show_nandroid_advanced_restore_menu("/sdcard");
-            break;
-        case 4:
-            delete_old_backups("/sdcard/clockworkmod/backup/");
-            break;
-    }
+	
+	for (;;) {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+		switch (chosen_item)
+		{
+			case 0:
+				{
+					char backup_path[PATH_MAX];
+					time_t t = time(NULL);
+					struct tm *tmp = localtime(&t);
+					if (tmp == NULL)
+					{
+						struct timeval tp;
+						gettimeofday(&tp, NULL);
+						sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+					}
+					else
+					{
+						strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+					}
+					nandroid_backup(backup_path);
+				}
+				break;
+			case 1:
+				show_nandroid_restore_menu("/sdcard");
+				break;
+			case 2:
+				show_nandroid_advanced_backup_menu();
+				break;
+			case 3:
+				show_nandroid_advanced_restore_menu("/sdcard");
+				break;
+			case 4:
+				delete_old_backups("/sdcard/clockworkmod/backup/");
+				break;
+			default:
+				return;
+		}
+	}
 }
-
-/* We don't need to wipe battery stats. EVER. Dianne Hackborn said so.
-void wipe_battery_stats()
-{
-    ensure_path_mounted("/data");
-    remove("/data/system/batterystats.bin");
-    ensure_path_unmounted("/data");
-    ui_print("Battery Stats wiped.\n");
-}
-*/
 
 void show_advanced_debugging_menu()
 {
@@ -1288,6 +1282,9 @@ void show_advanced_menu()
 			case 4:
 				show_advanced_debugging_menu();
 				break;
+				
+			default:
+				return;
         }
     }
 }
