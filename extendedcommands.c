@@ -407,6 +407,7 @@ void delete_old_backups(const char *mount_point)
 	sprintf(confirm, "Yes - Delete %s", basename(file));
 	if(confirm_selection(confirm_delete, confirm)) {
 		static char* tmp[PATH_MAX];
+        ui_print("Deleting backup...\n");
 		sprintf(tmp, "rm -rf %s", file);
 		__system(tmp);
 	}
