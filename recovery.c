@@ -66,7 +66,6 @@ static const char *LAST_LOG_FILE = "CACHE:recovery/last_log";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 1;
 static int poweroff = 0;
-static const char *SDCARD_PACKAGE_FILE = "SDCARD:update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 

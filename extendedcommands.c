@@ -49,7 +49,7 @@
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
-static const char *SDCARD_UPDATE_FILE = "SDCARD:update.zip";
+static const char *SDCARD_UPDATE_FILE = "/sdcard/update.zip";
 
 void
 toggle_signature_check()
