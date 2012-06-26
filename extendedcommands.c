@@ -1080,16 +1080,16 @@ void show_nandroid_menu()
 					}
 					nandroid_backup(backup_path);
 				}
-				break;
+				return;
 			case 1:
 				show_nandroid_restore_menu("/sdcard");
-				break;
+				return;
 			case 2:
 				show_nandroid_advanced_backup_menu();
-				break;
+				return;
 			case 3:
 				show_nandroid_advanced_restore_menu("/sdcard");
-				break;
+				return;
 			case 4:
 				delete_old_backups("/sdcard/clockworkmod/backup/");
 				break;
