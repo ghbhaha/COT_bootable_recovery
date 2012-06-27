@@ -730,21 +730,9 @@ static void *input_thread(void *cookie)
     return NULL;
 }
 
-void ui_init(void)
+void ui_init_icons()
 {
-    ui_has_initialized = 1;
-    gr_init();
-    ev_init();
-
-    text_col = text_row = 0;
-    text_rows = gr_fb_height() / CHAR_HEIGHT;
-    if (text_rows > MAX_ROWS) text_rows = MAX_ROWS;
-    text_top = 1;
-
-    text_cols = gr_fb_width() / CHAR_WIDTH;
-    if (text_cols > MAX_COLS - 1) text_cols = MAX_COLS - 1;
-
-    int i;
+	int i;
 	get_config_settings();
 	switch(bg_icon) {
 		case BLOOD_RED_UI:
@@ -813,7 +801,23 @@ void ui_init(void)
     			}
 			break;
 	}
+}
 
+void ui_init(void)
+{
+    ui_has_initialized = 1;
+    gr_init();
+    ev_init();
+
+    text_col = text_row = 0;
+    text_rows = gr_fb_height() / CHAR_HEIGHT;
+    if (text_rows > MAX_ROWS) text_rows = MAX_ROWS;
+    text_top = 1;
+
+    text_cols = gr_fb_width() / CHAR_WIDTH;
+    if (text_cols > MAX_COLS - 1) text_cols = MAX_COLS - 1;
+
+    ui_init_icons();
 
     memset(&actPos, 0, sizeof(actPos));
     memset(&grabPos, 0, sizeof(grabPos));
@@ -1050,6 +1054,14 @@ void ui_show_text(int visible)
     show_text = visible;
     update_screen_locked();
     pthread_mutex_unlock(&gUpdateMutex);
+}
+
+void ui_reset_icons()
+{
+	pthread_mutex_lock(&gUpdateMutex);
+	ui_init_icons();
+	update_screen_locked();
+	pthread_mutex_unlock(&gUpdateMutex);
 }
 
 struct keyStruct *ui_wait_key()
