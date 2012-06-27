@@ -114,6 +114,8 @@ void ui_show_indeterminate_progress();
 
 // Hide and reset the progress bar.
 void ui_reset_progress();
+// Redraw the entire screen for the purpose of resetting our icons
+void ui_reset_icons();
 
 #define LOGE(...) ui_print("E:" __VA_ARGS__)
 #define LOGW(...) fprintf(stdout, "W:" __VA_ARGS__)

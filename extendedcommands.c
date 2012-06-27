@@ -1277,9 +1277,11 @@ void show_advanced_menu()
 				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
 				if(ui_color == GO_BACK)
 					continue;
-				else
+				else {
 					set_ui_color(ui_color);
-				break;
+					ui_reset_icons();
+					break;
+				}
 			}
 			case 4:
 				show_advanced_debugging_menu();
