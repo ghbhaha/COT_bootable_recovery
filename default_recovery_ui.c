@@ -53,6 +53,13 @@ int maxY=480;		//Set to 0 for debugging
 int resX=320;		//Value obtained from function 'gr_fb_width()'
 int resY=480;		//Value obtained from function 'gr_fb_height()'
 
+/*
+	set the following value to restrict the touch boundaries so that
+	only the buttons are active instead of the full screen; set to 0
+	for full screen and debugging
+ */
+int touchY=400;
+
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "reboot system now",

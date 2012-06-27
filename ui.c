@@ -591,7 +591,7 @@ static void *input_thread(void *cookie)
           } while (got_data==-1);
 
             if (ev.type == EV_SYN) {
-                if (actPos.y < 400) {
+                if (touchY > 0 && actPos.y < touchY) {
                     continue;
                 }
                 // end of a multitouch point

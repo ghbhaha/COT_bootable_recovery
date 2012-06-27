@@ -92,6 +92,7 @@ extern int TOUCH_NOSHOW_LOG;
 
 extern int maxX;
 extern int maxY;
+extern int touchY;
 
 int get_menu_icon_info(int indx1, int indx2);
 
