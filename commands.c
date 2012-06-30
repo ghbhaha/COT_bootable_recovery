@@ -39,7 +39,7 @@
 #include "minzip/Zip.h"
 #include "roots.h"
 
-#include "extracommands.h"
+//#include "extracommands.h"
 
 static int gDidShowProgress = 0;
 
