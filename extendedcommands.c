@@ -888,7 +888,7 @@ void show_partition_menu()
 void show_nandroid_advanced_restore_menu(const char* path)
 {
     if (ensure_path_mounted(path) != 0) {
-        LOGE ("Can't mount sdcard\n");
+        LOGE ("Can't mount %s\n", path);
         return;
     }
 
@@ -1002,17 +1002,17 @@ void show_nandroid_menu()
 void show_advanced_debugging_menu()
 {
 	static char* headers[] = { "Debugging Options",
-								 "",
-								 NULL
+								"",
+								NULL
 	};
-	
+
 	static char* list[] = { "Fix Permissions",
-							 "Report Error",
-							 "Show log",
-							 "Toggle UI Debugging",
-							 NULL
+							"Report Error",
+							"Show log",
+							"Toggle UI Debugging",
+							NULL
 	};
-	
+
 	for (;;)
 	{
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -1023,13 +1023,13 @@ void show_advanced_debugging_menu()
 			case 0:
 			{
 				ensure_path_mounted("/system");
-                ensure_path_mounted("/data");
-                ui_print("Fixing permissions...\n");
-                __system("fix_permissions");
-                ui_print("Done!\n");
-                break;
-            }
-            case 1:
+				ensure_path_mounted("/data");
+				ui_print("Fixing permissions...\n");
+				__system("fix_permissions");
+				ui_print("Done!\n");
+				break;
+			}
+			case 1:
 				handle_failure(1);
 				break;
 			case 2:
@@ -1052,8 +1052,8 @@ void show_advanced_menu()
     static char* list[] = { "Reboot Options",
                             "Wipe Dalvik Cache",
 							"Partition SD Card",
-                            "Set UI Color",
-                            "Debugging Options",
+							"Set UI Color",
+							"Debugging Options",
                             NULL
     };
 
@@ -1144,7 +1144,6 @@ void write_fstab_root(char *path, FILE *file)
         LOGW("Unable to get recovery.fstab info for %s during fstab generation!\n", path);
         return;
     }
-
     char device[200];
     if (vol->device[0] != '/')
         get_partition_device(vol->device, device);

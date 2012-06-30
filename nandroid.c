@@ -48,14 +48,11 @@ void nandroid_generate_timestamp_path(const char* backup_path)
 {
     time_t t = time(NULL);
     struct tm *tmp = localtime(&t);
-    if (tmp == NULL)
-    {
+    if (tmp == NULL) {
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-    }
-    else
-    {
+    } else {
         strftime(backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
     }
 }
@@ -176,13 +173,13 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
     }
     compute_directory_stats(mount_point);
     char tmp[PATH_MAX];
-    scan_mounted_volumes();
-    Volume *v = volume_for_path(mount_point);
-    MountedVolume *mv = NULL;
-    if (v != NULL)
-        mv = find_mounted_volume_by_mount_point(v->mount_point);
-    if (mv == NULL || mv->filesystem == NULL)
-        sprintf(tmp, "%s/%s.auto", backup_path, name);
+	scan_mounted_volumes();
+	Volume *v = volume_for_path(mount_point);
+	MountedVolume *mv = NULL;
+	if(v != NULL)
+		mv = find_mounted_volume_by_mount_point(v->mount_point);
+	if(mv == NULL || mv->filesystem == NULL)
+		sprintf(tmp, "%s/%s.auto", backup_path, name);
     else
         sprintf(tmp, "%s/%s.%s", backup_path, name, mv->filesystem);
     nandroid_backup_handler backup_handler = get_backup_handler(mount_point);
@@ -222,7 +219,6 @@ int nandroid_backup_partition(const char* backup_path, const char* root) {
         }
         return 0;
     }
-
     return nandroid_backup_partition_extended(backup_path, root, 1);
 }
 
@@ -244,20 +240,24 @@ int recalc_sdcard_space(const char* backup_path)
 
 int nandroid_backup(const char* backup_path)
 {
+	char tmp[PATH_MAX];
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     
     if (ensure_path_mounted(backup_path) != 0) {
-        return print_and_error("Can't mount backup path.\n");
-    }
-    
-    Volume* volume = volume_for_path(backup_path);
-    if (NULL == volume)
-        return print_and_error("Unable to find volume for backup path.\n");
+		sprintf(tmp, "Can't mount %s.\n", backup_path);
+        return print_and_error(tmp);
+	}
+
+	Volume* volume = volume_for_path(backup_path);
+	if (NULL == volume) {
+		sprintf(tmp, "Unable to find volume for %s.\n", backup_path);
+		return print_and_error(tmp);
+	}
     int ret;
     struct statfs s;
     if (0 != (ret = statfs(volume->mount_point, &s)))
         return print_and_error("Unable to stat backup path.\n");
-    
+
     uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
 
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
@@ -266,8 +266,7 @@ int nandroid_backup(const char* backup_path)
 			return 0;
 		}
 	}
-    
-    char tmp[PATH_MAX];
+
     sprintf(tmp, "mkdir -p %s", backup_path);
     __system(tmp);
 
@@ -278,8 +277,7 @@ int nandroid_backup(const char* backup_path)
         return ret;
 
     Volume *vol = volume_for_path("/wimax");
-    if (vol != NULL && 0 == stat(vol->device, &s))
-    {
+    if (vol != NULL && 0 == stat(vol->device, &s)) {
         char serialno[PROPERTY_VALUE_MAX];
         ui_print("Backing up WiMAX...\n");
         serialno[0] = 0;
@@ -301,12 +299,9 @@ int nandroid_backup(const char* backup_path)
             return ret;
     }
 
-    if (0 != stat("/sdcard/.android_secure", &s))
-    {
+    if (0 != stat("/sdcard/.android_secure", &s)) {
         ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
-    }
-    else
-    {
+    } else {
         if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
             return ret;
     }
@@ -315,12 +310,9 @@ int nandroid_backup(const char* backup_path)
         return ret;
 
     vol = volume_for_path("/sd-ext");
-    if (vol == NULL || 0 != stat(vol->device, &s))
-    {
+    if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
-    }
-    else
-    {
+    } else {
         if (0 != ensure_path_mounted("/sd-ext"))
             ui_print("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
@@ -447,8 +439,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
         if (backup_filesystem == NULL || restore_handler == NULL) {
             ui_print("%s.img not found. Skipping restore of %s.\n", name, mount_point);
             return 0;
-        }
-        else {
+        } else {
             printf("Found new backup image: %s\n", tmp);
         }
 
@@ -499,7 +490,6 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     if (umount_when_finished) {
         ensure_path_unmounted(mount_point);
     }
-    
     return 0;
 }
 
@@ -592,8 +582,7 @@ int nandroid_main(int argc, char** argv)
     if (argc > 3 || argc < 2)
         return nandroid_usage();
     
-    if (strcmp("backup", argv[1]) == 0)
-    {
+    if (strcmp("backup", argv[1]) == 0) {
         if (argc != 2)
             return nandroid_usage();
         
@@ -601,13 +590,10 @@ int nandroid_main(int argc, char** argv)
         nandroid_generate_timestamp_path(backup_path);
         return nandroid_backup(backup_path);
     }
-
-    if (strcmp("restore", argv[1]) == 0)
-    {
+    if (strcmp("restore", argv[1]) == 0) {
         if (argc != 3)
             return nandroid_usage();
         return nandroid_restore(argv[2], 1, 1, 1, 1, 1);
     }
-    
     return nandroid_usage();
 }

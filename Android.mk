@@ -48,7 +48,6 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
   )
 
 LOCAL_STATIC_LIBRARIES :=
-
 LOCAL_CFLAGS += -DUSE_EXT4
 # Use a local copy of the ICS ext4_utils for use by the retouch binaries
 LOCAL_C_INCLUDES += bootable/recovery/utilities/ext4_utils

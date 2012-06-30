@@ -410,7 +410,7 @@ static void draw_screen_locked(void)
 	    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
-                    gr_fb_width()-menu_max_height*2, (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+				gr_fb_width()-menu_max_height*2, (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
 
             gr_color(HEADER_TEXT_COLOR);
             for (i = 0; i < menu_top; ++i) {
@@ -436,7 +436,7 @@ static void draw_screen_locked(void)
                 row++;
             }
             gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-                    gr_fb_width()-menu_max_height*2, row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+				gr_fb_width()-menu_max_height*2, row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
         }
 
         gr_color(NORMAL_TEXT_COLOR);
@@ -506,7 +506,7 @@ struct { int xL; int xR; } MENU_ICON[] = {
 	{  3*gr_fb_height()/4, 4*gr_fb_height()/4 },
 	{  2*gr_fb_height()/4, 3*gr_fb_height()/4 },
 	{  1*gr_fb_height()/4, 2*gr_fb_height()/4 },
-	{  0*gr_fb_height()/4, 1*gr_fb_height()/4 }, 
+	{  0*gr_fb_height()/4, 1*gr_fb_height()/4 },
 };
 
 	if (visible) {	
@@ -724,7 +724,7 @@ static void *input_thread(void *cookie)
 
         if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
             //reboot(RB_AUTOBOOT);
-	    __system("/sbin/reboot_system");
+			__system("/sbin/reboot_system");
         }
     }
     return NULL;
@@ -915,8 +915,8 @@ void ui_print(const char *fmt, ...)
     vsnprintf(buf, 256, fmt, ap);
     va_end(ap);
 
-    if (ui_log_stdout)
-        fputs(buf, stdout);
+	if (ui_log_stdout)
+		fputs(buf, stdout);
 
     // This can get called before ui_init(), so be careful.
     pthread_mutex_lock(&gUpdateMutex);

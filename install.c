@@ -366,7 +366,6 @@ really_install_package(const char *path, int dummy)
     ui_print("Finding update package...\n");
     ui_show_indeterminate_progress();
     LOGI("Update location: %s\n", path);
-
     if (ensure_path_mounted(path) != 0) {
         LOGE("Can't mount %s\n", path);
         return INSTALL_CORRUPT;
