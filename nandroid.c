@@ -447,8 +447,10 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return print_and_error("MD5 mismatch!\n");
     
     int ret;
+    struct stat st;
+
 #ifndef BOARD_RECOVERY_IGNORE_BOOTABLES
-    if (restore_boot)
+    if (restore_boot && stat("backup_path/boot.img", &st) == 0)
     {
         ui_print("Erasing boot before restore...\n");
         if (0 != (ret = format_root_device("BOOT:")))
@@ -459,7 +461,9 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
             ui_print("Error while flashing boot image!");
             return ret;
         }
-    }
+    } else {
+		ui_print("No boot image present, skipping to system...\n");
+	}
 #endif
     
     if (restore_system && 0 != (ret = nandroid_restore_partition(backup_path, "SYSTEM:")))
