@@ -63,11 +63,7 @@ int UICOLOR2 = 0;
 int bg_icon = 0;
 const char *UI_CONFIG_FILE = "/sdcard/clockworkmod/.conf";
 
-/*
- * Silence the debug logs; clogs up recovery.log, enable (temporarily)
- * from Advanced > Debugging.
- */
-int UI_COLOR_DEBUG = 0;
+UI_COLOR_DEBUG = 0;
 
 /* Set the UI color to default (hydro), give it it's own function to
  * avoid repeats and having to reboot on setting to default. */

@@ -66,3 +66,6 @@
 * Nandroid backups will now fail if there is less than 800MB left on sdcard/; prompts have been added to backup anyway (not recommended), delete old backups or cancel backup.
 * Added 'delete old backups' menu item into the "backup and restore" menu.
 * Removed emmc stuffs from ICS; we're not using it.
+
+### 06/29/2012
+* Removed wimax (again).
