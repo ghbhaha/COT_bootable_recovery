@@ -1042,7 +1042,8 @@ int run_script_file(void) {
 				// Reboot
 				ui_print("Reboot command found...\n");
 				fclose(fp);
-				ensure_path_unmounted("sdcard/");
+				if(is_path_mounted("sdcard/"))
+					ensure_path_unmounted("sdcard/");
 				delayed_reboot();
 			} else if (strcmp(command, "cmd") == 0) {
 				if (cindex != 0) {
@@ -1058,7 +1059,8 @@ int run_script_file(void) {
 		fclose(fp);
 		ui_print("Done processing script file\n");
 		if(stat("sdcard/clockworkmod/.orsalwaysreboot", &st) == 0) {
-			ensure_path_unmounted("sdcard/");
+			if(is_path_mounted("sdcard/"))
+				ensure_path_unmounted("sdcard/");
 			delayed_reboot();
 		}
 	} else {
