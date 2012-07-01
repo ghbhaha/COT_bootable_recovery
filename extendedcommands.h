@@ -51,6 +51,8 @@ int has_datadata();
 
 void handle_failure(int ret);
 
+int is_path_mounted(const char* path);
+
 void process_volumes();
 
 int extendedcommand_file_exists();
