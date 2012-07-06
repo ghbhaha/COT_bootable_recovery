@@ -1086,6 +1086,12 @@ main(int argc, char **argv) {
 	        return dump_image_main(argc, argv);
 	    if (strstr(argv[0], "erase_image") != NULL)
 	        return erase_image_main(argc, argv);
+        if (strstr(argv[0], "e2fsck") != NULL)
+            return cannibal_e2fsck_main(argc, argv);
+        if (strstr(argv[0], "mke2fs") != NULL)
+            return cannibal_mke2fs_main(argc, argv);
+        if (strstr(argv[0], "tune2fs") != NULL)
+            return cannibal_tune2fs_main(argc, argv);
 	    if (strstr(argv[0], "mkyaffs2image") != NULL)
 	        return mkyaffs2image_main(argc, argv);
 	    if (strstr(argv[0], "unyaffs") != NULL)
