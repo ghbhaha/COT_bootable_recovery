@@ -423,6 +423,14 @@ void show_choose_zip_menu(const char *mount_point)
         return;
     }
 
+    static char *INSTALL_OR_BACKUP_ITEMS[] = { "Yes - Backup and install",
+												 "No - Install without backup",
+												 "Cancel install",
+												 NULL };
+	#define ITEM_BACKUP_AND_INSTALL 0
+	#define ITEM_INSTALL_WOUT_BACKUP 1
+	#define ITEM_CANCEL_INSTALL 2
+
     static char* headers[] = {  "Choose a zip to apply",
                                 "",
                                 NULL
@@ -439,26 +447,33 @@ void show_choose_zip_menu(const char *mount_point)
         if (confirm_selection(confirm_install, confirm)) {
             install_zip(file, 0);
         }
-	} else {
-        static char* confirm_install  = "Make a nandroid backup?";
-        static char confirm[PATH_MAX];
-        sprintf(confirm, "Yes - Make a backup");
-        if (!confirm_nandroid_backup(confirm_install, confirm)) {
-            install_zip(file, 0);
-        } else {
-            char backup_path[PATH_MAX];
-            time_t t = time(NULL);
-            struct tm *tmp = localtime(&t);
-            if (tmp == NULL) {
-                struct timeval tp;
-                gettimeofday(&tp, NULL);
-                sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-            } else {
-                strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
-            }
-            nandroid_backup(backup_path);
-            install_zip(file, 0);
-        }
+    } else {
+		for (;;) {
+			int chosen_item = get_menu_selection(headers, INSTALL_OR_BACKUP_ITEMS, 0, 0);
+			switch(chosen_item) {
+				case ITEM_BACKUP_AND_INSTALL: {
+					char backup_path[PATH_MAX];
+					time_t t = time(NULL);
+					struct tm *tmp = localtime(&t);
+					if (tmp == NULL) {
+						struct timeval tp;
+						gettimeofday(&tp, NULL);
+						sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+					} else {
+						strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+					}
+					nandroid_backup(backup_path);
+					install_zip(file, 0);
+					return;
+				}
+				case ITEM_INSTALL_WOUT_BACKUP:
+					install_zip(file, 0);
+					return;
+				default:
+					break;
+			}
+			break;
+		}
     }
 }
 
