@@ -878,7 +878,7 @@ void delayed_reboot() {
 		ui_print("Rebooting system in (%d)\n", i);
 		sleep(1);
 	}
-	__system("/sbin/reboot_system");
+	reboot(RB_AUTOBOOT);
 }
 
 static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openrecoveryscript";
