@@ -450,7 +450,8 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     struct stat st;
 
 #ifndef BOARD_RECOVERY_IGNORE_BOOTABLES
-    if (restore_boot && stat("backup_path/boot.img", &st) == 0)
+	sprintf(tmp, "%s/boot.img", backup_path);
+    if (restore_boot && (stat(tmp, &st) == 0))
     {
         ui_print("Erasing boot before restore...\n");
         if (0 != (ret = format_root_device("BOOT:")))
