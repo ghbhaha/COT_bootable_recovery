@@ -723,8 +723,11 @@ static void *input_thread(void *cookie)
         }
 
         if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
-            //reboot(RB_AUTOBOOT);
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
 			__system("/sbin/reboot_system");
+#else
+			reboot(RB_AUTOBOOT);
+#endif
         }
     }
     return NULL;

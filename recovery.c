@@ -710,7 +710,11 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_REBOOT:
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
                 __system("/sbin/reboot_system");
+#else
+				reboot(RB_AUTOBOOT);
+#endif
                 return;
 		    
             case ITEM_WIPE_DATA:
@@ -769,7 +773,11 @@ void delayed_reboot() {
 		ui_print("Rebooting system in (%d)\n", i);
 		sleep(1);
 	}
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
 	__system("/sbin/reboot_system");
+#else
+	reboot(RB_AUTOBOOT);
+#endif
 }
 
 static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openrecoveryscript";
@@ -1255,8 +1263,7 @@ main(int argc, char **argv) {
     else
         ui_print("Shutting down...\n");
     sync();
-    //reboot((!poweroff) ? RB_AUTOBOOT : RB_POWER_OFF);
-    // FOR ROM MANAGER compatibility
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
     if(!poweroff) {
 		// reboot into system
 		__system("/sbin/reboot_system");
@@ -1265,6 +1272,9 @@ main(int argc, char **argv) {
 		__system("/sbin/nbmode");
 		reboot(RB_POWER_OFF);
 	}
+#else
+	reboot((!poweroff) ? RB_AUTOBOOT : RB_POWER_OFF);
+#endif
     return EXIT_SUCCESS;
 }
 

@@ -1064,7 +1064,12 @@ void show_advanced_menu()
                                 NULL
     };
 
-    static char* list[] = { "Reboot Options",
+    static char* list[] = {
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+							"Reboot Options",
+#else
+							"Reboot Recovery",
+#endif
                             "Wipe Dalvik Cache",
 							"Partition SD Card",
 							"Set UI Color",
@@ -1081,6 +1086,7 @@ void show_advanced_menu()
         {
             case 0:
             {
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
 				static char* reboot_menu[] = {"Reboot Options",
 											"",
 											NULL
@@ -1104,6 +1110,10 @@ void show_advanced_menu()
 				}
 				if(reboot_choice == GO_BACK)
 					continue;
+#else
+				reboot_wrapper("recovery");
+				break;
+#endif
 			}
             case 1:
             {
