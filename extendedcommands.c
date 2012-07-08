@@ -992,7 +992,6 @@ void show_nandroid_advanced_backup_menu(){
    }
 
    return nandroid_advanced_backup(backup_path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
-
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
@@ -1072,7 +1071,7 @@ void show_nandroid_menu()
                             "delete old backups",
                             NULL
     };
-	
+
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
 		switch (chosen_item)
@@ -1202,10 +1201,10 @@ void show_advanced_menu()
     static char* list[] = { "Reboot Recovery",
                             "Wipe Dalvik Cache",
 #ifndef BOARD_HAS_SMALL_RECOVERY
-                            "Partition SD Card",
+							"Partition SD Card",
 #endif
-			    			"Set UI Color",
-			    			"Debugging Options",
+							"Set UI Color",
+							"Debugging Options",
                             NULL
     };
 
@@ -1276,9 +1275,9 @@ void show_advanced_menu()
                 else
                     ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
-            }
-            case 3:
-            {
+			}
+			case 3:
+			{
 				static char* ui_colors[] = {"Hydro (default)",
 											"Blood Red",
 											"Key Lime Pie",
@@ -1300,7 +1299,6 @@ void show_advanced_menu()
 			case 4:
 				show_advanced_debugging_menu();
 				break;
-				
 			default:
 				return;
         }

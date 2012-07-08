@@ -145,10 +145,10 @@ typedef struct {
                               // 'device' fails
 
     long long length;         // (ext4 partition only) when
-                                // formatting, size to use for the
-                                // partition.  0 or negative number
-                                // means to format all but the last
-                                // (that much).
+                              // formatting, size to use for the
+                              // partition.  0 or negative number
+                              // means to format all but the last
+                              // (that much).
 
     const char* fs_type2;
 

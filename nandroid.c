@@ -30,11 +30,6 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-/* Do we still need these? I think no, but I'm going to leave them can
- * test that later. */
-#include "commands.h"
-#include "amend/amend.h"
-
 #include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
 #include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
 
@@ -48,6 +43,25 @@
 #include <libgen.h>
 
 #define LIMITED_SPACE 400
+
+void ensure_directory(const char* dir) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "mkdir -p %s", dir);
+    __system(tmp);
+}
+
+void nandroid_generate_timestamp_path(const char* backup_path)
+{
+    time_t t = time(NULL);
+    struct tm *tmp = localtime(&t);
+    if (tmp == NULL) {
+        struct timeval tp;
+        gettimeofday(&tp, NULL);
+        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+    } else {
+        strftime(backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+    }
+}
 
 static int print_and_error(const char* message) {
     ui_print("%s", message);
@@ -112,8 +126,6 @@ static int unyaffs_wrapper(const char* name, const char* backup_path) {
 
 int nandroid_backup_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
     int ret = 0;
-//    char mount_point[PATH_MAX];
-//    translate_root_path(root, mount_point, PATH_MAX);
     char* name = basename(mount_point);
 
     struct stat file_info;
@@ -167,9 +179,9 @@ int nandroid_backup(const char* backup_path)
 	char tmp[PATH_MAX];
     ui_set_background(BACKGROUND_ICON_INSTALLING);
 
-    if (ensure_path_mounted(backup_path) != 0) {
+	if (ensure_path_mounted(backup_path) != 0) {
 		sprintf(tmp, "Can't mount %s.\n", backup_path);
-        return print_and_error(tmp);
+		return print_and_error(tmp);
 	}
 
 	Volume* volume = volume_for_path(backup_path);
@@ -218,8 +230,7 @@ int nandroid_backup(const char* backup_path)
 			return ret;
 	}
 
-    struct stat st;
-    if (0 != stat("/sdcard/.android_secure", &st)) {
+    if (0 != stat("/sdcard/.android_secure", &s)) {
         ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
     } else {
         if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
@@ -257,8 +268,11 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
 {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
 
-    if (ensure_path_mounted("/sdcard") != 0)
-        return print_and_error("Can't mount /sdcard\n");
+	char tmp[PATH_MAX];
+	if (ensure_path_mounted(backup_path) != 0) {
+		sprintf(tmp, "Can't mount %s\n", backup_path);
+        return print_and_error(tmp);
+	}
 
     int ret;
     struct statfs s;
@@ -277,7 +291,6 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
 
 	ensure_directory(backup_path);
 
-	char tmp[PATH_MAX];
     if (boot) {
         ui_print("Backing up boot...\n");
         sprintf(tmp, "%s/%s", backup_path, "boot.img");
@@ -341,16 +354,8 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
 
 typedef int (*format_function)(char* root);
 
-void ensure_directory(const char* dir) {
-    char tmp[PATH_MAX];
-    sprintf(tmp, "mkdir -p %s", dir);
-    __system(tmp);
-}
-
 int nandroid_restore_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
 	int ret = 0;
-//	char mount_point[PATH_MAX];
-//	translate_root_path(root, mount_point, PATH_MAX);
 	char* name = basename(mount_point);
 
 	char tmp[PATH_MAX];
@@ -428,10 +433,11 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     ui_show_indeterminate_progress();
     yaffs_files_total = 0;
 
-    if (ensure_path_mounted("/sdcard") != 0)
-        return print_and_error("Can't mount /sdcard\n");
-
-    char tmp[PATH_MAX];
+	char tmp[PATH_MAX];
+	if (ensure_path_mounted(backup_path) != 0) {
+		sprintf(tmp, "Can't mount %s\n", backup_path);
+		return print_and_error(tmp);
+	}
 
     ui_print("Checking MD5 sums...\n");
     sprintf(tmp, "cd %s && md5sum -c nandroid.md5", backup_path);
@@ -484,22 +490,6 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     ui_reset_progress();
     ui_print("\nRestore complete!\n");
     return 0;
-}
-
-void nandroid_generate_timestamp_path(char* backup_path)
-{
-    time_t t = time(NULL);
-    struct tm *tmp = localtime(&t);
-    if (tmp == NULL)
-    {
-        struct timeval tp;
-        gettimeofday(&tp, NULL);
-        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-    }
-    else
-    {
-        strftime(backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
-    }
 }
 
 int nandroid_usage()
