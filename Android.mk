@@ -25,6 +25,8 @@ LOCAL_SRC_FILES := \
     edifyscripting.c \
     setprop.c \
     colorific.c \
+    settingshandler.c \
+    settings.c \
     iniparse/dictionary.c \
     iniparse/iniparser.c
 
