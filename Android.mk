@@ -27,8 +27,7 @@ LOCAL_SRC_FILES := \
     colorific.c \
     settingshandler.c \
     settings.c \
-    iniparse/dictionary.c \
-    iniparse/iniparser.c
+    iniparse/ini.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
