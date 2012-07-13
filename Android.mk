@@ -24,7 +24,9 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
-	colorific.c
+	colorific.c \
+    iniparse/dictionary.c \
+    iniparse/iniparser.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
