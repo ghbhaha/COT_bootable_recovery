@@ -45,6 +45,8 @@
 #include "bmlutils/bmlutils.h"
 
 #include "colorific.h"
+#include "settings.h"
+#include "settingshandler.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
@@ -1074,7 +1076,7 @@ void show_advanced_menu()
 #ifndef BOARD_HAS_SMALL_RECOVERY
 							"Partition SD Card",
 #endif
-							"Set UI Color",
+							"COT Settings",
 							"Debugging Options",
                             NULL
     };
@@ -1180,25 +1182,8 @@ void show_advanced_menu()
                 break;
 			}
 			case 3:
-			{
-				static char* ui_colors[] = {"Hydro (default)",
-											"Blood Red",
-											"Key Lime Pie",
-											"Citrus Orange",
-											"Dooderbutt Blue",
-											NULL
-				};
-				static char* ui_header[] = {"UI Color", "", NULL};
-
-				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
-				if(ui_color == GO_BACK)
-					continue;
-				else {
-					set_ui_color(ui_color);
-					ui_reset_icons();
-					break;
-				}
-			}
+			    show_settings_menu();
+                break;
 			case 4:
 				show_advanced_debugging_menu();
 				break;
