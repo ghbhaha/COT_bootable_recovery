@@ -79,42 +79,38 @@ void show_settings_menu() {
             case GO_BACK:
                 return;
             case 0:
-                show_theme_menu();
-                break;
+            {
+                static char* ui_colors[] = {"Hydro (default)",
+                                                    "Blood Red",
+                                                    "Key Lime Pie",
+                                                    "Citrus Orange",
+                                                    "Dooderbutt Blue",
+                                                    NULL
+                };
+                static char* ui_header[] = {"COT Theme", "", NULL};
+
+                int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
+                if(ui_color == GO_BACK)
+                    continue;
+                else {
+                    set_ui_color(ui_color);
+                    ui_reset_icons();
+                    break;
+                }
+            }
             case 1:
                 //show_ors_reboot_menu();
+                create_default_settings();
                 break;
             case 2:
                 //show_ors_nandroid_prompt_menu();
+                parse_settings();
                 break;
             case 3:
                 //show_nandroid_prompt_menu();
                 break;
             default:
                 return;
-        }
-    }
-}
-
-void show_theme_menu() {
-    static char* theme_headers[] = {"Theme", "", NULL};
-
-    static char* theme_list[] = { "Hydro (default)",
-                                  "Blood Red",
-                                  "Key Lime Pie",
-                                  "Citrus Orange",
-                                  "Dooderbutt Blue",
-                                  NULL
-    };
-
-    for (;;) {
-        int theme_sel = get_menu_selection(theme_headers, theme_list, 0, 0);
-        if(theme_sel = GO_BACK)
-            return;
-        else {
-            set_ui_color(theme_sel);
-            ui_reset_icons();
-            break;
         }
     }
 }

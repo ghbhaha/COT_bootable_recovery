@@ -57,6 +57,7 @@ gr_fb_height() is 600
 #include "minui/minui.h"
 #include "recovery_ui.h"
 #include "colorific.h"
+#include "settingshandler.h"
 
 extern int __system(const char *command);
 

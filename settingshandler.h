@@ -13,3 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+void create_default_settings();
+void parse_settings();
+void handle_theme(char theme_name);
+
+int ini_handler(void* user, const char* section, const char* name, const char* value);
+
+
