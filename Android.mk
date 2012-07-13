@@ -24,10 +24,7 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
-	colorific.c \
-    sxmlc/sxmlc.c \
-    sxmlc/sxmlsearch.c \
-    sxmlc/sxmlutils.c
+	colorific.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
