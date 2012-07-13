@@ -22,7 +22,7 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
-	colorific.c \
+    colorific.c \
     iniparse/dictionary.c \
     iniparse/iniparser.c
 
