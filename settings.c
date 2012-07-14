@@ -68,7 +68,7 @@ void show_settings_menu() {
 
     static char* list[] = { "Theme",
                             "ORS Forced Reboots",
-                            "ORS Nandroid Prompt",
+                            "ORS Wipe Prompt",
                             "ZIP flash Nandroid Prompt",
                             NULL
     };
@@ -99,16 +99,68 @@ void show_settings_menu() {
                 }
             }
             case 1:
-                //show_ors_reboot_menu();
-                create_default_settings();
-                break;
+            {
+                static char* ors_list[] = {"On",
+                                            "Off",
+                                            NULL
+                };
+                static char* ors_headers[] = {"ORS Forced Reboots", "", NULL};
+
+                int result = get_menu_selection(ors_headers, ors_list, 0, 0);
+                if(result == GO_BACK) {
+                    return;
+                } else if (result == 0) {
+                    orsreboot = 1;
+                    update_cot_settings();
+                } else if (result == 1) {
+                    orsreboot = 0;
+                    update_cot_settings();
+                } else {
+                    return;
+                }
+            }
             case 2:
-                //show_ors_nandroid_prompt_menu();
-                parse_settings();
-                break;
+            {
+                static char* ors_list[] = {"On",
+                                            "Off",
+                                            NULL
+                };
+                static char* ors_headers[] = {"ORS Wipe Prompt", "", NULL};
+
+                int result = get_menu_selection(ors_headers, ors_list, 0, 0);
+                if(result == GO_BACK) {
+                    return;
+                } else if (result == 0) {
+                    orswipeprompt = 1;
+                    update_cot_settings();
+                } else if (result == 1) {
+                    orswipeprompt = 0;
+                    update_cot_settings();
+                } else {
+                    return;
+                }
+            }
             case 3:
-                //show_nandroid_prompt_menu();
-                break;
+            {
+                static char* ors_list[] = {"On",
+                                            "Off",
+                                            NULL
+                };
+                static char* ors_headers[] = {"ZIP flash Nandroid Prompt", "", NULL};
+
+                int result = get_menu_selection(ors_headers, ors_list, 0, 0);
+                if(result == GO_BACK) {
+                    return;
+                } else if (result == 0) {
+                    backupprompt = 1;
+                    update_cot_settings();
+                } else if (result == 1) {
+                    backupprompt = 0;
+                    update_cot_settings();
+                } else {
+                    return;
+                }
+            }
             default:
                 return;
         }
