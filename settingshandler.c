@@ -61,6 +61,7 @@
 int backupprompt = 0;
 int orswipeprompt = 0;
 int orsreboot = 0;
+char currenttheme;
 
 typedef struct {
     const char* theme;
@@ -128,9 +129,28 @@ void create_default_settings(void) {
     "\n"
     "[Settings]\n"
     "Theme = hydro ;\n"
-    "ORSReboot = FALSE ;\n"
-    "ORSWipePrompt = TRUE ;\n"
-    "BackupPrompt = TRUE ;\n"
+    "ORSReboot = 0 ;\n"
+    "ORSWipePrompt = 1 ;\n"
+    "BackupPrompt = 1 ;\n"
+    "\n");
+    fclose(ini);
+}
+
+void update_cot_settings(void) {
+    ensure_path_mounted("/sdcard");
+    FILE    *   ini ;
+
+    ini = fopen("/sdcard/clockworkmod/settings.ini", "w");
+    fprintf(ini,
+    ";\n"
+    "; COT Settings INI\n"
+    ";\n"
+    "\n"
+    "[Settings]\n"
+    "Theme = hydro ;\n"
+    "ORSReboot = 0 ;\n"
+    "ORSWipePrompt = 1 ;\n"
+    "BackupPrompt = 1 ;\n"
     "\n");
     fclose(ini);
 }
@@ -147,6 +167,7 @@ void parse_settings() {
     orsreboot = config.orsreboot;
     orswipeprompt = config.orswipeprompt;
     backupprompt = config.backupprompt;
+    currenttheme = config.theme;
     handle_theme(config.theme);
 }
 

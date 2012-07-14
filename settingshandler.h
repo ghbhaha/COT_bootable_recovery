@@ -24,3 +24,6 @@ int theme_handler(void* user, const char* section, const char* name, const char*
 extern int backupprompt;
 extern int orswipeprompt;
 extern int orsreboot;
+extern char * currenttheme;
+
+void update_cot_settings(void);
