@@ -478,8 +478,7 @@ void show_choose_zip_menu(const char *mount_point)
     if (file == NULL)
         return;
 
-    struct stat info;
-    if (0 == stat("/sdcard/clockworkmod/.cotconfirmnandroid", &info)) {
+    if (backupprompt == 0) {
         static char* confirm_install = "Confirm install?";
         static char confirm[PATH_MAX];
         sprintf(confirm, "Yes - Install %s", basename(file));
