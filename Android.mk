@@ -22,7 +22,6 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
-    colorific.c \
     settingshandler.c \
     settings.c \
     iniparse/ini.c
@@ -36,7 +35,7 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_NAME := Cannibal Open Touch
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v1.2.2_e2fs-test
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.2.3
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2

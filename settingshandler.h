@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+extern const char *COTSETTINGS;
+
 void create_default_settings();
 void parse_settings();
 void handle_theme(char * theme_name);

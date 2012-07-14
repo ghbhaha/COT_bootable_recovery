@@ -40,7 +40,6 @@
 #include "roots.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
-#include "colorific.h"
 #include "settings.h"
 #include "settingshandler.h"
 
@@ -1231,7 +1230,6 @@ main(int argc, char **argv) {
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
-		get_config_settings();
         parse_settings();
 
 		if (check_for_script_file()) run_script_file();

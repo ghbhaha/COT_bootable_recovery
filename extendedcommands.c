@@ -44,7 +44,6 @@
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
 
-#include "colorific.h"
 #include "settings.h"
 #include "settingshandler.h"
 
