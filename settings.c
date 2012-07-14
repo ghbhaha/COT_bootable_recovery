@@ -104,9 +104,23 @@ void show_settings_menu() {
                 if(ui_color == GO_BACK)
                     continue;
                 else {
-                    set_ui_color(ui_color);
+                    if(ui_color == 0) {
+                        ui_print("Set theme to hydro");
+                        currenttheme = "hydro";
+                    } else if (ui_color == 1) {
+                        ui_print("Set theme to bloodred");
+                        currenttheme = "bloodred";
+                    } else if (ui_color == 2) {
+                        ui_print("Set theme to keylimepie");
+                        currenttheme = "keylimepie";
+                    } else if (ui_color == 3) {
+                        ui_print("Set theme to citrusorange");
+                        currenttheme = "citrusorange";
+                    } else if (ui_color == 4) {
+                        ui_print("Set theme to dooderbuttblue");
+                        currenttheme = "dooderbuttblue";
+                    }
                     update_cot_settings();
-                    ui_reset_icons();
                     break;
                 }
             }
