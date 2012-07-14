@@ -63,7 +63,7 @@ COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
 int backupprompt = 0;
 int orswipeprompt = 0;
 int orsreboot = 0;
-char currenttheme;
+char* currenttheme;
 
 typedef struct {
     const char* theme;
@@ -148,7 +148,7 @@ void update_cot_settings(void) {
     ensure_path_mounted("/sdcard");
     FILE    *   ini ;
 	ini = fopen(COTSETTINGS, "w");
-	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = hydro ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\n\n", orsreboot, orswipeprompt, backupprompt);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt);
     fclose(ini);
     parse_settings();
 }
@@ -162,7 +162,7 @@ void parse_settings() {
         create_default_settings();
         ini_parse(COTSETTINGS, settings_handler, &config);
     }
-    ui_print("COT Settings loaded!\n");
+    LOGI("COT Settings loaded!\n");
     orsreboot = config.orsreboot;
     orswipeprompt = config.orswipeprompt;
     backupprompt = config.backupprompt;
@@ -185,10 +185,10 @@ void handle_theme(char * theme_name) {
     //ui_print("%s\n", full_theme_file);
     
     if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
-        ui_print("Can't load theme!\n");
+        LOGI("Can't load theme!\n");
         return 1;
     }
-    ui_print("Theme loaded!\n");
+    LOGI("Theme loaded!\n");
 
     UICOLOR0 = themeconfig.uicolor0;
     UICOLOR1 = themeconfig.uicolor1;

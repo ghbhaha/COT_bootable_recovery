@@ -106,16 +106,21 @@ void show_settings_menu() {
                 else {
                     if(ui_color == 0) {
                         currenttheme = "hydro";
+                        update_cot_settings();
                     } else if (ui_color == 1) {
                         currenttheme = "bloodred";
+                        update_cot_settings();
                     } else if (ui_color == 2) {
                         currenttheme = "keylimepie";
+                        update_cot_settings();
                     } else if (ui_color == 3) {
                         currenttheme = "citrusorange";
+                        update_cot_settings();
                     } else if (ui_color == 4) {
                         currenttheme = "dooderbuttblue";
+                        update_cot_settings();
                     }
-                    update_cot_settings();
+                    
                     break;
                 }
             }
