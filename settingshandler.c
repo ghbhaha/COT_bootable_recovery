@@ -145,35 +145,12 @@ void create_default_settings(void) {
 }
 
 void update_cot_settings(void) {
-
-    char orsreboot_st[100];
-    char orswipeprompt_st[100];
-    char backupprompt_st[100];
-    itoa(orsreboot, orsreboot_st, 10);
-    itoa(orswipeprompt, orswipeprompt_st, 10);
-    itoa(backupprompt, backupprompt_st, 10);
-
     ensure_path_mounted("/sdcard");
     FILE    *   ini ;
-
-	if(ini = fopen(COTSETTINGS, "r")) {
-		fclose(COTSETTINGS);
-		remove(COTSETTINGS);
-	}
-
 	ini = fopen(COTSETTINGS, "w");
-	fprintf(ini,
-	";\n"
-	"; COT Settings INI\n"
-	";\n"
-	"\n"
-    "[Settings]\n"
-    "Theme = %s ;\n"
-    "ORSReboot = %s ;\n"
-    "ORSWipePrompt = %s ;\n"
-    "BackupPrompt = %s ;\n"
-    "\n", currenttheme, orsreboot_st, orswipeprompt_st, backupprompt_st);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = hydro ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\n\n", orsreboot, orswipeprompt, backupprompt);
     fclose(ini);
+    parse_settings();
 }
 
 void parse_settings() {
@@ -205,7 +182,7 @@ void handle_theme(char * theme_name) {
     strcat(full_theme_file, theme_end);
     theme themeconfig;
 
-    ui_print("%s\n", full_theme_file);
+    //ui_print("%s\n", full_theme_file);
     
     if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
         ui_print("Can't load theme!\n");
