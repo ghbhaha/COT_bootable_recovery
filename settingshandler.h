@@ -16,8 +16,9 @@
 
 void create_default_settings();
 void parse_settings();
-void handle_theme(char theme_name);
+void handle_theme(char * theme_name);
 
-int ini_handler(void* user, const char* section, const char* name, const char* value);
+int settings_handler(void* user, const char* section, const char* name, const char* value);
+int theme_handler(void* user, const char* section, const char* name, const char* value);
 
 

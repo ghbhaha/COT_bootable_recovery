@@ -46,6 +46,7 @@
 #include "recovery_ui.h"
 #include "colorific.h"
 #include "settingshandler.h"
+#include "iniparse/ini.h"
 
 extern int __system(const char *command);
 
@@ -390,11 +391,6 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
             // Setup our text colors
-	    get_config_settings();
-	    if(UI_COLOR_DEBUG) {
-			LOGI("%s %i\n", "UI_BG:", bg_icon);
-		}
-		set_bg_icon(bg_icon);
 	    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
@@ -723,7 +719,6 @@ static void *input_thread(void *cookie)
 void ui_init_icons()
 {
 	int i;
-	get_config_settings();
 	switch(bg_icon) {
 		case BLOOD_RED_UI:
 			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
