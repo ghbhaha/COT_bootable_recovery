@@ -41,6 +41,8 @@
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
 #include "colorific.h"
+#include "settings.h"
+#include "settingshandler.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
@@ -833,7 +835,7 @@ int run_script_file(void) {
 			}
 			sleep(1);
 		}
-		if (stat("sdcard/clockworkmod/.orsnoconfirm", &st) == 0) {
+		if (orswipeprompt == 1) {
 			ors_no_confirm = 1;
 		}
 		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
@@ -1066,7 +1068,7 @@ int run_script_file(void) {
 		}
 		fclose(fp);
 		ui_print("Done processing script file\n");
-		if(stat("sdcard/clockworkmod/.orsalwaysreboot", &st) == 0) {
+		if(orsreboot == 1) {
 			if(is_path_mounted("sdcard/"))
 				ensure_path_unmounted("sdcard/");
 			delayed_reboot();

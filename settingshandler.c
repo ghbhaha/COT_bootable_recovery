@@ -58,10 +58,14 @@
 #include "colorific.h"
 #include "iniparse/ini.h"
 
+int backupprompt = 0;
+int orswipeprompt = 0;
+int orsreboot = 0;
+
 typedef struct {
     const char* theme;
     int orsreboot;
-    int orsbackupprompt;
+    int orswipeprompt;
     int backupprompt;
 } settings;
 
@@ -82,8 +86,8 @@ int settings_handler(void* user, const char* section, const char* name,
         pconfig->theme = strdup(value);
     } else if (MATCH("settings", "orsreboot")) {
         pconfig->orsreboot = atoi(value);
-    } else if (MATCH("settings", "orsbackupprompt")) {
-        pconfig->orsbackupprompt = atoi(value);
+    } else if (MATCH("settings", "orswipeprompt")) {
+        pconfig->orswipeprompt = atoi(value);
     } else if (MATCH("settings", "backupprompt")) {
         pconfig->backupprompt = atoi(value);
     } else {
@@ -125,7 +129,7 @@ void create_default_settings(void) {
     "[Settings]\n"
     "Theme = hydro ;\n"
     "ORSReboot = FALSE ;\n"
-    "ORSBackupPrompt = TRUE ;\n"
+    "ORSWipePrompt = TRUE ;\n"
     "BackupPrompt = TRUE ;\n"
     "\n");
     fclose(ini);
@@ -140,6 +144,9 @@ void parse_settings() {
         return 1;
     }
     ui_print("COT Settings loaded!\n");
+    orsreboot = config.orsreboot;
+    orswipeprompt = config.orswipeprompt;
+    backupprompt = config.backupprompt;
     handle_theme(config.theme);
 }
 
