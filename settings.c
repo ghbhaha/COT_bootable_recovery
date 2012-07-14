@@ -134,16 +134,16 @@ void show_settings_menu() {
 
                 int result = get_menu_selection(ors_headers, ors_list, 0, 0);
                 if(result == GO_BACK) {
-                    return;
+                    continue;
                 } else if (result == 0) {
                     orsreboot = 1;
                     update_cot_settings();
                 } else if (result == 1) {
                     orsreboot = 0;
                     update_cot_settings();
-                } else {
-                    return;
                 }
+
+                break;
             }
             case SETTINGS_ITEM_ORS_WIPE:
             {
@@ -155,16 +155,16 @@ void show_settings_menu() {
 
                 int result = get_menu_selection(ors_headers, ors_list, 0, 0);
                 if(result == GO_BACK) {
-                    return;
+                    continue;
                 } else if (result == 0) {
                     orswipeprompt = 1;
                     update_cot_settings();
                 } else if (result == 1) {
                     orswipeprompt = 0;
                     update_cot_settings();
-                } else {
-                    return;
                 }
+
+                break;
             }
             case SETTINGS_ITEM_NAND_PROMPT:
             {
@@ -176,16 +176,16 @@ void show_settings_menu() {
 
                 int result = get_menu_selection(ors_headers, ors_list, 0, 0);
                 if(result == GO_BACK) {
-                    return;
+                    continue;
                 } else if (result == 0) {
                     backupprompt = 1;
                     update_cot_settings();
                 } else if (result == 1) {
                     backupprompt = 0;
                     update_cot_settings();
-                } else {
-                    return;
                 }
+
+                break;
             }
             default:
                 return;
