@@ -64,12 +64,14 @@ int backupprompt = 0;
 int orswipeprompt = 0;
 int orsreboot = 0;
 char* currenttheme;
+char* language;
 
 typedef struct {
     const char* theme;
     int orsreboot;
     int orswipeprompt;
     int backupprompt;
+    int language;
 } settings;
 
 typedef struct {
@@ -93,6 +95,8 @@ int settings_handler(void* user, const char* section, const char* name,
         pconfig->orswipeprompt = atoi(value);
     } else if (MATCH("settings", "backupprompt")) {
         pconfig->backupprompt = atoi(value);
+    } else if (MATCH("settings", "language")) {
+        pconfig->language = atoi(value);
     } else {
         return 0;
     }
@@ -140,6 +144,7 @@ void create_default_settings(void) {
     "ORSReboot = 0 ;\n"
     "ORSWipePrompt = 1 ;\n"
     "BackupPrompt = 1 ;\n"
+    "Language = en ;\n"
     "\n");
     fclose(ini);
 }
@@ -148,7 +153,7 @@ void update_cot_settings(void) {
     ensure_path_mounted("/sdcard");
     FILE    *   ini ;
 	ini = fopen(COTSETTINGS, "w");
-	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, language);
     fclose(ini);
     parse_settings();
 }
@@ -167,6 +172,7 @@ void parse_settings() {
     orswipeprompt = config.orswipeprompt;
     backupprompt = config.backupprompt;
 	currenttheme = config.theme;
+    language = config.language;
     handle_theme(config.theme);
 }
 

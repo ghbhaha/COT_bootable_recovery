@@ -27,5 +27,6 @@ extern int backupprompt;
 extern int orswipeprompt;
 extern int orsreboot;
 extern char* currenttheme;
+extern char* language;
 
 void update_cot_settings(void);
