@@ -59,12 +59,12 @@
 #include "settings.h"
 #include "settingshandler.h"
 
-UICOLOR0 = 0;
-UICOLOR1 = 0;
-UICOLOR2 = 0;
-UITHEME = 0;
+int UICOLOR0 = 0;
+int UICOLOR1 = 0;
+int UICOLOR2 = 0;
+int UITHEME = 0;
 
-UI_COLOR_DEBUG = 0;
+int UI_COLOR_DEBUG = 0;
 
 void show_settings_menu() {
     static char* headers[] = { "COT Settings",
@@ -76,11 +76,13 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_ORS_REBOOT    1
     #define SETTINGS_ITEM_ORS_WIPE      2
     #define SETTINGS_ITEM_NAND_PROMPT   3
+    #define SETTINGS_ITEM_LANGUAGE      4
 
     static char* list[] = { "Theme",
                             "ORS Forced Reboots",
                             "ORS Wipe Prompt",
                             "ZIP flash Nandroid Prompt",
+                            "Language",
                             NULL
     };
 
@@ -182,6 +184,23 @@ void show_settings_menu() {
                     update_cot_settings();
                 } else if (result == 1) {
                     backupprompt = 0;
+                    update_cot_settings();
+                }
+
+                break;
+            }
+            case SETTINGS_ITEM_LANGUAGE:
+            {
+                static char* lang_list[] = {"English",
+                                            NULL
+                };
+                static char* lang_headers[] = {"Language", "", NULL};
+
+                int result = get_menu_selection(lang_headers, lang_list, 0, 0);
+                if(result == GO_BACK) {
+                    continue;
+                } else if (result == 0) {
+                    language = "en";
                     update_cot_settings();
                 }
 
