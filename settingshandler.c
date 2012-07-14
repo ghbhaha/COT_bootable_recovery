@@ -137,6 +137,14 @@ void create_default_settings(void) {
 }
 
 void update_cot_settings(void) {
+
+    char orsreboot_st[100];
+    char orswipeprompt_st[100];
+    char backupprompt_st[100];
+    itoa(orsreboot, orsreboot_st, 10);
+    itoa(orswipeprompt, orswipeprompt_st, 10);
+    itoa(backupprompt, backupprompt_st, 10);
+
     ensure_path_mounted("/sdcard");
     FILE    *   ini ;
 
@@ -147,11 +155,11 @@ void update_cot_settings(void) {
     ";\n"
     "\n"
     "[Settings]\n"
-    "Theme = hydro ;\n"
-    "ORSReboot = 0 ;\n"
-    "ORSWipePrompt = 1 ;\n"
-    "BackupPrompt = 1 ;\n"
-    "\n");
+    "Theme = %s ;\n"
+    "ORSReboot = %s ;\n"
+    "ORSWipePrompt = %s ;\n"
+    "BackupPrompt = %s ;\n"
+    "\n", currenttheme, orsreboot_st, orswipeprompt_st, backupprompt_st);
     fclose(ini);
 }
 
