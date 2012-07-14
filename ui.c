@@ -44,7 +44,7 @@
 #include "common.h"
 #include "minui/minui.h"
 #include "recovery_ui.h"
-#include "colorific.h"
+#include "settings.h"
 #include "settingshandler.h"
 #include "iniparse/ini.h"
 
@@ -391,7 +391,7 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
             // Setup our text colors
-	    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+            gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
                     gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
@@ -719,7 +719,7 @@ static void *input_thread(void *cookie)
 void ui_init_icons()
 {
 	int i;
-	switch(bg_icon) {
+	switch(UITHEME) {
 		case BLOOD_RED_UI:
 			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
         		int result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);

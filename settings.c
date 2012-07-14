@@ -55,16 +55,27 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-#include "colorific.h"
 
 #include "settings.h"
 #include "settingshandler.h"
+
+UICOLOR0 = 0;
+UICOLOR1 = 0;
+UICOLOR2 = 0;
+UITHEME = 0;
+
+UI_COLOR_DEBUG = 0;
 
 void show_settings_menu() {
     static char* headers[] = { "COT Settings",
                                 "",
                                 NULL
     };
+
+    #define SETTINGS_ITEM_THEME         0
+    #define SETTINGS_ITEM_ORS_REBOOT    1
+    #define SETTINGS_ITEM_ORS_WIPE      2
+    #define SETTINGS_ITEM_NAND_PROMPT   3
 
     static char* list[] = { "Theme",
                             "ORS Forced Reboots",
@@ -78,7 +89,7 @@ void show_settings_menu() {
         switch (chosen_item) {
             case GO_BACK:
                 return;
-            case 0:
+            case SETTINGS_ITEM_THEME:
             {
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
@@ -94,11 +105,12 @@ void show_settings_menu() {
                     continue;
                 else {
                     set_ui_color(ui_color);
+                    update_cot_settings();
                     ui_reset_icons();
                     break;
                 }
             }
-            case 1:
+            case SETTINGS_ITEM_ORS_REBOOT:
             {
                 static char* ors_list[] = {"On",
                                             "Off",
@@ -119,7 +131,7 @@ void show_settings_menu() {
                     return;
                 }
             }
-            case 2:
+            case SETTINGS_ITEM_ORS_WIPE:
             {
                 static char* ors_list[] = {"On",
                                             "Off",
@@ -140,7 +152,7 @@ void show_settings_menu() {
                     return;
                 }
             }
-            case 3:
+            case SETTINGS_ITEM_NAND_PROMPT:
             {
                 static char* ors_list[] = {"On",
                                             "Off",
@@ -165,4 +177,95 @@ void show_settings_menu() {
                 return;
         }
     }
+}
+
+void set_ui_default() {
+	UICOLOR0 = 0;
+	UICOLOR1 = 191;
+	UICOLOR2 = 255;
+	UITHEME = HYDRO_UI;
+	sprintf(currenttheme, "hydro");
+	if(UI_COLOR_DEBUG) {
+		LOGI("%s %i\n", "ECDEF_UICOLOR0: ", UICOLOR0);
+		LOGI("%s %i\n", "ECDEF_UICOLOR1: ", UICOLOR1);
+		LOGI("%s %i\n", "ECDEF_UICOLOR2: ", UICOLOR2);
+		LOGI("%s %i\n", "ECDEF_UITHEME: ", UITHEME);
+	}
+}
+
+// This should really be done with a struct instead of a switch...
+void set_ui_color(int i) {
+	switch(i) {
+		case HYDRO_UI: {
+			ui_print("Setting UI Color to Default.\n");
+			set_ui_default();
+			ui_dyn_background();
+			return;
+		}
+		case BLOOD_RED_UI: {
+			ui_print("Setting UI Color to Blood Red.\n");
+			UICOLOR0 = 255;
+			UICOLOR1 = 0;
+			UICOLOR2 = 0;
+			UITHEME = BLOOD_RED_UI;
+			sprintf(currenttheme, "bloodred");
+			ui_dyn_background();
+			break;
+		}
+		case KEY_LIME_PIE_UI: {
+			ui_print("Setting UI Color to Key Lime Pie.\n");
+			UICOLOR0 = 0;
+			UICOLOR1 = 255;
+			UICOLOR2 = 0;
+			UITHEME = KEY_LIME_PIE_UI;
+			sprintf(currenttheme, "keylimepie");
+			ui_dyn_background();
+			break;
+		}
+		case CITRUS_ORANGE_UI: {
+			ui_print("Setting UI Color to Citrus Orange.\n");
+			UICOLOR0 = 238;
+			UICOLOR1 = 148;
+			UICOLOR2 = 74;
+			UITHEME = CITRUS_ORANGE_UI;
+			sprintf(currenttheme, "citrusorange");
+			ui_dyn_background();
+			break;
+		}
+		case DOODERBUTT_BLUE_UI: {
+			ui_print("Setting UI Color to Dooderbutt Blue.\n");
+			UICOLOR0 = 0;
+			UICOLOR1 = 0;
+			UICOLOR2 = 255;
+			UITHEME = DOODERBUTT_BLUE_UI;
+			sprintf(currenttheme, "dooderbuttblue");
+			ui_dyn_background();
+			break;
+		}
+	}
+}
+
+void ui_dyn_background()
+{
+	if(UI_COLOR_DEBUG) {
+		LOGI("%s %i\n", "DYN_BG:", UITHEME);
+	}
+	switch(UITHEME) {
+		case BLOOD_RED_UI:
+			ui_set_background(BACKGROUND_ICON_BLOODRED);
+			break;
+		case KEY_LIME_PIE_UI:
+			ui_set_background(BACKGROUND_ICON_KEYLIMEPIE);
+			break;
+		case CITRUS_ORANGE_UI:
+			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);
+			break;
+		case DOODERBUTT_BLUE_UI:
+			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+			break;
+		// Anything else is the clockwork icon
+		default:
+			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+			break;
+	}
 }

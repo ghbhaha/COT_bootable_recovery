@@ -55,8 +55,10 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-#include "colorific.h"
+#include "settings.h"
 #include "iniparse/ini.h"
+
+COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
 
 int backupprompt = 0;
 int orswipeprompt = 0;
@@ -119,9 +121,15 @@ int theme_handler(void* user, const char* section, const char* name,
 
 void create_default_settings(void) {
     ensure_path_mounted("/sdcard");
+    ensure_directory("/sdcard/cotrecovery/");
     FILE    *   ini ;
 
-    ini = fopen("/sdcard/clockworkmod/settings.ini", "w");
+	if(ini = fopen(COTSETTINGS, "r")) {
+		fclose(COTSETTINGS);
+		remove(COTSETTINGS);
+	}
+
+    ini = fopen(COTSETTINGS, "w");
     fprintf(ini,
     ";\n"
     "; COT Settings INI\n"
@@ -148,12 +156,17 @@ void update_cot_settings(void) {
     ensure_path_mounted("/sdcard");
     FILE    *   ini ;
 
-    ini = fopen("/sdcard/clockworkmod/settings.ini", "w");
-    fprintf(ini,
-    ";\n"
-    "; COT Settings INI\n"
-    ";\n"
-    "\n"
+	if(ini = fopen(COTSETTINGS, "r")) {
+		fclose(COTSETTINGS);
+		remove(COTSETTINGS);
+	}
+
+	ini = fopen(COTSETTINGS, "w");
+	fprintf(ini,
+	";\n"
+	"; COT Settings INI\n"
+	";\n"
+	"\n"
     "[Settings]\n"
     "Theme = %s ;\n"
     "ORSReboot = %s ;\n"
@@ -167,15 +180,16 @@ void parse_settings() {
     ensure_path_mounted("/sdcard");
     settings config;
 
-    if (ini_parse("/sdcard/clockworkmod/settings.ini", settings_handler, &config) < 0) {
-        ui_print("Can't load COT settings!\n");
-        return 1;
+    if (ini_parse(COTSETTINGS, settings_handler, &config) < 0) {
+        ui_print("Can't load COT settings!\nSetting defaults...\n");
+        create_default_settings();
+        ini_parse(COTSETTINGS, settings_handler, &config);
     }
     ui_print("COT Settings loaded!\n");
     orsreboot = config.orsreboot;
     orswipeprompt = config.orswipeprompt;
     backupprompt = config.backupprompt;
-    currenttheme = config.theme;
+	currenttheme = config.theme;
     handle_theme(config.theme);
 }
 
@@ -202,27 +216,8 @@ void handle_theme(char * theme_name) {
     UICOLOR0 = themeconfig.uicolor0;
     UICOLOR1 = themeconfig.uicolor1;
     UICOLOR2 = themeconfig.uicolor2;
-    bg_icon = themeconfig.bgicon;
+    UITHEME = themeconfig.bgicon;
 
     ui_dyn_background();
     ui_reset_icons();
-
-    /*    
-    if (strcmp(theme_name, "hydro") == 0) {
-        set_ui_color(0);
-        ui_reset_icons();
-    } else if (strcmp(theme_name, "bloodred") == 0) {
-        set_ui_color(1);
-        ui_reset_icons();
-    } else if (strcmp(theme_name, "keylimepie") == 0) {
-        set_ui_color(2);
-        ui_reset_icons();
-    } else if (strcmp(theme_name, "citrusorange") == 0) {
-        set_ui_color(3);
-        ui_reset_icons();
-    } else if (strcmp(theme_name, "dooderbuttblue") == 0) {
-        set_ui_color(4);
-        ui_reset_icons();
-    }
-    */
 }

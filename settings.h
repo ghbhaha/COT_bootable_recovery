@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define HYDRO_UI		0
+#define BLOOD_RED_UI		1
+#define KEY_LIME_PIE_UI		2
+#define CITRUS_ORANGE_UI	3
+#define DOODERBUTT_BLUE_UI	4
 
+extern int UI_COLOR_DEBUG;
+
+int UICOLOR0, UICOLOR1, UICOLOR2, UITHEME;
+
+void set_ui_color(int i);
 void show_settings_menu();
 void show_ors_reboot_menu();
 void show_ors_nandroid_prompt_menu();
 void show_nandroid_prompt_menu();
+void ui_dyn_background();
