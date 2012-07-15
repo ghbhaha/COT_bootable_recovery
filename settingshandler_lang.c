@@ -1066,7 +1066,7 @@ void parse_language() {
 	lang_keywords config;
 
 	LOGI("Language code: %s\n", language);
-	if (language = "en") {
+	if (strcmp(language, "en") == 0) {
 		ini_parse("/res/lang/lang_en.ini", language_handler, &config);
 	} else {
 		char full_lang_file[1000];
