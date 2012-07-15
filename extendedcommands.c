@@ -153,11 +153,9 @@ void show_install_update_menu()
 	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
 	INSTALL_MENU_ITEMS[2] = ziptogglesig;
 	INSTALL_MENU_ITEMS[3] = ziptoggleasserts;
-    static char* headers[] = {  "Apply .zip file on SD card",
-                                "",
-                                NULL
-    };
+    static char* headers[2];
 	headers[0] = zipinstallheader;
+	headers[1] = "\n";
 
     for (;;)
     {
@@ -374,11 +372,9 @@ void show_view_and_delete_backups(const char *mount_point, const char *backup_pa
 		return;
 	}
 
-	static char* headers[] = { "Choose a backup to delete",
-								 "",
-								 NULL
-	};
+	static char* headers[2];
 	headers[0] = deletebackupheader;
+	headers[1] = "\n";
 
 	char* file = choose_file_menu(mount_point, NULL, headers);
 	if(file == NULL)
@@ -401,11 +397,9 @@ void delete_old_backups(const char *mount_point)
 		return;
 	}
 
-	static char* headers[] = { "Choose a backup to delete",
-								 "",
-								 NULL
-	};
+	static char* headers[2];
 	headers[0] = deletebackupheader;
+	headers[1] = "\n";
 
 	char* file = choose_file_menu(mount_point, NULL, headers);
 	if(file == NULL)
@@ -434,18 +428,12 @@ int show_lowspace_menu(int i, const char* backup_path)
 	#define ITEM_VIEW_DELETE_BACKUPS 1
 	#define ITEM_CANCEL_BACKUP 2
 
-	static char* headers[] = { "Limited space available!",
-								"",
-                                "There may not be enough space",
-                                "to continue backup.",
-                                "",
-                                "What would you like to do?",
-                                "",
-								NULL
-	};
+	static char* headers[6];
 	headers[0] = lowspaceheader1;
+	headers[1] = "\n";
 	headers[2] = lowspaceheader2;
 	headers[3] = lowspaceheader3;
+	headers[4] = "\n";
 	headers[5] = lowspaceheader4;
 
 	for (;;) {
@@ -484,11 +472,9 @@ void show_choose_zip_menu(const char *mount_point)
 	#define ITEM_INSTALL_WOUT_BACKUP 1
 	#define ITEM_CANCEL_INSTALL 2
 
-    static char* headers[] = {  "Choose a zip to apply",
-                                "",
-                                NULL
-    };
+    static char* headers[2];
 	headers[0] = zipchoosezip;
+	headers[1] = "\n";
 
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
@@ -541,11 +527,9 @@ void show_nandroid_restore_menu(const char* path)
         return;
     }
 
-    static char* headers[] = {  "Choose an image to restore",
-                                "",
-                                NULL
-    };
+    static char* headers[2];
 	headers[0] = nandroidrestoreheader;
+	headers[1] = "\n";
 
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/cotrecovery/backup/", path); // Need to fix up the default backup path to not point to sdcard so that we can use a variable here...
@@ -576,15 +560,11 @@ void show_mount_usb_storage_menu()
         close(fd);
         return -1;
     }
-    static char* headers[] = {  "USB Mass Storage device",
-                                "Leaving this menu unmount",
-                                "your SD card from your PC.",
-                                "",
-                                NULL
-    };
+    static char* headers[4];
 	headers[0] = usbmsheader1;
 	headers[1] = usbmsheader2;
 	headers[2] = usbmsheader3;
+	headers[3] = "\n";
 
     static char* list[] = { "Unmount", NULL };
 	list[0] = usbmsunmount;
@@ -617,18 +597,8 @@ int confirm_selection(const char* title, const char* confirm)
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
 	confirm_headers[1] = wipedataheader2;
-    char* items[] = { "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      confirm, //" Yes -- wipe partition",   // [7
-                      "No",
-                      "No",
-                      "No",
-                      NULL };
+
+    char* items[11];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -637,6 +607,7 @@ int confirm_selection(const char* title, const char* confirm)
 	items[5] = no;
 	items[6] = no;
 	items[8] = no;
+	items[7] = confirm;
 	items[9] = no;
 	items[10] = no;
 
@@ -648,19 +619,8 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 {
     char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
 	confirm_headers[1] = recommended;
-    char* items[] = { "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      confirm, //" Yes -- wipe partition",   // [7
-                      "No",
-                      "No",
-                      "No",
-                      NULL };
-
+    char* items[11];
+    
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -668,6 +628,7 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	items[4] = no;
 	items[5] = no;
 	items[6] = no;
+	items[7] = confirm;
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
@@ -856,11 +817,9 @@ int is_safe_to_format(char* name)
 
 void show_partition_menu()
 {
-    static char* headers[] = {  "Mounts and Storage Menu",
-                                "",
-                                NULL
-    };
+    static char* headers[2];
 	headers[0] = showpartitionheader;
+	headers[1] = "\n";
 
     typedef char* string;
     string mounts[MOUNTABLE_COUNT][3] = {
@@ -1055,15 +1014,9 @@ void show_nandroid_advanced_restore_menu(const char* path)
         return;
     }
 
-    static char* advancedheaders[] = {  "Choose an image to restore",
-                                "",
-                                "Choose an image to restore",
-                                "first. The next menu will",
-                                "give you more options.",
-                                "",
-                                NULL
-    };
+    static char* advancedheaders[5];
 	advancedheaders[0] = advrestoreheader1;
+	advancedheaders[1] = "\n";
 	advancedheaders[2] = advrestoreheader1;
 	advancedheaders[3] = advrestoreheader2;
 	advancedheaders[4] = advrestoreheader3;
@@ -1074,11 +1027,9 @@ void show_nandroid_advanced_restore_menu(const char* path)
     if (file == NULL)
         return;
 
-    static char* headers[] = {  "Nandroid Advanced Restore",
-                                "",
-                                NULL
-    };
+    static char* headers[1];
 	headers[0] = advrestoreheader11;
+	headers[1] = "\n";
 
     static char* list[] = { "Restore boot",
                             "Restore system",
