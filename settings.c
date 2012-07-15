@@ -134,10 +134,11 @@ void show_settings_menu() {
             {
 				static char* ors_headers[] = {"ORS Forced Reboots", "", NULL};
 
-                if (orsreboot == 1)
+                if (orsreboot == 1) {
 					ors_list[0] = "Disable forced reboots";
-				else
+				} else {
 					ors_list[0] = "Enable forced reboots";
+				}
 
 				int result = get_menu_selection(ors_headers, ors_list, 0, 0);
 
@@ -161,10 +162,11 @@ void show_settings_menu() {
             {
                 static char* ors_headers[] = {"ORS Wipe Prompt", "", NULL};
 
-                if (orswipeprompt == 1)
+                if (orswipeprompt == 1) {
 					ors_list[0] = "Disable wipe prompt";
-				else
+				} else {
 					ors_list[0] = "Enable wipe prompt";
+				}
 
                 int result = get_menu_selection(ors_headers, ors_list, 0, 0);
 
@@ -188,10 +190,11 @@ void show_settings_menu() {
             {
                 static char* ors_headers[] = {"ZIP flash Nandroid Prompt", "", NULL};
 
-                if (backupprompt == 1)
-					ors_list[0] = "Disable zip flash nandroid prompt"; // wow that's long, not sure it will parse on the S
-				else
+                if (backupprompt == 1) {
+					ors_list[0] = "Disable zip flash nandroid prompt";
+				} else {
 					ors_list[0] = "Enable zip flash nandroid prompt";
+				}
 
                 int result = get_menu_selection(ors_headers, ors_list, 0, 0);
 
