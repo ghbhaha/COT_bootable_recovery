@@ -52,14 +52,16 @@ void ensure_directory(const char* dir) {
 
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
+	char final_backup_path[PATH_MAX];
+	sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
     time_t t = time(NULL);
     struct tm *tmp = localtime(&t);
     if (tmp == NULL) {
         struct timeval tp;
         gettimeofday(&tp, NULL);
-        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-    } else {
-        strftime(backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+        sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
+    } else {	// Seriously, how can I replace this?!?
+        strftime(final_backup_path, PATH_MAX, "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
     }
 }
 
@@ -172,7 +174,7 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
 
     struct stat file_info;
     int callback = stat("/sdcard/clockworkmod/.hidenandroidprogress", &file_info) != 0;
-    
+
     ui_print("Backing up %s...\n", name);
     if (0 != (ret = ensure_path_mounted(mount_point) != 0)) {
         ui_print("Can't mount %s!\n", mount_point);

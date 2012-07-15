@@ -418,7 +418,7 @@ int show_lowspace_menu(int i, const char* backup_path)
 				return 0;
 			}
 			case ITEM_VIEW_DELETE_BACKUPS:
-				show_view_and_delete_backups("/sdcard/clockworkmod/backup/",backup_path);
+				show_view_and_delete_backups(DEFAULT_BACKUP_PATH ,backup_path);
 				break;
 			default:
 				ui_print("%s\n", backupcancel);
@@ -465,16 +465,20 @@ void show_choose_zip_menu(const char *mount_point)
 			switch(chosen_item) {
 				case ITEM_BACKUP_AND_INSTALL: {
 					char backup_path[PATH_MAX];
+					char final_backup_path[PATH_MAX];
+
+					sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
 					time_t t = time(NULL);
 					struct tm *tmp = localtime(&t);
 					if (tmp == NULL) {
 						struct timeval tp;
 						gettimeofday(&tp, NULL);
-						sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-					} else {
-						strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
+					} else {	/* OK that's it, not only is the replacement on this pissing me off but we don't need this function repeated 4 times
+								 * I'm going to add a function (probably in nandroid) to handle this and we can just call it... */
+						strftime(final_backup_path, sizeof(final_backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
 					}
-					nandroid_backup(backup_path);
+					nandroid_backup(final_backup_path);
 					install_zip(file, 0);
 					return;
 				}
@@ -501,7 +505,7 @@ void show_nandroid_restore_menu(const char* path)
 	headers[1] = "\n";
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/clockworkmod/backup/", path);
+    sprintf(tmp, "%s/cotrecovery/backup/", path); // Need to fix up the default backup path to not point to sdcard so that we can use a variable here...
     char* file = choose_file_menu(tmp, NULL, headers);
     if (file == NULL)
         return;
@@ -560,8 +564,8 @@ void show_mount_usb_storage_menu()
 
 int confirm_selection(const char* title, const char* confirm)
 {
-    struct stat info;
-    if (0 == stat("/sdcard/clockworkmod/.no_confirm", &info))
+    struct stat info;	// no dot files being used anymore so we're removing this right?
+    if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
@@ -926,7 +930,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
 	advancedheaders[4] = advrestoreheader3;
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/clockworkmod/backup/", path);
+    sprintf(tmp, "%s/cotrecovery/backup/", path);
     char* file = choose_file_menu(tmp, NULL, advancedheaders);
     if (file == NULL)
         return;
@@ -998,19 +1002,22 @@ void show_nandroid_menu()
 			case 0:
 				{
 					char backup_path[PATH_MAX];
+					char final_backup_path[PATH_MAX];
+					sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+
 					time_t t = time(NULL);
 					struct tm *tmp = localtime(&t);
 					if (tmp == NULL)
 					{
 						struct timeval tp;
 						gettimeofday(&tp, NULL);
-						sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
 					}
 					else
-					{
-						strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+					{	// Same as recovery.c I'm not sure how to go about replacing this one...
+						strftime(final_backup_path, sizeof(final_backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
 					}
-					nandroid_backup(backup_path);
+					nandroid_backup(final_backup_path);
 				}
 				return;
 			case 1:
@@ -1020,7 +1027,7 @@ void show_nandroid_menu()
 				show_nandroid_advanced_restore_menu("/sdcard");
 				return;
 			case 3:
-				delete_old_backups("/sdcard/clockworkmod/backup/");
+				delete_old_backups(DEFAULT_BACKUP_PATH);
 				break;
 			default:
 				return;
@@ -1321,9 +1328,9 @@ void handle_failure(int ret)
         return;
     if (0 != ensure_path_mounted("/sdcard"))
         return;
-    mkdir("/sdcard/clockworkmod", S_IRWXU);
-    __system("cp /tmp/recovery.log /sdcard/clockworkmod/recovery.log");
-    ui_print("/tmp/recovery.log was copied to /sdcard/clockworkmod/recovery.log. Please open ROM Manager to report the issue.\n");
+    mkdir("/sdcard/cotrecovery", S_IRWXU);
+    __system("cp /tmp/recovery.log /sdcard/cotrecovery/recovery.log");
+    ui_print("This is the entirely wrong message and Drew is going to replace it with his inis eventually... in the meantime :P\n");
 }
 
 int is_path_mounted(const char* path) {
