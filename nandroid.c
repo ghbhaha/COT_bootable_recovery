@@ -512,7 +512,6 @@ int nandroid_main(int argc, char** argv)
         nandroid_generate_timestamp_path(backup_path);
         return nandroid_backup(backup_path);
     }
-
     if (strcmp("restore", argv[1]) == 0) {
         if (argc != 3)
             return nandroid_usage();

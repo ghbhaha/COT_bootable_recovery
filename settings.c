@@ -108,23 +108,24 @@ void show_settings_menu() {
                 if(ui_color == GO_BACK)
                     continue;
                 else {
-                    if(ui_color == 0) {
-                        currenttheme = "hydro";
-                        update_cot_settings();
-                    } else if (ui_color == 1) {
-                        currenttheme = "bloodred";
-                        update_cot_settings();
-                    } else if (ui_color == 2) {
-                        currenttheme = "keylimepie";
-                        update_cot_settings();
-                    } else if (ui_color == 3) {
-                        currenttheme = "citrusorange";
-                        update_cot_settings();
-                    } else if (ui_color == 4) {
-                        currenttheme = "dooderbuttblue";
-                        update_cot_settings();
+                    switch(ui_color) {
+                        case 0:
+                            currenttheme = "hydro";
+                            break;
+                        case 1:
+                            currenttheme = "bloodred";
+                            break;
+                        case 2:
+                            currenttheme = "keylimepie";
+                            break;
+                        case 3:
+                            currenttheme = "citrusorange";
+                            break;
+                        case 4:
+                            currenttheme = "dooderbuttblue";
+                            break;
                     }
-                    
+                    update_cot_settings();
                     break;
                 }
             }

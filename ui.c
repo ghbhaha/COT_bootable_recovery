@@ -1099,7 +1099,6 @@ if(TOUCH_CONTROL_DEBUG)
 		key.x = oldMousePos[actPos.num].x;
 		key.y = oldMousePos[actPos.num].y;
 	}
-
     pthread_mutex_unlock(&key_queue_mutex);
 	return &key;
 }

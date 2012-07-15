@@ -176,7 +176,7 @@ fopen_root_path(const char *root_path, const char *mode) {
 }
 
 // open a given path, mounting partitions as necessary
-static FILE*
+FILE*
 fopen_path(const char *path, const char *mode) {
     if (ensure_path_mounted(path) != 0) {
         LOGE("Can't mount %s\n", path);
@@ -837,19 +837,17 @@ prompt_and_wait() {
                     if (!ui_text_visible()) return;
                 }
                 break;
-
-	    case ITEM_WIPE_ALL:
-		if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
-		{
-			ui_print("\n-- Wiping system, data, cache...\n");
-			erase_volume("/system");
-			erase_volume("/data");
-			erase_volume("/cache");
-			ui_print("\nFull wipe complete!\n");
-			if (!ui_text_visible()) return;
-		}
-		break;
-
+			case ITEM_WIPE_ALL:
+				if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
+				{
+					ui_print("\n-- Wiping system, data, cache...\n");
+					erase_volume("/system");
+					erase_volume("/data");
+					erase_volume("/cache");
+					ui_print("\nFull wipe complete!\n");
+					if (!ui_text_visible()) return;
+				}
+				break;
             case ITEM_INSTALL_ZIP:
                 show_install_update_menu();
                 break;
@@ -1226,7 +1224,7 @@ main(int argc, char **argv) {
     process_volumes();
     ui_init();
     //ui_print(EXPAND(RECOVERY_VERSION)"\n");
-    
+
     LOGI("Processing arguments.\n");
     get_args(&argc, &argv);
 
@@ -1349,9 +1347,6 @@ main(int argc, char **argv) {
         status = INSTALL_ERROR;  // No command specified
         // we are starting up in user initiated recovery here
         // let's set up some default options
-
-        // WHY???
-        // signature_check_enabled = 0;
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);

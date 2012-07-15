@@ -31,4 +31,3 @@ bool verify_jar_signature(const ZipArchive *pArchive,
 #define VERIFY_FAILURE        false
 
 #endif  /* _RECOVERY_VERIFIER_H */
-
