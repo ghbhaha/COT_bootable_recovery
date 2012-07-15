@@ -207,9 +207,11 @@ void show_settings_menu() {
                 } else if (result == 0) {
                     language = "en";
                     update_cot_settings();
+#if DEV_BUILD == 1
                 } else if (result == 1) {
                     language = "custom";
                     update_cot_settings();
+#endif
                 }
 
                 break;

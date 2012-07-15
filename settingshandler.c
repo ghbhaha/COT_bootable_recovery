@@ -71,7 +71,7 @@ typedef struct {
     int orsreboot;
     int orswipeprompt;
     int backupprompt;
-    int language;
+    char* language;
 } settings;
 
 typedef struct {
@@ -96,7 +96,7 @@ int settings_handler(void* user, const char* section, const char* name,
     } else if (MATCH("settings", "backupprompt")) {
         pconfig->backupprompt = atoi(value);
     } else if (MATCH("settings", "language")) {
-        pconfig->language = atoi(value);
+        pconfig->language = strdup(value);
     } else {
         return 0;
     }

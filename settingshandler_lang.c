@@ -1065,10 +1065,25 @@ void parse_language() {
     ensure_path_mounted("/sdcard");
 	lang_keywords config;
 
-	if (ini_parse("/res/lang/lang_en.ini", language_handler, &config) < 0) {
-		LOGI("Can't load English language!\n");
+	LOGI("Language code: %s\n", language);
+	if (language = "en") {
+		ini_parse("/res/lang/lang_en.ini", language_handler, &config);
 	} else {
-		LOGI("English language loaded!\n");
+		char full_lang_file[1000];
+		char * lang_base;
+		char * lang_end;
+
+		lang_base = "/sdcard/cotrecovery/lang/lang_";
+		lang_end = ".ini";
+		strcpy(full_lang_file, lang_base);
+		strcat(full_lang_file, language);
+		strcat(full_lang_file, lang_end);
+
+		if (ini_parse(full_lang_file, language_handler, &config) < 0) {
+			LOGI("Can't load language code: %s\n", language);
+		} else {
+			LOGI("Loaded language code: %s\n", language);
+		}
 	}
 	no = config.no;
 	yes = config.yes;
