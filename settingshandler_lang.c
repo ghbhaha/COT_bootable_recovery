@@ -1065,9 +1065,11 @@ void parse_language() {
     ensure_path_mounted("/sdcard");
 	lang_keywords config;
 
-	ini_parse("/res/lang/lang_en.ini", language_handler, &config);
-	LOGI("English language loaded!\n");
-	ui_print("No: %s\n", no);
+	if (ini_parse("/res/lang/lang_en.ini", language_handler, &config) < 0) {
+		LOGI("Can't load English language!\n");
+	} else {
+		LOGI("English language loaded!\n");
+	}
 	no = config.no;
 	yes = config.yes;
 	batterylevel = config.batterylevel;
