@@ -690,7 +690,7 @@ wipe_data(int confirm) {
     }
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
-    ui_print("%s\n", "Data wipe complete!\n");
+    ui_print("%s\n", datawipecomplete);
 }
 
 static void
@@ -729,7 +729,8 @@ prompt_and_wait() {
                 {
                     ui_print("\n-- Wiping cache...\n");
                     erase_volume("/cache");
-                    ui_print("%s\n", "Cache wipe complete!\n");
+                    //ui_print("%s\n", cachewipecomplete);
+					ui_print("cachewipecomplete\n");
                     if (!ui_text_visible()) return;
                 }
                 break;
@@ -1260,9 +1261,9 @@ main(int argc, char **argv) {
     // Otherwise, get ready to boot the main system...
     finish_recovery(send_intent);
     if(!poweroff)
-        ui_print("Rebooting...\n");
+        ui_print("%s\n", rebooting);
     else
-        ui_print("Shutting down...\n");
+        ui_print("%s\n", shutdown);
     sync();
 #if TARGET_BOOTLOADER_BOARD_NAME == otter
     if(!poweroff) {
