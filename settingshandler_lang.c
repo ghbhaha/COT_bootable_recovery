@@ -581,479 +581,479 @@ int language_handler(void* user, const char* section, const char* name, const ch
     lang_keywords* pconfig = (lang_keywords*)user;
 
 	#define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
-	if (MATCH("settings", "no")) {
+	if (MATCH("language", "no")) {
 		pconfig->no = strdup(value);
-	} else if (MATCH("settings", "yes")) {
+	} else if (MATCH("language", "yes")) {
 		pconfig->yes = strdup(value);
-	} else if (MATCH("settings", "batterylevel")) {
+	} else if (MATCH("language", "batterylevel")) {
 		pconfig->batterylevel = strdup(value);
-	} else if (MATCH("settings", "backmenudisabled")) {
+	} else if (MATCH("language", "backmenudisabled")) {
 		pconfig->backmenudisabled = strdup(value);
-	} else if (MATCH("settings", "backmenuenabled")) {
+	} else if (MATCH("language", "backmenuenabled")) {
 		pconfig->backmenuenabled = strdup(value);
-	} else if (MATCH("settings", "choosepackage")) {
+	} else if (MATCH("language", "choosepackage")) {
 		pconfig->choosepackage = strdup(value);
-	} else if (MATCH("settings", "install")) {
+	} else if (MATCH("language", "install")) {
 		pconfig->install = strdup(value);
-	} else if (MATCH("settings", "installing")) {
+	} else if (MATCH("language", "installing")) {
 		pconfig->installing = strdup(value);
-	} else if (MATCH("settings", "mounted")) {
+	} else if (MATCH("language", "mounted")) {
 		pconfig->mounted = strdup(value);
-	} else if (MATCH("settings", "unmounted")) {
+	} else if (MATCH("language", "unmounted")) {
 		pconfig->unmounted = strdup(value);
-	} else if (MATCH("settings", "installabort")) {
+	} else if (MATCH("language", "installabort")) {
 		pconfig->installabort = strdup(value);
-	} else if (MATCH("settings", "rebooting")) {
+	} else if (MATCH("language", "rebooting")) {
 		pconfig->rebooting = strdup(value);
-	} else if (MATCH("settings", "shutdown")) {
+	} else if (MATCH("language", "shutdown")) {
 		pconfig->shutdown = strdup(value);
-	} else if (MATCH("settings", "enabled")) {
+	} else if (MATCH("language", "enabled")) {
 		pconfig->enabled = strdup(value);
-	} else if (MATCH("settings", "disabled")) {
+	} else if (MATCH("language", "disabled")) {
 		pconfig->disabled = strdup(value);
-	} else if (MATCH("settings", "mounterror")) {
+	} else if (MATCH("language", "mounterror")) {
 		pconfig->mounterror = strdup(value);
-	} else if (MATCH("settings", "skipformat")) {
+	} else if (MATCH("language", "skipformat")) {
 		pconfig->skipformat = strdup(value);
-	} else if (MATCH("settings", "installconfirm")) {
+	} else if (MATCH("language", "installconfirm")) {
 		pconfig->installconfirm = strdup(value);
-	} else if (MATCH("settings", "yesinstall")) {
+	} else if (MATCH("language", "yesinstall")) {
 		pconfig->yesinstall = strdup(value);
-	} else if (MATCH("settings", "deleteconfirm")) {
+	} else if (MATCH("language", "deleteconfirm")) {
 		pconfig->deleteconfirm = strdup(value);
-	} else if (MATCH("settings", "freespacesd")) {
+	} else if (MATCH("language", "freespacesd")) {
 		pconfig->freespacesd = strdup(value);
-	} else if (MATCH("settings", "yesdelete")) {
+	} else if (MATCH("language", "yesdelete")) {
 		pconfig->yesdelete = strdup(value);
-	} else if (MATCH("settings", "deleting")) {
+	} else if (MATCH("language", "deleting")) {
 		pconfig->deleting = strdup(value);
-	} else if (MATCH("settings", "confirmformat")) {
+	} else if (MATCH("language", "confirmformat")) {
 		pconfig->confirmformat = strdup(value);
-	} else if (MATCH("settings", "yesformat")) {
+	} else if (MATCH("language", "yesformat")) {
 		pconfig->yesformat = strdup(value);
-	} else if (MATCH("settings", "formatting")) {
+	} else if (MATCH("language", "formatting")) {
 		pconfig->formatting = strdup(value);
-	} else if (MATCH("settings", "formaterror")) {
+	} else if (MATCH("language", "formaterror")) {
 		pconfig->formaterror = strdup(value);
-	} else if (MATCH("settings", "done")) {
+	} else if (MATCH("language", "done")) {
 		pconfig->done = strdup(value);
-	} else if (MATCH("settings", "doneexc")) {
+	} else if (MATCH("language", "doneexc")) {
 		pconfig->doneexc = strdup(value);
-	} else if (MATCH("settings", "size")) {
+	} else if (MATCH("language", "size")) {
 		pconfig->size = strdup(value);
-	} else if (MATCH("settings", "boot")) {
+	} else if (MATCH("language", "boot")) {
 		pconfig->boot = strdup(value);
-	} else if (MATCH("settings", "recovery")) {
+	} else if (MATCH("language", "recovery")) {
 		pconfig->recovery = strdup(value);
-	} else if (MATCH("settings", "notfound")) {
+	} else if (MATCH("language", "notfound")) {
 		pconfig->notfound = strdup(value);
-	} else if (MATCH("settings", "foundold")) {
+	} else if (MATCH("language", "foundold")) {
 		pconfig->foundold = strdup(value);
-	} else if (MATCH("settings", "on")) {
+	} else if (MATCH("language", "on")) {
 		pconfig->on = strdup(value);
-	} else if (MATCH("settings", "off")) {
+	} else if (MATCH("language", "off")) {
 		pconfig->off = strdup(value);
-	} else if (MATCH("settings", "wipedataheader1")) {
+	} else if (MATCH("language", "wipedataheader1")) {
 		pconfig->wipedataheader1 = strdup(value);
-	} else if (MATCH("settings", "wipedataheader2")) {
+	} else if (MATCH("language", "wipedataheader2")) {
 		pconfig->wipedataheader2 = strdup(value);
-	} else if (MATCH("settings", "zipinstallheader")) {
+	} else if (MATCH("language", "zipinstallheader")) {
 		pconfig->zipinstallheader = strdup(value);
-	} else if (MATCH("settings", "deletebackupheader")) {
+	} else if (MATCH("language", "deletebackupheader")) {
 		pconfig->deletebackupheader = strdup(value);
-	} else if (MATCH("settings", "lowspaceheader1")) {
+	} else if (MATCH("language", "lowspaceheader1")) {
 		pconfig->lowspaceheader1 = strdup(value);
-	} else if (MATCH("settings", "lowspaceheader2")) {
+	} else if (MATCH("language", "lowspaceheader2")) {
 		pconfig->lowspaceheader2 = strdup(value);
-	} else if (MATCH("settings", "lowspaceheader3")) {
+	} else if (MATCH("language", "lowspaceheader3")) {
 		pconfig->lowspaceheader3 = strdup(value);
-	} else if (MATCH("settings", "lowspaceheader4")) {
+	} else if (MATCH("language", "lowspaceheader4")) {
 		pconfig->lowspaceheader4 = strdup(value);
-	} else if (MATCH("settings", "zipchooseheader")) {
+	} else if (MATCH("language", "zipchooseheader")) {
 		pconfig->zipchooseheader = strdup(value);
-	} else if (MATCH("settings", "nandroidrestoreheader")) {
+	} else if (MATCH("language", "nandroidrestoreheader")) {
 		pconfig->nandroidrestoreheader = strdup(value);
-	} else if (MATCH("settings", "usbmsheader1")) {
+	} else if (MATCH("language", "usbmsheader1")) {
 		pconfig->usbmsheader1 = strdup(value);
-	} else if (MATCH("settings", "usbmsheader2")) {
+	} else if (MATCH("language", "usbmsheader2")) {
 		pconfig->usbmsheader2 = strdup(value);
-	} else if (MATCH("settings", "usbmsheader3")) {
+	} else if (MATCH("language", "usbmsheader3")) {
 		pconfig->usbmsheader3 = strdup(value);
-	} else if (MATCH("settings", "recommended")) {
+	} else if (MATCH("language", "recommended")) {
 		pconfig->recommended = strdup(value);
-	} else if (MATCH("settings", "showpartitionheader")) {
+	} else if (MATCH("language", "showpartitionheader")) {
 		pconfig->showpartitionheader = strdup(value);
-	} else if (MATCH("settings", "advbackupheader")) {
+	} else if (MATCH("language", "advbackupheader")) {
 		pconfig->advbackupheader = strdup(value);
-	} else if (MATCH("settings", "advrestoreheader1")) {
+	} else if (MATCH("language", "advrestoreheader1")) {
 		pconfig->advrestoreheader1 = strdup(value);
-	} else if (MATCH("settings", "advrestoreheader2")) {
+	} else if (MATCH("language", "advrestoreheader2")) {
 		pconfig->advrestoreheader2 = strdup(value);
-	} else if (MATCH("settings", "advrestoreheader3")) {
+	} else if (MATCH("language", "advrestoreheader3")) {
 		pconfig->advrestoreheader3 = strdup(value);
-	} else if (MATCH("settings", "advrestoreheader11")) {
+	} else if (MATCH("language", "advrestoreheader11")) {
 		pconfig->advrestoreheader11 = strdup(value);
-	} else if (MATCH("settings", "nandroidheader")) {
+	} else if (MATCH("language", "nandroidheader")) {
 		pconfig->nandroidheader = strdup(value);
-	} else if (MATCH("settings", "debuggingheader")) {
+	} else if (MATCH("language", "debuggingheader")) {
 		pconfig->debuggingheader = strdup(value);
-	} else if (MATCH("settings", "advoptionsheader")) {
+	} else if (MATCH("language", "advoptionsheader")) {
 		pconfig->advoptionsheader = strdup(value);
-	} else if (MATCH("settings", "rebootnow")) {
+	} else if (MATCH("language", "rebootnow")) {
 		pconfig->rebootnow = strdup(value);
-	} else if (MATCH("settings", "wipedatafactory")) {
+	} else if (MATCH("language", "wipedatafactory")) {
 		pconfig->wipedatafactory = strdup(value);
-	} else if (MATCH("settings", "wipecache")) {
+	} else if (MATCH("language", "wipecache")) {
 		pconfig->wipecache = strdup(value);
-	} else if (MATCH("settings", "wipeall")) {
+	} else if (MATCH("language", "wipeall")) {
 		pconfig->wipeall = strdup(value);
-	} else if (MATCH("settings", "installzip")) {
+	} else if (MATCH("language", "installzip")) {
 		pconfig->installzip = strdup(value);
-	} else if (MATCH("settings", "nandroid")) {
+	} else if (MATCH("language", "nandroid")) {
 		pconfig->nandroid = strdup(value);
-	} else if (MATCH("settings", "mountsstorage")) {
+	} else if (MATCH("language", "mountsstorage")) {
 		pconfig->mountsstorage = strdup(value);
-	} else if (MATCH("settings", "advanced")) {
+	} else if (MATCH("language", "advanced")) {
 		pconfig->advanced = strdup(value);
-	} else if (MATCH("settings", "langpoweroff")) {
+	} else if (MATCH("language", "langpoweroff")) {
 		pconfig->langpoweroff = strdup(value);
-	} else if (MATCH("settings", "signaturecheck")) {
+	} else if (MATCH("language", "signaturecheck")) {
 		pconfig->signaturecheck = strdup(value);
-	} else if (MATCH("settings", "scriptasserts")) {
+	} else if (MATCH("language", "scriptasserts")) {
 		pconfig->scriptasserts = strdup(value);
-	} else if (MATCH("settings", "zipchoosezip")) {
+	} else if (MATCH("language", "zipchoosezip")) {
 		pconfig->zipchoosezip = strdup(value);
-	} else if (MATCH("settings", "zipapplyupdatezip")) {
+	} else if (MATCH("language", "zipapplyupdatezip")) {
 		pconfig->zipapplyupdatezip = strdup(value);
-	} else if (MATCH("settings", "ziptogglesig")) {
+	} else if (MATCH("language", "ziptogglesig")) {
 		pconfig->ziptogglesig = strdup(value);
-	} else if (MATCH("settings", "ziptoggleasserts")) {
+	} else if (MATCH("language", "ziptoggleasserts")) {
 		pconfig->ziptoggleasserts = strdup(value);
-	} else if (MATCH("settings", "backupproceed")) {
+	} else if (MATCH("language", "backupproceed")) {
 		pconfig->backupproceed = strdup(value);
-	} else if (MATCH("settings", "backupcancel")) {
+	} else if (MATCH("language", "backupcancel")) {
 		pconfig->backupcancel = strdup(value);
-	} else if (MATCH("settings", "zipchooseyesbackup")) {
+	} else if (MATCH("language", "zipchooseyesbackup")) {
 		pconfig->zipchooseyesbackup = strdup(value);
-	} else if (MATCH("settings", "zipchoosenobackup")) {
+	} else if (MATCH("language", "zipchoosenobackup")) {
 		pconfig->zipchoosenobackup = strdup(value);
-	} else if (MATCH("settings", "zipcancelinstall")) {
+	} else if (MATCH("language", "zipcancelinstall")) {
 		pconfig->zipcancelinstall = strdup(value);
-	} else if (MATCH("settings", "usbmsunmount")) {
+	} else if (MATCH("language", "usbmsunmount")) {
 		pconfig->usbmsunmount = strdup(value);
-	} else if (MATCH("settings", "nandroidbackup")) {
+	} else if (MATCH("language", "nandroidbackup")) {
 		pconfig->nandroidbackup = strdup(value);
-	} else if (MATCH("settings", "nandroidrestore")) {
+	} else if (MATCH("language", "nandroidrestore")) {
 		pconfig->nandroidrestore = strdup(value);
-	} else if (MATCH("settings", "nandroidadvbackup")) {
+	} else if (MATCH("language", "nandroidadvbackup")) {
 		pconfig->nandroidadvbackup = strdup(value);
-	} else if (MATCH("settings", "nandroidadvrestore")) {
+	} else if (MATCH("language", "nandroidadvrestore")) {
 		pconfig->nandroidadvrestore = strdup(value);
-	} else if (MATCH("settings", "nandroiddeleteold")) {
+	} else if (MATCH("language", "nandroiddeleteold")) {
 		pconfig->nandroiddeleteold = strdup(value);
-	} else if (MATCH("settings", "debugfixperm")) {
+	} else if (MATCH("language", "debugfixperm")) {
 		pconfig->debugfixperm = strdup(value);
-	} else if (MATCH("settings", "debugfixloop")) {
+	} else if (MATCH("language", "debugfixloop")) {
 		pconfig->debugfixloop = strdup(value);
-	} else if (MATCH("settings", "debugreporterror")) {
+	} else if (MATCH("language", "debugreporterror")) {
 		pconfig->debugreporterror = strdup(value);
-	} else if (MATCH("settings", "debugkeytest")) {
+	} else if (MATCH("language", "debugkeytest")) {
 		pconfig->debugkeytest = strdup(value);
-	} else if (MATCH("settings", "debugshowlog")) {
+	} else if (MATCH("language", "debugshowlog")) {
 		pconfig->debugshowlog = strdup(value);
-	} else if (MATCH("settings", "debugtoggledebugui")) {
+	} else if (MATCH("language", "debugtoggledebugui")) {
 		pconfig->debugtoggledebugui = strdup(value);
-	} else if (MATCH("settings", "advreboot")) {
+	} else if (MATCH("language", "advreboot")) {
 		pconfig->advreboot = strdup(value);
-	} else if (MATCH("settings", "advwipedalvik")) {
+	} else if (MATCH("language", "advwipedalvik")) {
 		pconfig->advwipedalvik = strdup(value);
-	} else if (MATCH("settings", "advpartitionsd")) {
+	} else if (MATCH("language", "advpartitionsd")) {
 		pconfig->advpartitionsd = strdup(value);
-	} else if (MATCH("settings", "advcotsettings")) {
+	} else if (MATCH("language", "advcotsettings")) {
 		pconfig->advcotsettings = strdup(value);
-	} else if (MATCH("settings", "advdebugopts")) {
+	} else if (MATCH("language", "advdebugopts")) {
 		pconfig->advdebugopts = strdup(value);
-	} else if (MATCH("settings", "yesdeletedata")) {
+	} else if (MATCH("language", "yesdeletedata")) {
 		pconfig->yesdeletedata = strdup(value);
-	} else if (MATCH("settings", "wipingdata")) {
+	} else if (MATCH("language", "wipingdata")) {
 		pconfig->wipingdata = strdup(value);
-	} else if (MATCH("settings", "datawipecomplete")) {
+	} else if (MATCH("language", "datawipecomplete")) {
 		pconfig->datawipecomplete = strdup(value);
-	} else if (MATCH("settings", "datawipeskip")) {
+	} else if (MATCH("language", "datawipeskip")) {
 		pconfig->datawipeskip = strdup(value);
-	} else if (MATCH("settings", "datawipefail")) {
+	} else if (MATCH("language", "datawipefail")) {
 		pconfig->datawipefail = strdup(value);
-	} else if (MATCH("settings", "confirmwipe")) {
+	} else if (MATCH("language", "confirmwipe")) {
 		pconfig->confirmwipe = strdup(value);
-	} else if (MATCH("settings", "yeswipecache")) {
+	} else if (MATCH("language", "yeswipecache")) {
 		pconfig->yeswipecache = strdup(value);
-	} else if (MATCH("settings", "wipingcache")) {
+	} else if (MATCH("language", "wipingcache")) {
 		pconfig->wipingcache = strdup(value);
-	} else if (MATCH("settings", "cachewipecomplete")) {
+	} else if (MATCH("language", "cachewipecomplete")) {
 		pconfig->cachewipecomplete = strdup(value);
-	} else if (MATCH("settings", "cachewipeskip")) {
+	} else if (MATCH("language", "cachewipeskip")) {
 		pconfig->cachewipeskip = strdup(value);
-	} else if (MATCH("settings", "cachewipefail")) {
+	} else if (MATCH("language", "cachewipefail")) {
 		pconfig->cachewipefail = strdup(value);
-	} else if (MATCH("settings", "confirmwipeall")) {
+	} else if (MATCH("language", "confirmwipeall")) {
 		pconfig->confirmwipeall = strdup(value);
-	} else if (MATCH("settings", "yeswipeall")) {
+	} else if (MATCH("language", "yeswipeall")) {
 		pconfig->yeswipeall = strdup(value);
-	} else if (MATCH("settings", "wipingall")) {
+	} else if (MATCH("language", "wipingall")) {
 		pconfig->wipingall = strdup(value);
-	} else if (MATCH("settings", "wipeallcomplete")) {
+	} else if (MATCH("language", "wipeallcomplete")) {
 		pconfig->wipeallcomplete = strdup(value);
-	} else if (MATCH("settings", "yeswipedalvik")) {
+	} else if (MATCH("language", "yeswipedalvik")) {
 		pconfig->yeswipedalvik = strdup(value);
-	} else if (MATCH("settings", "wipingdalvik")) {
+	} else if (MATCH("language", "wipingdalvik")) {
 		pconfig->wipingdalvik = strdup(value);
-	} else if (MATCH("settings", "wipedalvikcomplete")) {
+	} else if (MATCH("language", "wipedalvikcomplete")) {
 		pconfig->wipedalvikcomplete = strdup(value);
-	} else if (MATCH("settings", "wipedalvikskip")) {
+	} else if (MATCH("language", "wipedalvikskip")) {
 		pconfig->wipedalvikskip = strdup(value);
-	} else if (MATCH("settings", "partitioningsd")) {
+	} else if (MATCH("language", "partitioningsd")) {
 		pconfig->partitioningsd = strdup(value);
-	} else if (MATCH("settings", "partitionsderror")) {
+	} else if (MATCH("language", "partitionsderror")) {
 		pconfig->partitionsderror = strdup(value);
-	} else if (MATCH("settings", "rebootingsystemtimed")) {
+	} else if (MATCH("language", "rebootingsystemtimed")) {
 		pconfig->rebootingsystemtimed = strdup(value);
-	} else if (MATCH("settings", "diropenfail")) {
+	} else if (MATCH("language", "diropenfail")) {
 		pconfig->diropenfail = strdup(value);
-	} else if (MATCH("settings", "nofilesfound")) {
+	} else if (MATCH("language", "nofilesfound")) {
 		pconfig->nofilesfound = strdup(value);
-	} else if (MATCH("settings", "ext4checking")) {
+	} else if (MATCH("language", "ext4checking")) {
 		pconfig->ext4checking = strdup(value);
-	} else if (MATCH("settings", "orssdmountwait")) {
+	} else if (MATCH("language", "orssdmountwait")) {
 		pconfig->orssdmountwait = strdup(value);
-	} else if (MATCH("settings", "orssdmounted")) {
+	} else if (MATCH("language", "orssdmounted")) {
 		pconfig->orssdmounted = strdup(value);
-	} else if (MATCH("settings", "orssdcontinuing")) {
+	} else if (MATCH("language", "orssdcontinuing")) {
 		pconfig->orssdcontinuing = strdup(value);
-	} else if (MATCH("settings", "orscommandis")) {
+	} else if (MATCH("language", "orscommandis")) {
 		pconfig->orscommandis = strdup(value);
-	} else if (MATCH("settings", "orsnovalue")) {
+	} else if (MATCH("language", "orsnovalue")) {
 		pconfig->orsnovalue = strdup(value);
-	} else if (MATCH("settings", "orsinstallingzip")) {
+	} else if (MATCH("language", "orsinstallingzip")) {
 		pconfig->orsinstallingzip = strdup(value);
-	} else if (MATCH("settings", "orszipinstallerror")) {
+	} else if (MATCH("language", "orszipinstallerror")) {
 		pconfig->orszipinstallerror = strdup(value);
-	} else if (MATCH("settings", "orsrecursivemkdir")) {
+	} else if (MATCH("language", "orsrecursivemkdir")) {
 		pconfig->orsrecursivemkdir = strdup(value);
-	} else if (MATCH("settings", "orsrebootfound")) {
+	} else if (MATCH("language", "orsrebootfound")) {
 		pconfig->orsrebootfound = strdup(value);
-	} else if (MATCH("settings", "orscmdnovalue")) {
+	} else if (MATCH("language", "orscmdnovalue")) {
 		pconfig->orscmdnovalue = strdup(value);
-	} else if (MATCH("settings", "orsunknowncmd")) {
+	} else if (MATCH("language", "orsunknowncmd")) {
 		pconfig->orsunknowncmd = strdup(value);
-	} else if (MATCH("settings", "orsscriptdone")) {
+	} else if (MATCH("language", "orsscriptdone")) {
 		pconfig->orsscriptdone = strdup(value);
-	} else if (MATCH("settings", "orsscripterror")) {
+	} else if (MATCH("language", "orsscripterror")) {
 		pconfig->orsscripterror = strdup(value);
-	} else if (MATCH("settings", "nandroidbackupfolderset")) {
+	} else if (MATCH("language", "nandroidbackupfolderset")) {
 		pconfig->nandroidbackupfolderset = strdup(value);
-	} else if (MATCH("settings", "nandroidbackupcomplete")) {
+	} else if (MATCH("language", "nandroidbackupcomplete")) {
 		pconfig->nandroidbackupcomplete = strdup(value);
-	} else if (MATCH("settings", "nandroidsettingrestoreoptions")) {
+	} else if (MATCH("language", "nandroidsettingrestoreoptions")) {
 		pconfig->nandroidsettingrestoreoptions = strdup(value);
-	} else if (MATCH("settings", "nandroidrestorecomplete")) {
+	} else if (MATCH("language", "nandroidrestorecomplete")) {
 		pconfig->nandroidrestorecomplete = strdup(value);
-	} else if (MATCH("settings", "nandroidbackupdeletecomplete")) {
+	} else if (MATCH("language", "nandroidbackupdeletecomplete")) {
 		pconfig->nandroidbackupdeletecomplete = strdup(value);
-	} else if (MATCH("settings", "nandroidconfirmrestore")) {
+	} else if (MATCH("language", "nandroidconfirmrestore")) {
 		pconfig->nandroidconfirmrestore = strdup(value);
-	} else if (MATCH("settings", "nandroidyesrestore")) {
+	} else if (MATCH("language", "nandroidyesrestore")) {
 		pconfig->nandroidyesrestore = strdup(value);
-	} else if (MATCH("settings", "backup")) {
+	} else if (MATCH("language", "backup")) {
 		pconfig->backup = strdup(value);
-	} else if (MATCH("settings", "restore")) {
+	} else if (MATCH("language", "restore")) {
 		pconfig->restore = strdup(value);
-	} else if (MATCH("settings", "performbackup")) {
+	} else if (MATCH("language", "performbackup")) {
 		pconfig->performbackup = strdup(value);
-	} else if (MATCH("settings", "nandroidbackingup")) {
+	} else if (MATCH("language", "nandroidbackingup")) {
 		pconfig->nandroidbackingup = strdup(value);
-	} else if (MATCH("settings", "nandroidcantmount")) {
+	} else if (MATCH("language", "nandroidcantmount")) {
 		pconfig->nandroidcantmount = strdup(value);
-	} else if (MATCH("settings", "nandroidyaffs2error")) {
+	} else if (MATCH("language", "nandroidyaffs2error")) {
 		pconfig->nandroidyaffs2error = strdup(value);
-	} else if (MATCH("settings", "nandroidsdfreespace")) {
+	} else if (MATCH("language", "nandroidsdfreespace")) {
 		pconfig->nandroidsdfreespace = strdup(value);
-	} else if (MATCH("settings", "bootdumperror")) {
+	} else if (MATCH("language", "bootdumperror")) {
 		pconfig->bootdumperror = strdup(value);
-	} else if (MATCH("settings", "recoverydumperror")) {
+	} else if (MATCH("language", "recoverydumperror")) {
 		pconfig->recoverydumperror = strdup(value);
-	} else if (MATCH("settings", "nandroidandsecnotfound")) {
+	} else if (MATCH("language", "nandroidandsecnotfound")) {
 		pconfig->nandroidandsecnotfound = strdup(value);
-	} else if (MATCH("settings", "nandroidsdextmountfail")) {
+	} else if (MATCH("language", "nandroidsdextmountfail")) {
 		pconfig->nandroidsdextmountfail = strdup(value);
-	} else if (MATCH("settings", "nandroidmd5generate")) {
+	} else if (MATCH("language", "nandroidmd5generate")) {
 		pconfig->nandroidmd5generate = strdup(value);
-	} else if (MATCH("settings", "nandroidmd5check")) {
+	} else if (MATCH("language", "nandroidmd5check")) {
 		pconfig->nandroidmd5check = strdup(value);
-	} else if (MATCH("settings", "nandroidmd5fail")) {
+	} else if (MATCH("language", "nandroidmd5fail")) {
 		pconfig->nandroidmd5fail = strdup(value);
-	} else if (MATCH("settings", "nandroidtarnotfound")) {
+	} else if (MATCH("language", "nandroidtarnotfound")) {
 		pconfig->nandroidtarnotfound = strdup(value);
-	} else if (MATCH("settings", "nandroidimgnotfound")) {
+	} else if (MATCH("language", "nandroidimgnotfound")) {
 		pconfig->nandroidimgnotfound = strdup(value);
-	} else if (MATCH("settings", "restoring")) {
+	} else if (MATCH("language", "restoring")) {
 		pconfig->restoring = strdup(value);
-	} else if (MATCH("settings", "restoreerror")) {
+	} else if (MATCH("language", "restoreerror")) {
 		pconfig->restoreerror = strdup(value);
-	} else if (MATCH("settings", "nandroideraseboot")) {
+	} else if (MATCH("language", "nandroideraseboot")) {
 		pconfig->nandroideraseboot = strdup(value);
-	} else if (MATCH("settings", "nandroidrestoringboot")) {
+	} else if (MATCH("language", "nandroidrestoringboot")) {
 		pconfig->nandroidrestoringboot = strdup(value);
-	} else if (MATCH("settings", "nandroidbootflasherror")) {
+	} else if (MATCH("language", "nandroidbootflasherror")) {
 		pconfig->nandroidbootflasherror = strdup(value);
-	} else if (MATCH("settings", "nandroidnobootimg")) {
+	} else if (MATCH("language", "nandroidnobootimg")) {
 		pconfig->nandroidnobootimg = strdup(value);
-	} else if (MATCH("settings", "securefsenable")) {
+	} else if (MATCH("language", "securefsenable")) {
 		pconfig->securefsenable = strdup(value);
-	} else if (MATCH("settings", "securefsdisable")) {
+	} else if (MATCH("language", "securefsdisable")) {
 		pconfig->securefsdisable = strdup(value);
-	} else if (MATCH("settings", "securefsinvalid")) {
+	} else if (MATCH("language", "securefsinvalid")) {
 		pconfig->securefsinvalid = strdup(value);
-	} else if (MATCH("settings", "securefsabortdefault")) {
+	} else if (MATCH("language", "securefsabortdefault")) {
 		pconfig->securefsabortdefault = strdup(value);
-	} else if (MATCH("settings", "securefsabort")) {
+	} else if (MATCH("language", "securefsabort")) {
 		pconfig->securefsabort = strdup(value);
-	} else if (MATCH("settings", "securefsupdate")) {
+	} else if (MATCH("language", "securefsupdate")) {
 		pconfig->securefsupdate = strdup(value);
-	} else if (MATCH("settings", "uidebugenable")) {
+	} else if (MATCH("language", "uidebugenable")) {
 		pconfig->uidebugenable = strdup(value);
-	} else if (MATCH("settings", "uidebugdisable")) {
+	} else if (MATCH("language", "uidebugdisable")) {
 		pconfig->uidebugdisable = strdup(value);
-	} else if (MATCH("settings", "fixingperm")) {
+	} else if (MATCH("language", "fixingperm")) {
 		pconfig->fixingperm = strdup(value);
-	} else if (MATCH("settings", "outputkeycodes")) {
+	} else if (MATCH("language", "outputkeycodes")) {
 		pconfig->outputkeycodes = strdup(value);
-	} else if (MATCH("settings", "kcgoback")) {
+	} else if (MATCH("language", "kcgoback")) {
 		pconfig->kcgoback = strdup(value);
-	} else if (MATCH("settings", "installcomplete")) {
+	} else if (MATCH("language", "installcomplete")) {
 		pconfig->installcomplete = strdup(value);
-	} else if (MATCH("settings", "yesinstallupdate")) {
+	} else if (MATCH("language", "yesinstallupdate")) {
 		pconfig->yesinstallupdate = strdup(value);
-	} else if (MATCH("settings", "a2sdnotfound")) {
+	} else if (MATCH("language", "a2sdnotfound")) {
 		pconfig->a2sdnotfound = strdup(value);
-	} else if (MATCH("settings", "device")) {
+	} else if (MATCH("language", "device")) {
 		pconfig->device = strdup(value);
-	} else if (MATCH("settings", "unmounterror")) {
+	} else if (MATCH("language", "unmounterror")) {
 		pconfig->unmounterror = strdup(value);
-	} else if (MATCH("settings", "ext3")) {
+	} else if (MATCH("language", "ext3")) {
 		pconfig->ext3 = strdup(value);
-	} else if (MATCH("settings", "ext2")) {
+	} else if (MATCH("language", "ext2")) {
 		pconfig->ext2 = strdup(value);
-	} else if (MATCH("settings", "bmlchecking")) {
+	} else if (MATCH("language", "bmlchecking")) {
 		pconfig->bmlchecking = strdup(value);
-	} else if (MATCH("settings", "bmlmayberfs")) {
+	} else if (MATCH("language", "bmlmayberfs")) {
 		pconfig->bmlmayberfs = strdup(value);
-	} else if (MATCH("settings", "fsconv1")) {
+	} else if (MATCH("language", "fsconv1")) {
 		pconfig->fsconv1 = strdup(value);
-	} else if (MATCH("settings", "fsconv2")) {
+	} else if (MATCH("language", "fsconv2")) {
 		pconfig->fsconv2 = strdup(value);
-	} else if (MATCH("settings", "fsconv3")) {
+	} else if (MATCH("language", "fsconv3")) {
 		pconfig->fsconv3 = strdup(value);
-	} else if (MATCH("settings", "fsconv4")) {
+	} else if (MATCH("language", "fsconv4")) {
 		pconfig->fsconv4 = strdup(value);
-	} else if (MATCH("settings", "fsconv5")) {
+	} else if (MATCH("language", "fsconv5")) {
 		pconfig->fsconv5 = strdup(value);
-	} else if (MATCH("settings", "fsconv6")) {
+	} else if (MATCH("language", "fsconv6")) {
 		pconfig->fsconv6 = strdup(value);
-	} else if (MATCH("settings", "failprompt")) {
+	} else if (MATCH("language", "failprompt")) {
 		pconfig->failprompt = strdup(value);
-	} else if (MATCH("settings", "installingupdate")) {
+	} else if (MATCH("language", "installingupdate")) {
 		pconfig->installingupdate = strdup(value);
-	} else if (MATCH("settings", "findupdatepackage")) {
+	} else if (MATCH("language", "findupdatepackage")) {
 		pconfig->findupdatepackage = strdup(value);
-	} else if (MATCH("settings", "openupdatepackage")) {
+	} else if (MATCH("language", "openupdatepackage")) {
 		pconfig->openupdatepackage = strdup(value);
-	} else if (MATCH("settings", "verifyupdatepackage")) {
+	} else if (MATCH("language", "verifyupdatepackage")) {
 		pconfig->verifyupdatepackage = strdup(value);
-	} else if (MATCH("settings", "edifyformatting")) {
+	} else if (MATCH("language", "edifyformatting")) {
 		pconfig->edifyformatting = strdup(value);
-	} else if (MATCH("settings", "edifyformatdatadata")) {
+	} else if (MATCH("language", "edifyformatdatadata")) {
 		pconfig->edifyformatdatadata = strdup(value);
-	} else if (MATCH("settings", "edifywaitsdmount")) {
+	} else if (MATCH("language", "edifywaitsdmount")) {
 		pconfig->edifywaitsdmount = strdup(value);
-	} else if (MATCH("settings", "edifysdmounted")) {
+	} else if (MATCH("language", "edifysdmounted")) {
 		pconfig->edifysdmounted = strdup(value);
-	} else if (MATCH("settings", "edifysdtimeout")) {
+	} else if (MATCH("language", "edifysdtimeout")) {
 		pconfig->edifysdtimeout = strdup(value);
-	} else if (MATCH("settings", "edifysdverifymarker")) {
+	} else if (MATCH("language", "edifysdverifymarker")) {
 		pconfig->edifysdverifymarker = strdup(value);
-	} else if (MATCH("settings", "edifysdmarkernotfound")) {
+	} else if (MATCH("language", "edifysdmarkernotfound")) {
 		pconfig->edifysdmarkernotfound = strdup(value);
-	} else if (MATCH("settings", "edifycheckinternalmarker")) {
+	} else if (MATCH("language", "edifycheckinternalmarker")) {
 		pconfig->edifycheckinternalmarker = strdup(value);
-	} else if (MATCH("settings", "edifyinternalmarkernotfound")) {
+	} else if (MATCH("language", "edifyinternalmarkernotfound")) {
 		pconfig->edifyinternalmarkernotfound = strdup(value);
-	} else if (MATCH("settings", "edifyrmscripterror")) {
+	} else if (MATCH("language", "edifyrmscripterror")) {
 		pconfig->edifyrmscripterror = strdup(value);
-	} else if (MATCH("settings", "formatcmd")) {
+	} else if (MATCH("language", "formatcmd")) {
 		pconfig->formatcmd = strdup(value);
-	} else if (MATCH("settings", "deletecmd")) {
+	} else if (MATCH("language", "deletecmd")) {
 		pconfig->deletecmd = strdup(value);
-	} else if (MATCH("settings", "copycmd")) {
+	} else if (MATCH("language", "copycmd")) {
 		pconfig->copycmd = strdup(value);
-	} else if (MATCH("settings", "firmwriteextracting")) {
+	} else if (MATCH("language", "firmwriteextracting")) {
 		pconfig->firmwriteextracting = strdup(value);
-	} else if (MATCH("settings", "firmwriteimage")) {
+	} else if (MATCH("language", "firmwriteimage")) {
 		pconfig->firmwriteimage = strdup(value);
-	} else if (MATCH("settings", "writeimage")) {
+	} else if (MATCH("language", "writeimage")) {
 		pconfig->writeimage = strdup(value);
-	} else if (MATCH("settings", "settingsloaderror1")) {
+	} else if (MATCH("language", "settingsloaderror1")) {
 		pconfig->settingsloaderror1 = strdup(value);
-	} else if (MATCH("settings", "settingsloaderror2")) {
+	} else if (MATCH("language", "settingsloaderror2")) {
 		pconfig->settingsloaderror2 = strdup(value);
-	} else if (MATCH("settings", "settingsloaded")) {
+	} else if (MATCH("language", "settingsloaded")) {
 		pconfig->settingsloaded = strdup(value);
-	} else if (MATCH("settings", "settingsthemeerror")) {
+	} else if (MATCH("language", "settingsthemeerror")) {
 		pconfig->settingsthemeerror = strdup(value);
-	} else if (MATCH("settings", "settingsthemeloaded")) {
+	} else if (MATCH("language", "settingsthemeloaded")) {
 		pconfig->settingsthemeloaded = strdup(value);
-	} else if (MATCH("settings", "cotmainheader")) {
+	} else if (MATCH("language", "cotmainheader")) {
 		pconfig->cotmainheader = strdup(value);
-	} else if (MATCH("settings", "cotthemeheader")) {
+	} else if (MATCH("language", "cotthemeheader")) {
 		pconfig->cotthemeheader = strdup(value);
-	} else if (MATCH("settings", "cotorsrebootheader")) {
+	} else if (MATCH("language", "cotorsrebootheader")) {
 		pconfig->cotorsrebootheader = strdup(value);
-	} else if (MATCH("settings", "cotorswipepromptheader")) {
+	} else if (MATCH("language", "cotorswipepromptheader")) {
 		pconfig->cotorswipepromptheader = strdup(value);
-	} else if (MATCH("settings", "cotzippromptheader")) {
+	} else if (MATCH("language", "cotzippromptheader")) {
 		pconfig->cotzippromptheader = strdup(value);
-	} else if (MATCH("settings", "cotlangheader")) {
+	} else if (MATCH("language", "cotlangheader")) {
 		pconfig->cotlangheader = strdup(value);
-	} else if (MATCH("settings", "cotmainlisttheme")) {
+	} else if (MATCH("language", "cotmainlisttheme")) {
 		pconfig->cotmainlisttheme = strdup(value);
-	} else if (MATCH("settings", "cotmainlistrebootforce")) {
+	} else if (MATCH("language", "cotmainlistrebootforce")) {
 		pconfig->cotmainlistrebootforce = strdup(value);
-	} else if (MATCH("settings", "cotmainlistwipeprompt")) {
+	} else if (MATCH("language", "cotmainlistwipeprompt")) {
 		pconfig->cotmainlistwipeprompt = strdup(value);
-	} else if (MATCH("settings", "cotmainlistzipprompt")) {
+	} else if (MATCH("language", "cotmainlistzipprompt")) {
 		pconfig->cotmainlistzipprompt = strdup(value);
-	} else if (MATCH("settings", "cotmainlistlanguage")) {
+	} else if (MATCH("language", "cotmainlistlanguage")) {
 		pconfig->cotmainlistlanguage = strdup(value);
-	} else if (MATCH("settings", "cotthemehydro")) {
+	} else if (MATCH("language", "cotthemehydro")) {
 		pconfig->cotthemehydro = strdup(value);
-	} else if (MATCH("settings", "cotthemeblood")) {
+	} else if (MATCH("language", "cotthemeblood")) {
 		pconfig->cotthemeblood = strdup(value);
-	} else if (MATCH("settings", "cotthemelime")) {
+	} else if (MATCH("language", "cotthemelime")) {
 		pconfig->cotthemelime = strdup(value);
-	} else if (MATCH("settings", "cotthemecitrus")) {
+	} else if (MATCH("language", "cotthemecitrus")) {
 		pconfig->cotthemecitrus = strdup(value);
-	} else if (MATCH("settings", "cotthemedooderbutt")) {
+	} else if (MATCH("language", "cotthemedooderbutt")) {
 		pconfig->cotthemedooderbutt = strdup(value);
-	} else if (MATCH("settings", "cotlangen")) {
+	} else if (MATCH("language", "cotlangen")) {
 		pconfig->cotlangen = strdup(value);
-	} else if (MATCH("settings", "setthemedefault")) {
+	} else if (MATCH("language", "setthemedefault")) {
 		pconfig->setthemedefault = strdup(value);
-	} else if (MATCH("settings", "setthemeblood")) {
+	} else if (MATCH("language", "setthemeblood")) {
 		pconfig->setthemeblood = strdup(value);
-	} else if (MATCH("settings", "setthemelime")) {
+	} else if (MATCH("language", "setthemelime")) {
 		pconfig->setthemelime = strdup(value);
-	} else if (MATCH("settings", "setthemecitrus")) {
+	} else if (MATCH("language", "setthemecitrus")) {
 		pconfig->setthemecitrus = strdup(value);
-	} else if (MATCH("settings", "setthemedooderbutt")) {
+	} else if (MATCH("language", "setthemedooderbutt")) {
 		pconfig->setthemedooderbutt = strdup(value);
 	} else {
 		return 0;
@@ -1067,6 +1067,7 @@ void parse_language() {
 
 	ini_parse("/res/lang/lang_en.ini", language_handler, &config);
 	LOGI("English language loaded!\n");
+	ui_print("No: %s\n", no);
 	no = config.no;
 	yes = config.yes;
 	batterylevel = config.batterylevel;
