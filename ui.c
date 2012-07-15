@@ -643,7 +643,7 @@ static void *input_thread(void *cookie)
                     }
                     oldMousePos[actPos.num] = mousePos[actPos.num];
                     mousePos[actPos.num] = actPos;
-					int curPos[] = {actPos.pressure, actPos.x, actPos.y};
+                    int curPos[] = {actPos.pressure, actPos.x, actPos.y};
                     ui_handle_mouse_input(curPos);
                   }
 
@@ -914,8 +914,8 @@ void ui_print(const char *fmt, ...)
     vsnprintf(buf, 256, fmt, ap);
     va_end(ap);
 
-	if (ui_log_stdout)
-		fputs(buf, stdout);
+    if (ui_log_stdout)
+        fputs(buf, stdout);
 
     // This can get called before ui_init(), so be careful.
     pthread_mutex_lock(&gUpdateMutex);

@@ -124,16 +124,14 @@ int theme_handler(void* user, const char* section, const char* name,
 }
 
 void create_default_settings(void) {
-    ensure_path_mounted("/sdcard");
-    ensure_directory("/sdcard/cotrecovery/");
     FILE    *   ini ;
 
-	if(ini = fopen(COTSETTINGS, "r")) {
+	if(ini = fopen_path(COTSETTINGS, "r")) {
 		fclose(COTSETTINGS);
 		remove(COTSETTINGS);
 	}
 
-    ini = fopen(COTSETTINGS, "w");
+    ini = fopen_path(COTSETTINGS, "w");
     fprintf(ini,
     ";\n"
     "; COT Settings INI\n"
@@ -150,9 +148,8 @@ void create_default_settings(void) {
 }
 
 void update_cot_settings(void) {
-    ensure_path_mounted("/sdcard");
     FILE    *   ini ;
-	ini = fopen(COTSETTINGS, "w");
+	ini = fopen_path(COTSETTINGS, "w");
 	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, language);
     fclose(ini);
     parse_settings();
@@ -189,8 +186,6 @@ void handle_theme(char * theme_name) {
     strcat(full_theme_file, theme_end);
     theme themeconfig;
 
-    //ui_print("%s\n", full_theme_file);
-    
     if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
         LOGI("Can't load theme!\n");
         return 1;

@@ -513,17 +513,16 @@ get_menu_selection(char** headers, char** items, int menu_only,
             wrap_count++;
             if (wrap_count == 3) {
                 wrap_count = 0;
-				/*
-				 * This is not needed for the kindle...
-				 */
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
                 if (ui_get_showing_back_button()) {
-                    //ui_print("Back menu button disabled.\n");
-                    //ui_set_showing_back_button(0);
+                    ui_print("Back menu button disabled.\n");
+                    ui_set_showing_back_button(0);
                 }
                 else {
-                    //ui_print("Back menu button enabled.\n");
-                    //ui_set_showing_back_button(1);
+                    ui_print("Back menu button enabled.\n");
+                    ui_set_showing_back_button(1);
                 }
+#endif
             }
         }
     }
@@ -672,7 +671,7 @@ wipe_data(int confirm) {
         }
 
         char* items[] = { " No",
-                          " Yes -- delete ALL user data",   // [1]
+                          " Yes -- delete all user data",   // [1]
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
@@ -718,7 +717,7 @@ prompt_and_wait() {
 				reboot(RB_AUTOBOOT);
 #endif
                 return;
-		    
+
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
@@ -813,7 +812,7 @@ int check_for_script_file(void) {
 int run_script_file(void) {
 	FILE *fp = fopen(SCRIPT_FILE_TMP, "r");
 	struct stat st;
-	int ret_val = 0, cindex, line_len, i, err, remove_nl;
+	int ret_val = 0, cindex, line_len, i, remove_nl;
 	char script_line[SCRIPT_COMMAND_SIZE], command[SCRIPT_COMMAND_SIZE],
 		 value[SCRIPT_COMMAND_SIZE], mount[SCRIPT_COMMAND_SIZE],
 		 value1[SCRIPT_COMMAND_SIZE], value2[SCRIPT_COMMAND_SIZE];
@@ -1234,7 +1233,7 @@ main(int argc, char **argv) {
         ui_set_show_text(1);
         parse_settings();
 
-		if (check_for_script_file()) run_script_file();
+        if (check_for_script_file()) run_script_file();
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
             int ret;
