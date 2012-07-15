@@ -173,6 +173,7 @@ void parse_settings() {
     backupprompt = config.backupprompt;
 	currenttheme = config.theme;
     language = config.language;
+	parse_language();
     handle_theme(config.theme);
 }
 

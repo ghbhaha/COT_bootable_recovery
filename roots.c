@@ -232,7 +232,6 @@ ensure_root_path_mounted(const char *root_path)
     const RootInfo *info = get_root_info_for_path(root_path);
     if (info == NULL) {
 	ui_print(root_path, "\n");
-	ui_print("Info = NULL\n");
         return -1;
     }
 
@@ -249,13 +248,11 @@ ensure_root_path_mounted(const char *root_path)
         info->filesystem == NULL ||
         info->filesystem == g_raw ||
         info->filesystem == g_package_file) {
-	ui_print("Nothing works here\n");
         return -1;
     }
 
     if (info->device == g_default_device) {
         if (info->partition_name == NULL) {
-	    ui_print("Partition name = NULL\n");
             return -1;
         }
         return mount_partition(info->partition_name, info->mount_point, info->filesystem, 0);
@@ -264,12 +261,10 @@ ensure_root_path_mounted(const char *root_path)
     mkdir(info->mount_point, 0755);  // in case it doesn't already exist
     if (mount_internal(info->device, info->mount_point, info->filesystem, info->filesystem_options)) {
         if (info->device2 == NULL) {
-	    ui_print("First cant mount\n");
             LOGE("Can't mount %s\n(%s)\n", info->device, strerror(errno));
             return -1;
         } else if (mount(info->device2, info->mount_point, info->filesystem,
                 MS_NOATIME | MS_NODEV | MS_NODIRATIME, "")) {
-	    ui_print("Second cant mount\n");
             LOGE("Can't mount %s (or %s)\n(%s)\n",
                     info->device, info->device2, strerror(errno));
             return -1;

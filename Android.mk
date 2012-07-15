@@ -24,6 +24,7 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
+    settingshandler_lang.c \
     settingshandler.c \
     settings.c \
     iniparse/ini.c

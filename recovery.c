@@ -43,6 +43,7 @@
 #include "encryptedfs_provisioning.h"
 #include "settings.h"
 #include "settingshandler.h"
+#include "settingshandler_lang.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
@@ -796,7 +797,7 @@ wipe_data(int confirm) {
     }
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
-    ui_print("Data wipe complete.\n");
+    ui_print("%s\n", "Data wipe complete!\n");
 }
 
 static void
@@ -831,7 +832,7 @@ prompt_and_wait() {
                 {
                     ui_print("\n-- Wiping cache...\n");
                     erase_volume("/cache");
-                    ui_print("Cache wipe complete.\n");
+                    ui_print("%s\n", "Cache wipe complete!\n");
                     if (!ui_text_visible()) return;
                 }
                 break;
