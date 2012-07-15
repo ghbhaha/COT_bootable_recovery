@@ -305,7 +305,7 @@ int nandroid_backup(const char* backup_path)
         return ret;
 
 #if TARGET_BOOTLOADER_BOARD_NAME != otter
-    Volume vol = volume_for_path("/sd-ext");
+    Volume *vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
     } else {
