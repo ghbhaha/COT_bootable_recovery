@@ -46,6 +46,7 @@
 
 #include "settings.h"
 #include "settingshandler.h"
+#include "settingshandler_lang.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
@@ -57,25 +58,25 @@ void
 toggle_signature_check()
 {
     signature_check_enabled = !signature_check_enabled;
-    ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
+    ui_print("%s %s\n", signaturecheck, signature_check_enabled ? enabled : disabled);
 }
 
 void toggle_script_asserts()
 {
     script_assert_enabled = !script_assert_enabled;
-    ui_print("Script Asserts: %s\n", script_assert_enabled ? "Enabled" : "Disabled");
+    ui_print("%s %s\n", scriptasserts, script_assert_enabled ? enabled : disabled);
 }
 
 void toggle_ui_debugging()
 {
 	switch(UI_COLOR_DEBUG) {
 		case 0: {
-			ui_print("Enabling UI color debugging; will disable again on reboot.\n");
+			ui_print("%s\n", uidebugenable);
 			UI_COLOR_DEBUG = 1;
 			break;
 		}
 		default: {
-			ui_print("Disabling UI color debugging.\n");
+			ui_print("%s\n", uidebugdisable);
 			UI_COLOR_DEBUG = 0;
 			break;
 		}
@@ -84,7 +85,7 @@ void toggle_ui_debugging()
 
 int install_zip(const char* packagefilepath, int dummy)
 {
-    ui_print("\n-- Installing: %s\n", packagefilepath);
+    ui_print("\n-- %s: %s\n", installing, packagefilepath);
     if (device_flash_type() == MTD) {
         set_sdcard_update_bootloader_message();
     }
@@ -92,11 +93,20 @@ int install_zip(const char* packagefilepath, int dummy)
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
-        ui_print("Installation aborted.\n");
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
+        int err_i = 0;
+        for ( err_i = 0; err_i < 4; err_i++ ) {
+            vibrate(15);
+        }
+#endif
+        ui_print("%s\n", installabort);
         return 1;
     }
     ui_set_background(BACKGROUND_ICON_NONE);
-    ui_print("\nInstall from sdcard complete.\n");
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
+    vibrate(60);
+#endif
+    ui_print("\n%s\n", installcomplete);
     return 0;
 }
 
@@ -112,10 +122,15 @@ char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
 
 void show_install_update_menu()
 {
+	INSTALL_MENU_ITEMS[0] = zipchoosezip;
+	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
+	INSTALL_MENU_ITEMS[2] = ziptogglesig;
+	INSTALL_MENU_ITEMS[3] = ziptoggleasserts;
     static char* headers[] = {  "Apply .zip file on SD card",
                                 "",
                                 NULL
     };
+	headers[0] = zipinstallheader;
 
     for (;;)
     {
@@ -130,7 +145,7 @@ void show_install_update_menu()
                 break;
             case ITEM_APPLY_SDCARD:
             {
-                if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
+                if (confirm_selection(installconfirm, yesinstallupdate))
                     install_zip(SDCARD_UPDATE_FILE, 0);
                 break;
             }
@@ -172,7 +187,7 @@ char** gather_files(const char* directory, const char* fileExtensionOrDirectory,
 
     dir = opendir(directory);
     if (dir == NULL) {
-        ui_print("Couldn't open directory.\n");
+        ui_print("%s\n", diropenfail);
         return NULL;
     }
 
@@ -336,19 +351,19 @@ void show_view_and_delete_backups(const char *mount_point, const char *backup_pa
 								 "",
 								 NULL
 	};
+	headers[0] = deletebackupheader;
 
 	char* file = choose_file_menu(mount_point, NULL, headers);
 	if(file == NULL)
 		return;
-	static char* confirm_delete = "Confirm delete?";
 	static char confirm[PATH_MAX];
-	sprintf(confirm, "Yes - Delete %s", basename(file));
-	if(confirm_selection(confirm_delete, confirm)) {
+	sprintf(confirm, "%s %s", yesdelete, basename(file));
+	if(confirm_selection(deleteconfirm, confirm)) {
 		static char* tmp[PATH_MAX];
 		sprintf(tmp, "rm -rf %s", file);
 		__system(tmp);
 		uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
-		ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+		ui_print("%s %lluMB\n", freespacesd, sdcard_free_mb);
 	}
 }
 
@@ -363,14 +378,14 @@ void delete_old_backups(const char *mount_point)
 								 "",
 								 NULL
 	};
+	headers[0] = deletebackupheader;
 
 	char* file = choose_file_menu(mount_point, NULL, headers);
 	if(file == NULL)
 		return;
-	static char* confirm_delete = "Confirm delete?";
 	static char confirm[PATH_MAX];
 	sprintf(confirm, "Yes - Delete %s", basename(file));
-	if(confirm_selection(confirm_delete, confirm)) {
+	if(confirm_selection(deleteconfirm, confirm)) {
 		static char* tmp[PATH_MAX];
         ui_print("Deleting %s\n", basename(file));
 		sprintf(tmp, "rm -rf %s", file);
@@ -385,6 +400,9 @@ int show_lowspace_menu(int i, const char* backup_path)
 											"View and delete old backups",
 											"Cancel backup",
 											NULL };
+	LOWSPACE_MENU_ITEMS[0] = lowspacecontinuebackup;
+	LOWSPACE_MENU_ITEMS[1] = lowspaceviewdelete;
+	LOWSPACE_MENU_ITEMS[2] = lowspacecancel;
 	#define ITEM_CONTINUE_BACKUP 0
 	#define ITEM_VIEW_DELETE_BACKUPS 1
 	#define ITEM_CANCEL_BACKUP 2
@@ -398,20 +416,24 @@ int show_lowspace_menu(int i, const char* backup_path)
                                 "",
 								NULL
 	};
+	headers[0] = lowspaceheader1;
+	headers[2] = lowspaceheader2;
+	headers[3] = lowspaceheader3;
+	headers[5] = lowspaceheader4;
 
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, LOWSPACE_MENU_ITEMS, 0, 0);
 		switch(chosen_item) {
 			case ITEM_CONTINUE_BACKUP: {
 				static char tmp;
-				ui_print("Proceeding with backup.\n");
+				ui_print("%s\n", backupproceed);
 				return 0;
 			}
 			case ITEM_VIEW_DELETE_BACKUPS:
 				show_view_and_delete_backups("/sdcard/clockworkmod/backup/",backup_path);
 				break;
 			default:
-				ui_print("Cancelling backup.\n");
+				ui_print("%s\n", backupcancel);
 				return 1;
 		}
 	}
@@ -428,6 +450,9 @@ void show_choose_zip_menu(const char *mount_point)
 												 "No - Install without backup",
 												 "Cancel install",
 												 NULL };
+	INSTALL_OR_BACKUP_ITEMS[0] = zipchooseyesbackup;
+	INSTALL_OR_BACKUP_ITEMS[1] = zipchoosenobackup;
+	INSTALL_OR_BACKUP_ITEMS[2] = zipcancelinstall;
 	#define ITEM_BACKUP_AND_INSTALL 0
 	#define ITEM_INSTALL_WOUT_BACKUP 1
 	#define ITEM_CANCEL_INSTALL 2
@@ -436,16 +461,16 @@ void show_choose_zip_menu(const char *mount_point)
                                 "",
                                 NULL
     };
+	headers[0] = zipchoosezip;
 
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
 
     if (backupprompt == 0) {
-        static char* confirm_install = "Confirm install?";
         static char confirm[PATH_MAX];
-        sprintf(confirm, "Yes - Install %s", basename(file));
-        if (confirm_selection(confirm_install, confirm)) {
+        sprintf(confirm, "%s %s", yesinstall, basename(file));
+        if (confirm_selection(installconfirm, confirm)) {
             install_zip(file, 0);
         }
     } else {
@@ -489,6 +514,7 @@ void show_nandroid_restore_menu(const char* path)
                                 "",
                                 NULL
     };
+	headers[0] = nandroidrestoreheader;
 
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/clockworkmod/backup/", path);
@@ -496,7 +522,7 @@ void show_nandroid_restore_menu(const char* path)
     if (file == NULL)
         return;
 
-    if (confirm_selection("Confirm restore?", "Yes - Restore"))
+    if (confirm_selection(nandroidconfirmrestore, nandroidyesrestore))
         nandroid_restore(file, 1, 1, 1, 1, 1);
 }
 
@@ -525,8 +551,12 @@ void show_mount_usb_storage_menu()
                                 "",
                                 NULL
     };
+	headers[0] = usbmsheader1;
+	headers[1] = usbmsheader2;
+	headers[2] = usbmsheader3;
 
     static char* list[] = { "Unmount", NULL };
+	list[0] = usbmsunmount;
 
     for (;;)
     {
@@ -555,9 +585,11 @@ int confirm_selection(const char* title, const char* confirm)
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
+	confirm_headers[1] = wipedataheader2;
     char* items[] = { "No",
                       confirm, //" Yes -- wipe partition",   // [1]
                       NULL };
+	items[0] = no;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 1;
@@ -569,6 +601,8 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
     char* items[] = { "No",
                       confirm, //" Yes -- wipe partition",   // [1]
                       NULL };
+
+	items[0] = no;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 1;
@@ -700,8 +734,8 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 
     if (0 != ensure_path_mounted(path))
     {
-        ui_print("Error mounting %s!\n", path);
-        ui_print("Skipping format...\n");
+        ui_print("%s %s!\n", mounterror, path);
+        ui_print("%s\n", skipformat);
         return 0;
     }
 
@@ -782,6 +816,7 @@ void show_partition_menu()
                                 "",
                                 NULL
     };
+	headers[0] = showpartitionheader;
 
     static MountMenuEntry* mount_menue = NULL;
     static FormatMenuEntry* format_menue = NULL;
@@ -853,7 +888,7 @@ void show_partition_menu()
 			options[mountable_volumes+i] = e->txt;
 		}
 
-        options[mountable_volumes+formatable_volumes] = "mount USB storage";
+        options[mountable_volumes+formatable_volumes] = usbmsmount;
         options[mountable_volumes+formatable_volumes + 1] = NULL;
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
@@ -871,12 +906,12 @@ void show_partition_menu()
             if (is_path_mounted(v->mount_point))
             {
                 if (0 != ensure_path_unmounted(v->mount_point))
-                    ui_print("Error unmounting %s!\n", v->mount_point);
+                    ui_print("%s %s!\n", unmounterror, v->mount_point);
             }
             else
             {
                 if (0 != ensure_path_mounted(v->mount_point))
-                    ui_print("Error mounting %s!\n",  v->mount_point);
+                    ui_print("%s %s!\n", mounterror, v->mount_point);
             }
         }
         else if (chosen_item < (mountable_volumes + formatable_volumes))
@@ -893,7 +928,7 @@ void show_partition_menu()
             if (0 != format_volume(v->mount_point))
                 ui_print("Error formatting %s!\n", v->mount_point);
             else
-                ui_print("Done.\n");
+                ui_print("%s\n", done);
         }
     }
 
@@ -916,6 +951,10 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 "",
                                 NULL
     };
+	advancedheaders[0] = advrestoreheader1;
+	advancedheaders[2] = advrestoreheader1;
+	advancedheaders[3] = advrestoreheader2;
+	advancedheaders[4] = advrestoreheader3;
 
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/clockworkmod/backup/", path);
@@ -927,6 +966,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 "",
                                 NULL
     };
+	headers[0] = advrestoreheader11;
 
     static char* list[] = { "Restore boot",
                             "Restore system",
@@ -936,29 +976,35 @@ void show_nandroid_advanced_restore_menu(const char* path)
                             NULL
     };
 
+	list[0] = nandroidrestoreboot;
+	list[1] = nandroidrestoresys;
+	list[2] = nandroidrestoredata;
+	list[3] = nandroidrestorecache;
+	list[4] = nandroidrestoresd;
+
     static char* confirm_restore  = "Confirm restore?";
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
     {
         case 0:
-            if (confirm_selection(confirm_restore, "Yes - Restore boot"))
+            if (confirm_selection(nandroidconfirmrestore, "Yes - Restore boot"))
                 nandroid_restore(file, 1, 0, 0, 0, 0);
             break;
         case 1:
-            if (confirm_selection(confirm_restore, "Yes - Restore system"))
+            if (confirm_selection(nandroidconfirmrestore, "Yes - Restore system"))
                 nandroid_restore(file, 0, 1, 0, 0, 0);
             break;
         case 2:
-            if (confirm_selection(confirm_restore, "Yes - Restore data"))
+            if (confirm_selection(nandroidconfirmrestore, "Yes - Restore data"))
                 nandroid_restore(file, 0, 0, 1, 0, 0);
             break;
         case 3:
-            if (confirm_selection(confirm_restore, "Yes - Restore cache"))
+            if (confirm_selection(nandroidconfirmrestore, "Yes - Restore cache"))
                 nandroid_restore(file, 0, 0, 0, 1, 0);
             break;
         case 4:
-            if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
+            if (confirm_selection(nandroidconfirmrestore, "Yes - Restore sd-ext"))
                 nandroid_restore(file, 0, 0, 0, 0, 1);
             break;
     }

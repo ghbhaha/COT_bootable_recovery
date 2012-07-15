@@ -141,10 +141,16 @@ char* zipchooseyesbackup;
 char* zipchoosenobackup;
 char* zipcancelinstall;
 char* usbmsunmount;
+char* usbmsmount;
 char* nandroidbackup;
 char* nandroidrestore;
 char* nandroidadvbackup;
 char* nandroidadvrestore;
+char* nandroidrestoreboot;
+char* nandroidrestoresys;
+char* nandroidrestoredata;
+char* nandroidrestorecache;
+char* nandroidrestoresd;
 char* nandroiddeleteold;
 char* debugfixperm;
 char* debugfixloop;
@@ -157,6 +163,9 @@ char* advwipedalvik;
 char* advpartitionsd;
 char* advcotsettings;
 char* advdebugopts;
+char* lowspacecontinuebackup;
+char* lowspaceviewdelete;
+char* lowspacecancel;
 // partition wipe prompts
 char* yesdeletedata;
 char* wipingdata;
@@ -228,6 +237,18 @@ char* nandroideraseboot;
 char* nandroidrestoringboot;
 char* nandroidbootflasherror;
 char* nandroidnobootimg;
+char* nandroidbackupbootyes;
+char* nandroidbackupbootno;
+char* nandroidbackuprecyes;
+char* nandroidbackuprecno;
+char* nandroidbackupsysyes;
+char* nandroidbackupsysno;
+char* nandroidbackupdatayes;
+char* nandroidbackupdatano;
+char* nandroidbackupcacheyes;
+char* nandroidbackupcacheno;
+char* nandroidbackupsdyes;
+char* nandroidbackupsdno;
 // secure fs prompts
 char* securefsenable;
 char* securefsdisable;
@@ -401,10 +422,16 @@ typedef struct {
     const char* zipchoosenobackup;
     const char* zipcancelinstall;
     const char* usbmsunmount;
+    const char* usbmsmount;
     const char* nandroidbackup;
     const char* nandroidrestore;
     const char* nandroidadvbackup;
     const char* nandroidadvrestore;
+    const char* nandroidrestoreboot;
+    const char* nandroidrestoresys;
+    const char* nandroidrestoredata;
+    const char* nandroidrestorecache;
+    const char* nandroidrestoresd;
     const char* nandroiddeleteold;
     const char* debugfixperm;
     const char* debugfixloop;
@@ -417,6 +444,9 @@ typedef struct {
     const char* advpartitionsd;
     const char* advcotsettings;
     const char* advdebugopts;
+	const char* lowspacecontinuebackup;
+	const char* lowspaceviewdelete;
+	const char* lowspacecancel;
     // partition wipe prompts
     const char* yesdeletedata;
     const char* wipingdata;
@@ -488,6 +518,18 @@ typedef struct {
     const char* nandroidrestoringboot;
     const char* nandroidbootflasherror;
     const char* nandroidnobootimg;
+	const char* nandroidbackupbootyes;
+	const char* nandroidbackupbootno;
+	const char* nandroidbackuprecyes;
+	const char* nandroidbackuprecno;
+	const char* nandroidbackupsysyes;
+	const char* nandroidbackupsysno;
+	const char* nandroidbackupdatayes;
+	const char* nandroidbackupdatano;
+	const char* nandroidbackupcacheyes;
+	const char* nandroidbackupcacheno;
+	const char* nandroidbackupsdyes;
+	const char* nandroidbackupsdno;
     // secure fs prompts
     const char* securefsenable;
     const char* securefsdisable;
@@ -741,10 +783,22 @@ int language_handler(void* user, const char* section, const char* name, const ch
 		pconfig->zipcancelinstall = strdup(value);
 	} else if (MATCH("language", "usbmsunmount")) {
 		pconfig->usbmsunmount = strdup(value);
+	} else if (MATCH("language", "usbmsmount")) {
+		pconfig->usbmsmount = strdup(value);
 	} else if (MATCH("language", "nandroidbackup")) {
 		pconfig->nandroidbackup = strdup(value);
 	} else if (MATCH("language", "nandroidrestore")) {
 		pconfig->nandroidrestore = strdup(value);
+	} else if (MATCH("language", "nandroidrestoreboot")) {
+		pconfig->nandroidrestoreboot = strdup(value);
+	} else if (MATCH("language", "nandroidrestoresys")) {
+		pconfig->nandroidrestoresys = strdup(value);
+	} else if (MATCH("language", "nandroidrestoredata")) {
+		pconfig->nandroidrestoredata = strdup(value);
+	} else if (MATCH("language", "nandroidrestorecache")) {
+		pconfig->nandroidrestorecache = strdup(value);
+	} else if (MATCH("language", "nandroidrestoresd")) {
+		pconfig->nandroidrestoresd = strdup(value);
 	} else if (MATCH("language", "nandroidadvbackup")) {
 		pconfig->nandroidadvbackup = strdup(value);
 	} else if (MATCH("language", "nandroidadvrestore")) {
@@ -773,6 +827,12 @@ int language_handler(void* user, const char* section, const char* name, const ch
 		pconfig->advcotsettings = strdup(value);
 	} else if (MATCH("language", "advdebugopts")) {
 		pconfig->advdebugopts = strdup(value);
+	} else if (MATCH("language", "lowspacecontinuebackup")) {
+		pconfig->lowspacecontinuebackup = strdup(value);
+	} else if (MATCH("language", "lowspaceviewdelete")) {
+		pconfig->lowspaceviewdelete = strdup(value);
+	} else if (MATCH("language", "lowspacecancel")) {
+		pconfig->lowspacecancel = strdup(value);
 	} else if (MATCH("language", "yesdeletedata")) {
 		pconfig->yesdeletedata = strdup(value);
 	} else if (MATCH("language", "wipingdata")) {
@@ -907,6 +967,30 @@ int language_handler(void* user, const char* section, const char* name, const ch
 		pconfig->nandroidbootflasherror = strdup(value);
 	} else if (MATCH("language", "nandroidnobootimg")) {
 		pconfig->nandroidnobootimg = strdup(value);
+	} else if (MATCH("language", "nandroidbackupbootyes")) {
+		pconfig->nandroidbackupbootyes = strdup(value);
+	} else if (MATCH("language", "nandroidbackupbootno")) {
+		pconfig->nandroidbackupbootno = strdup(value);
+	} else if (MATCH("language", "nandroidbackuprecyes")) {
+		pconfig->nandroidbackuprecyes = strdup(value);
+	} else if (MATCH("language", "nandroidbackuprecno")) {
+		pconfig->nandroidbackuprecno = strdup(value);
+	} else if (MATCH("language", "nandroidbackupsysyes")) {
+		pconfig->nandroidbackupsysyes = strdup(value);
+	} else if (MATCH("language", "nandroidbackupsysno")) {
+		pconfig->nandroidbackupsysno = strdup(value);
+	} else if (MATCH("language", "nandroidbackupdatayes")) {
+		pconfig->nandroidbackupdatayes = strdup(value);
+	} else if (MATCH("language", "nandroidbackupdatano")) {
+		pconfig->nandroidbackupdatano = strdup(value);
+	} else if (MATCH("language", "nandroidbackupcacheyes")) {
+		pconfig->nandroidbackupcacheyes = strdup(value);
+	} else if (MATCH("language", "nandroidbackupcacheno")) {
+		pconfig->nandroidbackupcacheno = strdup(value);
+	} else if (MATCH("language", "nandroidbackupsdyes")) {
+		pconfig->nandroidbackupsdyes = strdup(value);
+	} else if (MATCH("language", "nandroidbackupsdno")) {
+		pconfig->nandroidbackupsdno = strdup(value);
 	} else if (MATCH("language", "securefsenable")) {
 		pconfig->securefsenable = strdup(value);
 	} else if (MATCH("language", "securefsdisable")) {
@@ -1166,8 +1250,14 @@ void parse_language() {
 	zipchoosenobackup = config.zipchoosenobackup;
 	zipcancelinstall = config.zipcancelinstall;
 	usbmsunmount = config.usbmsunmount;
+	usbmsmount = config.usbmsmount;
 	nandroidbackup = config.nandroidbackup;
 	nandroidrestore = config.nandroidrestore;
+	nandroidrestoreboot = config.nandroidrestoreboot;
+	nandroidrestoresys = config.nandroidrestoresys;
+	nandroidrestoredata = config.nandroidrestoredata;
+	nandroidrestorecache = config.nandroidrestorecache;
+	nandroidrestoresd = config.nandroidrestoresd;
 	nandroidadvbackup = config.nandroidadvbackup;
 	nandroidadvrestore = config.nandroidadvrestore;
 	nandroiddeleteold = config.nandroiddeleteold;
@@ -1182,6 +1272,9 @@ void parse_language() {
 	advpartitionsd = config.advpartitionsd;
 	advcotsettings = config.advcotsettings;
 	advdebugopts = config.advdebugopts;
+	lowspacecontinuebackup = config.lowspacecontinuebackup;
+	lowspaceviewdelete = config.lowspaceviewdelete;
+	lowspacecancel = config.lowspacecancel;
 	yesdeletedata = config.yesdeletedata;
 	wipingdata = config.wipingdata;
 	datawipecomplete = config.datawipecomplete;
@@ -1249,6 +1342,18 @@ void parse_language() {
 	nandroidrestoringboot = config.nandroidrestoringboot;
 	nandroidbootflasherror = config.nandroidbootflasherror;
 	nandroidnobootimg = config.nandroidnobootimg;
+	nandroidbackupbootyes = config.nandroidbackupbootyes;
+	nandroidbackupbootno = config.nandroidbackupbootno;
+	nandroidbackuprecyes = config.nandroidbackuprecyes;
+	nandroidbackuprecno = config.nandroidbackuprecno;
+	nandroidbackupsysyes = config.nandroidbackupsysyes;
+	nandroidbackupsysno = config.nandroidbackupsysno;
+	nandroidbackupdatayes = config.nandroidbackupdatayes;
+	nandroidbackupdatano = config.nandroidbackupdatano;
+	nandroidbackupcacheyes = config.nandroidbackupcacheyes;
+	nandroidbackupcacheno = config.nandroidbackupcacheno;
+	nandroidbackupsdyes = config.nandroidbackupsdyes;
+	nandroidbackupsdno = config.nandroidbackupsdno;
 	securefsenable = config.securefsenable;
 	securefsdisable = config.securefsdisable;
 	securefsinvalid = config.securefsinvalid;

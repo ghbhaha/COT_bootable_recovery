@@ -327,7 +327,7 @@ static int
 erase_volume(const char *volume) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
-    ui_print("Formatting %s...\n", volume);
+    ui_print("%s %s...\n", edifyformatting, volume);
 
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
@@ -728,8 +728,7 @@ prompt_and_wait() {
                 {
                     ui_print("\n-- Wiping cache...\n");
                     erase_volume("/cache");
-                    //ui_print("%s\n", cachewipecomplete);
-					ui_print("cachewipecomplete\n");
+                    ui_print("%s\n", cachewipecomplete);
                     if (!ui_text_visible()) return;
                 }
                 break;
