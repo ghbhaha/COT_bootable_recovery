@@ -58,6 +58,7 @@
 
 #include "settings.h"
 #include "settingshandler.h"
+#include "settingshandler_lang.h"
 
 int UICOLOR0 = 0;
 int UICOLOR1 = 0;
@@ -77,6 +78,7 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_ORS_WIPE      2
     #define SETTINGS_ITEM_NAND_PROMPT   3
     #define SETTINGS_ITEM_LANGUAGE      4
+    #define SETTINGS_ITEM_DEV_OPTIONS   5
 
     static char* list[] = { "Theme",
                             "ORS Forced Reboots",
@@ -192,6 +194,9 @@ void show_settings_menu() {
             case SETTINGS_ITEM_LANGUAGE:
             {
                 static char* lang_list[] = {"English",
+#if DEV_BUILD == 1
+                                            "Use Custom Language",
+#endif
                                             NULL
                 };
                 static char* lang_headers[] = {"Language", "", NULL};
@@ -201,6 +206,9 @@ void show_settings_menu() {
                     continue;
                 } else if (result == 0) {
                     language = "en";
+                    update_cot_settings();
+                } else if (result == 1) {
+                    language = "custom";
                     update_cot_settings();
                 }
 
