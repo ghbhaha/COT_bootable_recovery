@@ -80,14 +80,26 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_LANGUAGE      4
     #define SETTINGS_ITEM_DEV_OPTIONS   5
 
-    static char* list[] = { "Theme",
-                            "ORS Forced Reboots",
-                            "ORS Wipe Prompt",
-                            "ZIP flash Nandroid Prompt",
-                            "Language",
-                            NULL
-    };
-    static char* ors_list[1];
+    static char* list[6];
+
+    list[0] = "Theme";
+    if (orsreboot == 1) {
+		list[1] = "Disable forced reboots";
+	} else {
+		list[1] = "Enable forced reboots";
+	}
+	if (orswipeprompt == 1) {
+		list[2] = "Disable wipe prompt";
+	} else {
+		list[2] = "Enable wipe prompt";
+	}
+	if (backupprompt == 1) {
+		list[3] = "Disable zip flash nandroid prompt";
+	} else {
+		list[3] = "Enable zip flash nandroid prompt";
+	}
+    list[4] = "Language";
+    list[5] = NULL;
 
     for (;;) {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -126,93 +138,47 @@ void show_settings_menu() {
                             currenttheme = "dooderbuttblue";
                             break;
                     }
-                    update_cot_settings();
                     break;
                 }
             }
             case SETTINGS_ITEM_ORS_REBOOT:
             {
-				static char* ors_headers[] = {"ORS Forced Reboots", "", NULL};
-
-                if (orsreboot == 1) {
-					ors_list[0] = "Disable forced reboots";
+				if (orsreboot == 1) {
+					ui_print("Disabling forced reboots.\n");
+					list[1] = "Enable forced reboots";
+					orsreboot = 0;
 				} else {
-					ors_list[0] = "Enable forced reboots";
+					ui_print("Enabling forced reboots.\n");
+					list[1] = "Disable forced reboots";
+					orsreboot = 1;
 				}
-
-				int result = get_menu_selection(ors_headers, ors_list, 0, 0);
-
-				switch (chosen_item) {
-					case GO_BACK: continue;
-					default: {
-						if (orsreboot == 1) {
-							ui_print("Disabling forced reboots.\n");
-							orsreboot = 0;
-						} else {
-							ui_print("Enabling forced reboots.\n");
-							orsreboot = 1;
-						}
-						update_cot_settings();
-						break;
-					}
-                }
                 break;
             }
             case SETTINGS_ITEM_ORS_WIPE:
             {
-                static char* ors_headers[] = {"ORS Wipe Prompt", "", NULL};
-
-                if (orswipeprompt == 1) {
-					ors_list[0] = "Disable wipe prompt";
+				if (orswipeprompt == 1) {
+					ui_print("Disabling wipe prompt.\n");
+					list[2] = "Enable wipe prompt";
+					orswipeprompt = 0;
 				} else {
-					ors_list[0] = "Enable wipe prompt";
+					ui_print("Enabling wipe prompt.\n");
+					list[2] = "Disable wipe prompt";
+					orswipeprompt = 1;
 				}
-
-                int result = get_menu_selection(ors_headers, ors_list, 0, 0);
-
-                switch (chosen_item) {
-					case GO_BACK: continue;
-					default: {
-						if (orswipeprompt == 1) {
-							ui_print("Disabling wipe prompt.\n");
-							orswipeprompt = 0;
-						} else {
-							ui_print("Enabling wipe prompt.\n");
-							orswipeprompt = 1;
-						}
-						update_cot_settings();
-						break;
-					}
-                }
-                break;
+				break;
             }
             case SETTINGS_ITEM_NAND_PROMPT:
             {
-                static char* ors_headers[] = {"ZIP flash Nandroid Prompt", "", NULL};
-
-                if (backupprompt == 1) {
-					ors_list[0] = "Disable zip flash nandroid prompt";
+				if (backupprompt == 1) {
+					ui_print("Disabling zip flash nandroid prompt.\n");
+					list[3] = "Enable zip flash nandroid prompt";
+					backupprompt = 0;
 				} else {
-					ors_list[0] = "Enable zip flash nandroid prompt";
+					ui_print("Enabling zip flash nandroid prompt.\n");
+					list[3] = "Disable zip flash nandroid prompt";
+					backupprompt = 1;
 				}
-
-                int result = get_menu_selection(ors_headers, ors_list, 0, 0);
-
-                switch (chosen_item) {
-					case GO_BACK: continue;
-					default: {
-						if (backupprompt == 1) {
-							ui_print("Disabling zip flash nandroid prompt.\n");
-							backupprompt = 0;
-						} else {
-							ui_print("Enabling zip flash nandroid prompt.\n");
-							backupprompt = 1;
-						}
-						update_cot_settings();
-						break;
-					}
-                }
-                break;
+				break;
             }
             case SETTINGS_ITEM_LANGUAGE:
             {
@@ -229,11 +195,9 @@ void show_settings_menu() {
                     continue;
                 } else if (result == 0) {
                     language = "en";
-                    update_cot_settings();
 #if DEV_BUILD == 1
                 } else if (result == 1) {
                     language = "custom";
-                    update_cot_settings();
 #endif
                 }
 
@@ -242,6 +206,7 @@ void show_settings_menu() {
             default:
                 return;
         }
+        update_cot_settings();
     }
 }
 
