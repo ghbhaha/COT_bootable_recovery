@@ -571,8 +571,8 @@ int confirm_selection(const char* title, const char* confirm)
     if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
-    char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
-	confirm_headers[1] = wipedataheader2;
+    char* confirm_headers[1];
+	confirm_headers[0] = wipedataheader2;
 
     char* items[2];
 	items[0] = no;
