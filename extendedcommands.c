@@ -574,10 +574,9 @@ int confirm_selection(const char* title, const char* confirm)
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
 	confirm_headers[1] = wipedataheader2;
 
-    char* items[3];
+    char* items[2];
 	items[0] = no;
 	items[1] = confirm;
-	items[3] = NULL;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 1;
@@ -585,14 +584,12 @@ int confirm_selection(const char* title, const char* confirm)
 
 int confirm_nandroid_backup(const char* title, const char* confirm)
 {
-    char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
+    char* confirm_headers[1];
+    confirm_headers[0] = recommended;
 
-    char* items[3];
+    char* items[2];
 	items[0] = no;
 	items[1] = confirm;
-	items[3] = NULL;
-	
-	confirm_headers[1] = recommended;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 1;
