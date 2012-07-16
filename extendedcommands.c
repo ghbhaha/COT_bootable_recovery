@@ -598,10 +598,10 @@ int confirm_selection(const char* title, const char* confirm)
     if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
-    char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
-	confirm_headers[1] = wipedataheader2;
+    char* confirm_headers[1];
+	confirm_headers[0] = wipedataheader2;
 
-    char* items[12];
+    char* items[11];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -613,7 +613,6 @@ int confirm_selection(const char* title, const char* confirm)
 	items[7] = confirm;
 	items[9] = no;
 	items[10] = no;
-	items[11] = NULL;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 7;
@@ -621,8 +620,8 @@ int confirm_selection(const char* title, const char* confirm)
 
 int confirm_nandroid_backup(const char* title, const char* confirm)
 {
-    char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
-	confirm_headers[1] = recommended;
+    char* confirm_headers[1];
+	confirm_headers[0] = recommended;
 
     char* items[12];    
 	items[0] = no;
@@ -636,7 +635,6 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
-	items[11] = NULL;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 7;
