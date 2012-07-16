@@ -137,25 +137,24 @@ int format_non_mtd_device(const char* root)
     return 0;
 }
 
-char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
-                                "apply /sdcard/update.zip",
-                                "toggle signature verification",
-                                "toggle script asserts",
-                                NULL };
-#define ITEM_CHOOSE_ZIP       0
-#define ITEM_APPLY_SDCARD     1
-#define ITEM_SIG_CHECK        2
-#define ITEM_ASSERTS          3
-
 void show_install_update_menu()
 {
+	#define ITEM_CHOOSE_ZIP       0
+	#define ITEM_APPLY_SDCARD     1
+	#define ITEM_SIG_CHECK        2
+	#define ITEM_ASSERTS          3
+
+	static char* INSTALL_MENU_ITEMS[5];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
 	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
 	INSTALL_MENU_ITEMS[2] = ziptogglesig;
 	INSTALL_MENU_ITEMS[3] = ziptoggleasserts;
+	INSTALL_MENU_ITEMS[4] = NULL;
+
     static char* headers[2];
 	headers[0] = zipinstallheader;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
     for (;;)
     {
@@ -372,9 +371,10 @@ void show_view_and_delete_backups(const char *mount_point, const char *backup_pa
 		return;
 	}
 
-	static char* headers[2];
+	static char* headers[3];
 	headers[0] = deletebackupheader;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
 	char* file = choose_file_menu(mount_point, NULL, headers);
 	if(file == NULL)
@@ -397,9 +397,10 @@ void delete_old_backups(const char *mount_point)
 		return;
 	}
 
-	static char* headers[2];
+	static char* headers[3];
 	headers[0] = deletebackupheader;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
 	char* file = choose_file_menu(mount_point, NULL, headers);
 	if(file == NULL)
@@ -417,24 +418,24 @@ void delete_old_backups(const char *mount_point)
 
 int show_lowspace_menu(int i, const char* backup_path)
 {
-	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
-											"View and delete old backups",
-											"Cancel backup",
-											NULL };
+	static char *LOWSPACE_MENU_ITEMS[4];
 	LOWSPACE_MENU_ITEMS[0] = lowspacecontinuebackup;
 	LOWSPACE_MENU_ITEMS[1] = lowspaceviewdelete;
 	LOWSPACE_MENU_ITEMS[2] = lowspacecancel;
+	LOWSPACE_MENU_ITEMS[3] = NULL;
+
 	#define ITEM_CONTINUE_BACKUP 0
 	#define ITEM_VIEW_DELETE_BACKUPS 1
 	#define ITEM_CANCEL_BACKUP 2
 
-	static char* headers[6];
+	static char* headers[7];
 	headers[0] = lowspaceheader1;
 	headers[1] = "\n";
 	headers[2] = lowspaceheader2;
 	headers[3] = lowspaceheader3;
 	headers[4] = "\n";
 	headers[5] = lowspaceheader4;
+	headers[6] = NULL;
 
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, LOWSPACE_MENU_ITEMS, 0, 0);
@@ -461,20 +462,20 @@ void show_choose_zip_menu(const char *mount_point)
         return;
     }
 
-    static char *INSTALL_OR_BACKUP_ITEMS[] = { "Yes - Backup and install",
-												 "No - Install without backup",
-												 "Cancel install",
-												 NULL };
+    static char *INSTALL_OR_BACKUP_ITEMS[4];
 	INSTALL_OR_BACKUP_ITEMS[0] = zipchooseyesbackup;
 	INSTALL_OR_BACKUP_ITEMS[1] = zipchoosenobackup;
 	INSTALL_OR_BACKUP_ITEMS[2] = zipcancelinstall;
+	INSTALL_OR_BACKUP_ITEMS[3] = NULL;
+
 	#define ITEM_BACKUP_AND_INSTALL 0
 	#define ITEM_INSTALL_WOUT_BACKUP 1
 	#define ITEM_CANCEL_INSTALL 2
 
-    static char* headers[2];
+    static char* headers[3];
 	headers[0] = zipchoosezip;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
@@ -527,9 +528,10 @@ void show_nandroid_restore_menu(const char* path)
         return;
     }
 
-    static char* headers[2];
+    static char* headers[3];
 	headers[0] = nandroidrestoreheader;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/cotrecovery/backup/", path); // Need to fix up the default backup path to not point to sdcard so that we can use a variable here...
@@ -560,11 +562,12 @@ void show_mount_usb_storage_menu()
         close(fd);
         return -1;
     }
-    static char* headers[4];
+    static char* headers[5];
 	headers[0] = usbmsheader1;
 	headers[1] = usbmsheader2;
 	headers[2] = usbmsheader3;
 	headers[3] = "\n";
+	headers[4] = NULL;
 
     static char* list[] = { "Unmount", NULL };
 	list[0] = usbmsunmount;
@@ -591,14 +594,14 @@ void show_mount_usb_storage_menu()
 
 int confirm_selection(const char* title, const char* confirm)
 {
-    struct stat info;	// no dot files being used anymore so we're removing this right?
+    struct stat info;
     if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
 	confirm_headers[1] = wipedataheader2;
 
-    char* items[11];
+    char* items[12];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -610,6 +613,7 @@ int confirm_selection(const char* title, const char* confirm)
 	items[7] = confirm;
 	items[9] = no;
 	items[10] = no;
+	items[11] = NULL;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 7;
@@ -619,8 +623,8 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 {
     char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
 	confirm_headers[1] = recommended;
-    char* items[11];
-    
+
+    char* items[12];    
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -632,6 +636,7 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
+	items[11] = NULL;
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
     return chosen_item == 7;
@@ -779,10 +784,6 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     return 0;
 }
 
-//#define MOUNTABLE_COUNT 5
-//#define DEVICE_COUNT 4
-//#define MMC_COUNT 2
-
 typedef struct {
     char mount[255];
     char unmount[255];
@@ -817,9 +818,10 @@ int is_safe_to_format(char* name)
 
 void show_partition_menu()
 {
-    static char* headers[2];
+    static char* headers[3];
 	headers[0] = showpartitionheader;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
     typedef char* string;
     string mounts[MOUNTABLE_COUNT][3] = {
@@ -916,13 +918,12 @@ void show_partition_menu()
 }
 
 void show_nandroid_advanced_backup_menu(){
-    static char* advancedheaders[] = { "Choose the partitions to backup",
-                                        "",
-					NULL
-    };
+    static char* advancedheaders[3];
 	advancedheaders[0] = advbackupheader;
+	advancedheaders[1] = "\n";
+	advancedheaders[2] = NULL;
 
-    int backup_list [6];
+    int backup_list [7];
     char* list[7];
 
     backup_list[0] = 1;
@@ -931,8 +932,7 @@ void show_nandroid_advanced_backup_menu(){
     backup_list[3] = 1;
     backup_list[4] = 1;
     backup_list[5] = 1;
-
-
+    backup_list[6] = NULL;
 
     list[6] = performbackup;
     list[7] = NULL;
@@ -1014,12 +1014,14 @@ void show_nandroid_advanced_restore_menu(const char* path)
         return;
     }
 
-    static char* advancedheaders[5];
+    static char* advancedheaders[7];
 	advancedheaders[0] = advrestoreheader1;
 	advancedheaders[1] = "\n";
 	advancedheaders[2] = advrestoreheader1;
 	advancedheaders[3] = advrestoreheader2;
 	advancedheaders[4] = advrestoreheader3;
+	advancedheaders[5] = "\n";
+	advancedheaders[6] = NULL;
 
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/cotrecovery/backup/", path);
@@ -1027,23 +1029,18 @@ void show_nandroid_advanced_restore_menu(const char* path)
     if (file == NULL)
         return;
 
-    static char* headers[1];
+    static char* headers[3];
 	headers[0] = advrestoreheader11;
 	headers[1] = "\n";
+	headers[2] = NULL;
 
-    static char* list[] = { "Restore boot",
-                            "Restore system",
-                            "Restore data",
-                            "Restore cache",
-                            "Restore sd-ext",
-                            NULL
-    };
-
+    static char* list[6];
 	list[0] = nandroidrestoreboot;
 	list[1] = nandroidrestoresys;
 	list[2] = nandroidrestoredata;
 	list[3] = nandroidrestorecache;
 	list[4] = nandroidrestoresd;
+	list[5] = NULL;
 
     static char* confirm_restore  = "Confirm restore?";
 
