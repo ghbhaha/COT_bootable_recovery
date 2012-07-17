@@ -571,10 +571,11 @@ int confirm_selection(const char* title, const char* confirm)
     if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
-    char* confirm_headers[1];
+    static char* confirm_headers[2];
 	confirm_headers[0] = wipedataheader2;
+	confirm_headers[1] = NULL;
 
-    char* items[2];
+    static char* items[2];
 	items[0] = no;
 	items[1] = confirm;
 
@@ -584,10 +585,11 @@ int confirm_selection(const char* title, const char* confirm)
 
 int confirm_nandroid_backup(const char* title, const char* confirm)
 {
-    char* confirm_headers[1];
+    static char* confirm_headers[2];
     confirm_headers[0] = recommended;
+    confirm_headers[1] = NULL;
 
-    char* items[2];
+    static char* items[2];
 	items[0] = no;
 	items[1] = confirm;
 
