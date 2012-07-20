@@ -420,14 +420,7 @@ int show_lowspace_menu(int i, const char* backup_path)
 			}
 			case ITEM_VIEW_DELETE_BACKUPS: {
 				char final_backup_path[PATH_MAX];
-				struct stat st;
-				if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-					FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-					fscanf(file, "%s", &final_backup_path);
-					fclose(file);
-				} else {
-					sprintf(final_backup_path, "%s", DEFAULT_BACKUP_PATH);
-				}
+				nandroid_get_backup_path(final_backup_path);
 				show_view_and_delete_backups(final_backup_path, backup_path);
 				break;
 			}
@@ -476,28 +469,8 @@ void show_choose_zip_menu(const char *mount_point)
 			switch(chosen_item) {
 				case ITEM_BACKUP_AND_INSTALL: {
 					char backup_path[PATH_MAX];
-					char final_backup_path[PATH_MAX];
-
-					struct stat st;
-					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-						fscanf(file, "%s", &backup_path);
-						fclose(file);
-					} else {
-						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
-					}
-					time_t t = time(NULL);
-					struct tm *tmp = localtime(&t);
-					if (tmp == NULL) {
-						struct timeval tp;
-						gettimeofday(&tp, NULL);
-						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
-					} else {
-						char bktime[PATH_MAX];
-						strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
-						sprintf(final_backup_path, "%s%s", backup_path, bktime);
-					}
-					nandroid_backup(final_backup_path);
+					nandroid_generate_timestamp_path(backup_path);
+					nandroid_backup(backup_path);
 					install_zip(file, 0);
 					return;
 				}
@@ -1020,31 +993,11 @@ void show_nandroid_menu()
 		{
 			char backup_path[PATH_MAX];
 			case 0:
-				{
-					char final_backup_path[PATH_MAX];
-					
-					struct stat st;
-					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-						fscanf(file, "%s", &backup_path);
-						fclose(file);
-					} else {
-						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
-					}
-					time_t t = time(NULL);
-					struct tm *tmp = localtime(&t);
-					if (tmp == NULL) {
-						struct timeval tp;
-						gettimeofday(&tp, NULL);
-						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
-					} else {
-						char bktime[PATH_MAX];
-						strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
-						sprintf(final_backup_path, "%s%s", backup_path, bktime);
-					}
-					nandroid_backup(final_backup_path);
-				}
+			{
+				nandroid_generate_timestamp_path(backup_path);
+				nandroid_backup(backup_path);
 				return;
+			}
 			case 1:
 				show_nandroid_restore_menu("/sdcard");
 				return;
@@ -1053,14 +1006,7 @@ void show_nandroid_menu()
 				return;
 			case 3: 
 			{
-				struct stat st;
-				if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-					FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-					fscanf(file, "%s", &backup_path);
-					fclose(file);
-				} else {
-					sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
-				}
+				nandroid_get_backup_path(backup_path);
 				delete_old_backups(backup_path);
 				break;
 			}

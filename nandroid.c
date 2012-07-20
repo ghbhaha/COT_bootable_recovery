@@ -50,20 +50,33 @@ void ensure_directory(const char* dir) {
     __system(tmp);
 }
 
+void nandroid_get_backup_path(const char* backup_path)
+{
+	char tmp[PATH_MAX];
+	struct stat st;
+	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+		fscanf(file, "%s", &backup_path);
+		fclose(file);
+	} else {
+		sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+	}
+}
+
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
-	char final_backup_path[PATH_MAX];
-	sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+	nandroid_get_backup_path(backup_path);
     time_t t = time(NULL);
-    struct tm *tmp = localtime(&t);
-    if (tmp == NULL) {
+    struct tm *bktime = localtime(&t);
+    char tmp[PATH_MAX];
+    if (bktime == NULL) {
         struct timeval tp;
         gettimeofday(&tp, NULL);
-        sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
+        sprintf(tmp, "%d", tp.tv_sec);
+        strcat(backup_path, tmp);
 	} else {
-		char bktime[PATH_MAX];
-		strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
-		sprintf(final_backup_path, "%s%s", backup_path, bktime);
+		strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
+		strcat(backup_path, tmp);
 	}
 }
 
