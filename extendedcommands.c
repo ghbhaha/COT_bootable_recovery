@@ -418,9 +418,19 @@ int show_lowspace_menu(int i, const char* backup_path)
 				ui_print("%s\n", backupproceed);
 				return 0;
 			}
-			case ITEM_VIEW_DELETE_BACKUPS:
-				show_view_and_delete_backups(DEFAULT_BACKUP_PATH ,backup_path);
+			case ITEM_VIEW_DELETE_BACKUPS: {
+				char final_backup_path[PATH_MAX];
+				struct stat st;
+				if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+					FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+					fscanf(file, "%s", &final_backup_path);
+					fclose(file);
+				} else {
+					sprintf(final_backup_path, "%s", DEFAULT_BACKUP_PATH);
+				}
+				show_view_and_delete_backups(final_backup_path, backup_path);
 				break;
+			}
 			default:
 				ui_print("%s\n", backupcancel);
 				return 1;
@@ -468,16 +478,24 @@ void show_choose_zip_menu(const char *mount_point)
 					char backup_path[PATH_MAX];
 					char final_backup_path[PATH_MAX];
 
-					sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+					struct stat st;
+					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+						fscanf(file, "%s", &backup_path);
+						fclose(file);
+					} else {
+						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+					}
 					time_t t = time(NULL);
 					struct tm *tmp = localtime(&t);
 					if (tmp == NULL) {
 						struct timeval tp;
 						gettimeofday(&tp, NULL);
 						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
-					} else {	/* OK that's it, not only is the replacement on this pissing me off but we don't need this function repeated 4 times
-								 * I'm going to add a function (probably in nandroid) to handle this and we can just call it... */
-						strftime(final_backup_path, sizeof(final_backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
+					} else {
+						char bktime[PATH_MAX];
+						strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
+						sprintf(final_backup_path, "%s%s", backup_path, bktime);
 					}
 					nandroid_backup(final_backup_path);
 					install_zip(file, 0);
@@ -1000,23 +1018,29 @@ void show_nandroid_menu()
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
 		switch (chosen_item)
 		{
+			char backup_path[PATH_MAX];
 			case 0:
 				{
-					char backup_path[PATH_MAX];
 					char final_backup_path[PATH_MAX];
-					sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
-
+					
+					struct stat st;
+					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+						fscanf(file, "%s", &backup_path);
+						fclose(file);
+					} else {
+						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+					}
 					time_t t = time(NULL);
 					struct tm *tmp = localtime(&t);
-					if (tmp == NULL)
-					{
+					if (tmp == NULL) {
 						struct timeval tp;
 						gettimeofday(&tp, NULL);
 						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
-					}
-					else
-					{	// Same as recovery.c I'm not sure how to go about replacing this one...
-						strftime(final_backup_path, sizeof(final_backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
+					} else {
+						char bktime[PATH_MAX];
+						strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
+						sprintf(final_backup_path, "%s%s", backup_path, bktime);
 					}
 					nandroid_backup(final_backup_path);
 				}
@@ -1027,9 +1051,19 @@ void show_nandroid_menu()
 			case 2:
 				show_nandroid_advanced_restore_menu("/sdcard");
 				return;
-			case 3:
-				delete_old_backups(DEFAULT_BACKUP_PATH);
+			case 3: 
+			{
+				struct stat st;
+				if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+					FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+					fscanf(file, "%s", &backup_path);
+					fclose(file);
+				} else {
+					sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+				}
+				delete_old_backups(backup_path);
 				break;
+			}
 			default:
 				return;
 		}
@@ -1309,7 +1343,16 @@ void process_volumes() {
     struct timeval tp;
     gettimeofday(&tp, NULL);
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
-    sprintf(backup_path, "/sdcard/clockworkmod/backup/%s", backup_name);
+    struct stat st;
+    char tmp[PATH_MAX];
+	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+		fscanf(file, "%s", &tmp);
+		fclose(file);
+	} else {
+		sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
+	}
+    sprintf(backup_path, "%s%s", tmp, backup_name);
 
     ui_set_show_text(1);
     ui_print("Filesystems need to be converted to ext4.\n");

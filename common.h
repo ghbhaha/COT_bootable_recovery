@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 extern const char *DEFAULT_BACKUP_PATH;
+extern const char *USER_DEFINED_BACKUP_MARKER;
 
 // Initialize the graphics system.
 void ui_init();
