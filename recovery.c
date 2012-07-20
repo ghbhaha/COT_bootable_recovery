@@ -1020,7 +1020,6 @@ int run_script_file(void) {
 			} else if (strcmp(command, "backup") == 0) {
 				// Backup
 				char backup_path[PATH_MAX];
-				char final_backup_path[PATH_MAX];
 
 				tok = strtok(value, " ");
 				strcpy(value1, tok);
@@ -1046,31 +1045,13 @@ int run_script_file(void) {
 						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
 					}
 					ui_print("Backup folder set to '%s'\n", value2);
-					sprintf(final_backup_path, "%s%s", backup_path, value2);
+					nandroid_get_backup_path(backup_path);
+					strcat(backup_path, value2);
 				} else {
-					struct stat st;
-					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-						fscanf(file, "%s", &backup_path);
-						fclose(file);
-					} else {
-						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
-					}
-					time_t t = time(NULL);
-					struct tm *tmp = localtime(&t);
-					if (tmp == NULL) {
-						struct timeval tp;
-						gettimeofday(&tp, NULL);
-						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
-					} else {
-						char bktime[PATH_MAX];
-						strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
-						sprintf(final_backup_path, "%s%s", backup_path, bktime);
-					}
+					nandroid_generate_timestamp_path(backup_path);
 				}
-
 				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
-				nandroid_backup(final_backup_path);
+				nandroid_backup(backup_path);
 				ui_print("Backup complete!\n");
 			} else if (strcmp(command, "restore") == 0) {
 				// Restore
