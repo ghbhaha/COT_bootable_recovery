@@ -60,9 +60,11 @@ void nandroid_generate_timestamp_path(const char* backup_path)
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
-    } else {	// Seriously, how can I replace this?!?
-        strftime(final_backup_path, PATH_MAX, "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
-    }
+	} else {
+		char bktime[PATH_MAX];
+		strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
+		sprintf(final_backup_path, "%s%s", backup_path, bktime);
+	}
 }
 
 static int print_and_error(const char* message) {

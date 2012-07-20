@@ -72,6 +72,7 @@ static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
 const char *DEFAULT_BACKUP_PATH = "/sdcard/cotrecovery/backup/";
+const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackups";
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -1019,6 +1020,7 @@ int run_script_file(void) {
 			} else if (strcmp(command, "backup") == 0) {
 				// Backup
 				char backup_path[PATH_MAX];
+				char final_backup_path[PATH_MAX];
 
 				tok = strtok(value, " ");
 				strcpy(value1, tok);
@@ -1035,25 +1037,40 @@ int run_script_file(void) {
 					} else
 						remove_nl = 0;
 					strncpy(value2, tok, line_len - remove_nl);
+					struct stat st; // This code is repeated WAY too much...
+					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+						fscanf(file, "%s", &backup_path);
+						fclose(file);
+					} else {
+						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+					}
 					ui_print("Backup folder set to '%s'\n", value2);
-					sprintf(backup_path, "/sdcard/clockworkmod/backup/%s", value2);
+					sprintf(final_backup_path, "%s%s", backup_path, value2);
 				} else {
+					struct stat st;
+					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+						fscanf(file, "%s", &backup_path);
+						fclose(file);
+					} else {
+						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
+					}
 					time_t t = time(NULL);
 					struct tm *tmp = localtime(&t);
-					if (tmp == NULL)
-					{
+					if (tmp == NULL) {
 						struct timeval tp;
 						gettimeofday(&tp, NULL);
-						sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
-					}
-					else
-					{
-						strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+						sprintf(final_backup_path, "%s%d", backup_path, tp.tv_sec);
+					} else {
+						char bktime[PATH_MAX];
+						strftime(bktime, sizeof(bktime), "%F.%H.%M.%S", tmp);
+						sprintf(final_backup_path, "%s%s", backup_path, bktime);
 					}
 				}
 
 				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
-				nandroid_backup(backup_path);
+				nandroid_backup(final_backup_path);
 				ui_print("Backup complete!\n");
 			} else if (strcmp(command, "restore") == 0) {
 				// Restore
