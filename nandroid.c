@@ -50,6 +50,49 @@ void ensure_directory(const char* dir) {
     __system(tmp);
 }
 
+
+void get_android_version(const char* backup_path)
+{
+	char* ANDROID_VERSION;
+	char* result;
+	FILE * vers = fopen_path("/system/build.prop", "r");
+	if (vers == NULL)
+		return NULL;
+
+	char line[512];
+	while(fgets(line, sizeof(line), vers) != NULL && fgets(line, sizeof(line), vers) != EOF) { // read a line
+		if (strstr(line, "ro.build.display.id") != NULL) {
+			char* strptr = strstr(line, "=") + 1;
+			result = calloc(strlen(strptr) + 1, sizeof(char));
+			strcpy(result, strptr);
+			break;
+		}
+	}
+	fclose(vers);
+	ensure_path_unmounted("/system");
+
+	int LENGTH = strlen(result);
+	int i, k, found;
+	for (i=0; i<LENGTH; i++) {
+		k = i;
+		//Android versions follow this scheme: AAADD, A=A-Z, D=0-9, ICS has an extra digit at the end
+		if (isalpha(result[k]) && isalpha(result[k++]) && isalpha(result[k++]) && isdigit(result[k++]) && isdigit(result[k++])) {
+			found = 1;
+			break;
+		}
+	}
+	if (found) {
+		ANDROID_VERSION = calloc(strlen(result) + 1, sizeof(char)); //allocate the length of result plus 1
+		int n = 0;
+		for(i-=1; i<=k; i++) {
+			ANDROID_VERSION[n] = result[i];
+			n++;
+		}
+		ANDROID_VERSION[n] = NULL;
+		strcat(backup_path, ANDROID_VERSION);
+	}
+}
+
 void nandroid_get_backup_path(const char* backup_path)
 {
 	char tmp[PATH_MAX];
@@ -66,6 +109,7 @@ void nandroid_get_backup_path(const char* backup_path)
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
 	nandroid_get_backup_path(backup_path);
+	get_android_version(backup_path);
     time_t t = time(NULL);
     struct tm *bktime = localtime(&t);
     char tmp[PATH_MAX];
@@ -73,9 +117,11 @@ void nandroid_generate_timestamp_path(const char* backup_path)
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(tmp, "%d", tp.tv_sec);
+        strcat(backup_path, "-");
         strcat(backup_path, tmp);
 	} else {
 		strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
+		strcat(backup_path, "-");
 		strcat(backup_path, tmp);
 	}
 }
