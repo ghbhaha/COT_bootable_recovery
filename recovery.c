@@ -949,14 +949,6 @@ int run_script_file(void) {
 					} else
 						remove_nl = 0;
 					strncpy(value2, tok, line_len - remove_nl);
-					struct stat st; // This code is repeated WAY too much...
-					if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-						FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-						fscanf(file, "%s", &backup_path);
-						fclose(file);
-					} else {
-						sprintf(backup_path, "%s", DEFAULT_BACKUP_PATH);
-					}
 					ui_print("Backup folder set to '%s'\n", value2);
 					nandroid_get_backup_path(backup_path);
 					strcat(backup_path, value2);
