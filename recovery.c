@@ -46,6 +46,7 @@
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
+#include "eraseandformat.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 #define ABS_MT_POSITION_Y 0x36  /* Center Y ellipse position */
@@ -270,7 +271,7 @@ set_sdcard_update_bootloader_message() {
 }
 
 // How much of the temp log we have copied to the copy in cache.
-static long tmplog_offset = 0;
+long tmplog_offset = 0;
 
 static void
 copy_log_file(const char* destination, int append) {
@@ -331,22 +332,6 @@ finish_recovery(const char *send_intent) {
     }
 
     sync();  // For good measure.
-}
-
-static int
-erase_volume(const char *volume) {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
-    ui_show_indeterminate_progress();
-    ui_print("%s %s...\n", edifyformatting, volume);
-
-    if (strcmp(volume, "/cache") == 0) {
-        // Any part of the log we'd copied to cache is now gone.
-        // Reset the pointer so we copy from the beginning of the temp
-        // log.
-        tmplog_offset = 0;
-    }
-
-    return format_volume(volume);
 }
 
 static char*
@@ -439,7 +424,7 @@ copy_sideloaded_package(const char* original_path) {
   return strdup(copy_path);
 }
 
-static char**
+char**
 prepend_title(char** headers) {
     char* title[] = { EXPAND(RECOVERY_VERSION),
                       "",
@@ -668,60 +653,6 @@ sdcard_directory(const char* path) {
 }
 
 static void
-wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title((const char**)headers);
-        }
-
-        char* items[] = { " No",
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-                          " Yes -- delete all user data",   // [1]
-#else
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-#endif
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-        if (chosen_item != 1) {
-#else
-        if (chosen_itme != 7) {
-#endif
-            return;
-        }
-    }
-
-    ui_print("\n-- Wiping data...\n");
-    device_wipe_data();
-    erase_volume("/data");
-    erase_volume("/cache");
-    if (has_datadata()) {
-        erase_volume("/datadata");
-    }
-#if TARGET_BOOTLOADER_BOARD_NAME != otter	// ToDo: make this check for the partition rather then the device
-    erase_volume("/sd-ext");
-#endif
-    erase_volume("/sdcard/.android_secure");
-    ui_print("%s\n", datawipecomplete);
-}
-
-static void
 prompt_and_wait() {
     char** headers = prepend_title((const char**)MENU_HEADERS);
 
@@ -751,26 +682,11 @@ prompt_and_wait() {
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
                 break;
-
             case ITEM_WIPE_CACHE:
-                if (confirm_selection("Confirm wipe?", "Yes - Wipe Cache"))
-                {
-                    ui_print("\n-- Wiping cache...\n");
-                    erase_volume("/cache");
-                    ui_print("%s\n", cachewipecomplete);
-                    if (!ui_text_visible()) return;
-                }
+			    erase_cache(0);
                 break;
 			case ITEM_WIPE_ALL:
-				if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
-				{
-					ui_print("\n-- Wiping system, data, cache...\n");
-					erase_volume("/system");
-					erase_volume("/data");
-					erase_volume("/cache");
-					ui_print("\nFull wipe complete!\n");
-					if (!ui_text_visible()) return;
-				}
+				wipe_all(0);
 				break;
             case ITEM_INSTALL_ZIP:
                 show_install_update_menu();
@@ -927,35 +843,9 @@ int run_script_file(void) {
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
-					if(ors_no_confirm || confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
-						ui_print("-- Wiping Cache Partition...\n");
-						erase_volume("/cache");
-						ui_print("-- Cache Partition Wipe Complete!\n");
-					} else {
-						ui_print("Skipping cache wipe...\n");
-					}
+					erase_cache(1);
 				} else if (strcmp(value, "dalvik") == 0 || strcmp(value, "dalvick") == 0 || strcmp(value, "dalvikcache") == 0 || strcmp(value, "dalvickcache") == 0) {
-					if (0 != ensure_path_mounted("/data")) {
-						ret_val = 1;
-						break;
-					}
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
-					ensure_path_mounted("/sd-ext");
-#endif
-					ensure_path_mounted("/cache");
-					if(ors_no_confirm || confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
-						ui_print("-- Wiping Dalvik Cache...\n");
-						__system("rm -r /data/dalvik-cache");
-						__system("rm -r /cache/dalvik-cache");
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
-						__system("rm -r /sd-ext/dalvik-cache");
-#endif
-						ui_print("Dalvik Cache wiped.\n");
-						ensure_path_unmounted("/data");
-						ui_print("-- Dalvik Cache Wipe Complete!\n");
-					} else {
-						ui_print("Skipping dalvik wipe...\n");
-					}
+					erase_dalvik_cache(1);
 				} else if (strcmp(value, "data") == 0 || strcmp(value, "/data") == 0 || strcmp(value, "factory") == 0 || strcmp(value, "factoryreset") == 0) {
 					if(ors_no_confirm || confirm_selection("Confirm wipe?", "Yes - Wipe Data")) {
 						ui_print("-- Wiping Data Partition...\n");

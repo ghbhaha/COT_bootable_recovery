@@ -21,6 +21,8 @@
 
 extern const char *DEFAULT_BACKUP_PATH;
 extern const char *USER_DEFINED_BACKUP_MARKER;
+extern char** prepend_title(char** headers);
+extern long tmplog_offset;
 
 // Initialize the graphics system.
 void ui_init();

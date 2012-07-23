@@ -48,6 +48,8 @@
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
 
+#include "eraseandformat.h"
+
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
 int script_assert_enabled = 1;
@@ -579,149 +581,6 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 #define TUNE2FS_BIN     "/sbin/tune2fs"
 #define E2FSCK_BIN      "/sbin/e2fsck"
 
-int format_device(const char *device, const char *path, const char *fs_type) {
-    Volume* v = volume_for_path(path);
-    if (v == NULL) {
-        // no /sdcard? let's assume /data/media
-        if (strstr(path, "/sdcard") == path && is_data_media()) {
-            return format_unknown_device(NULL, path, NULL);
-        }
-        // silent failure for sd-ext
-        if (strcmp(path, "/sd-ext") == 0)
-            return -1;
-        LOGE("unknown volume \"%s\"\n", path);
-        return -1;
-    }
-    if (strcmp(fs_type, "ramdisk") == 0) {
-        // you can't format the ramdisk.
-        LOGE("can't format_volume \"%s\"", path);
-        return -1;
-    }
-
-    if (strcmp(fs_type, "rfs") == 0) {
-        if (ensure_path_unmounted(path) != 0) {
-            LOGE("format_volume failed to unmount \"%s\"\n", v->mount_point);
-            return -1;
-        }
-        if (0 != format_rfs_device(device, path)) {
-            LOGE("format_volume: format_rfs_device failed on %s\n", device);
-            return -1;
-        }
-        return 0;
-    }
-
-    if (strcmp(v->mount_point, path) != 0) {
-        return format_unknown_device(v->device, path, NULL);
-    }
-
-    if (ensure_path_unmounted(path) != 0) {
-        LOGE("format_volume failed to unmount \"%s\"\n", v->mount_point);
-        return -1;
-    }
-
-    if (strcmp(fs_type, "yaffs2") == 0 || strcmp(fs_type, "mtd") == 0) {
-        mtd_scan_partitions();
-        const MtdPartition* partition = mtd_find_partition_by_name(device);
-        if (partition == NULL) {
-            LOGE("format_volume: no MTD partition \"%s\"\n", device);
-            return -1;
-        }
-
-        MtdWriteContext *write = mtd_write_partition(partition);
-        if (write == NULL) {
-            LOGW("format_volume: can't open MTD \"%s\"\n", device);
-            return -1;
-        } else if (mtd_erase_blocks(write, -1) == (off_t) -1) {
-            LOGW("format_volume: can't erase MTD \"%s\"\n", device);
-            mtd_write_close(write);
-            return -1;
-        } else if (mtd_write_close(write)) {
-            LOGW("format_volume: can't close MTD \"%s\"\n",device);
-            return -1;
-        }
-        return 0;
-    }
-
-    if (strcmp(fs_type, "ext4") == 0) {
-        int length = 0;
-        if (strcmp(v->fs_type, "ext4") == 0) {
-            // Our desired filesystem matches the one in fstab, respect v->length
-            length = v->length;
-        }
-        reset_ext4fs_info();
-        int result = make_ext4fs(device, length);
-        if (result != 0) {
-            LOGE("format_volume: make_extf4fs failed on %s\n", device);
-            return -1;
-        }
-        return 0;
-    }
-
-    return format_unknown_device(device, path, fs_type);
-}
-
-int format_unknown_device(const char *device, const char* path, const char *fs_type)
-{
-    LOGI("Formatting unknown device.\n");
-
-    if (fs_type != NULL && get_flash_type(fs_type) != UNSUPPORTED)
-        return erase_raw_partition(fs_type, device);
-
-    // if this is SDEXT:, don't worry about it if it does not exist.
-    if (0 == strcmp(path, "/sd-ext"))
-    {
-        struct stat st;
-        Volume *vol = volume_for_path("/sd-ext");
-        if (vol == NULL || 0 != stat(vol->device, &st))
-        {
-            ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
-            return 0;
-        }
-    }
-
-    if (NULL != fs_type) {
-        if (strcmp("ext3", fs_type) == 0) {
-            LOGI("Formatting ext3 device.\n");
-            if (0 != ensure_path_unmounted(path)) {
-                LOGE("Error while unmounting %s.\n", path);
-                return -12;
-            }
-            return format_ext3_device(device);
-        }
-
-        if (strcmp("ext2", fs_type) == 0) {
-            LOGI("Formatting ext2 device.\n");
-            if (0 != ensure_path_unmounted(path)) {
-                LOGE("Error while unmounting %s.\n", path);
-                return -12;
-            }
-            return format_ext2_device(device);
-        }
-    }
-
-    if (0 != ensure_path_mounted(path))
-    {
-        ui_print("%s %s!\n", mounterror, path);
-        ui_print("%s\n", skipformat);
-        return 0;
-    }
-
-    static char tmp[PATH_MAX];
-    if (strcmp(path, "/data") == 0) {
-        sprintf(tmp, "cd /data ; for f in $(ls -a | grep -v ^media$); do rm -rf $f; done");
-        __system(tmp);
-    }
-    else {
-        sprintf(tmp, "rm -rf %s/*", path);
-        __system(tmp);
-        sprintf(tmp, "rm -rf %s/.*", path);
-        __system(tmp);
-    }
-
-    ensure_path_unmounted(path);
-    return 0;
-}
-
 typedef struct {
     char mount[255];
     char unmount[255];
@@ -1108,17 +967,7 @@ void show_advanced_menu()
 			}
             case 1:
             {
-                if (0 != ensure_path_mounted("/data"))
-                    break;
-                ensure_path_mounted("/sd-ext");
-                ensure_path_mounted("/cache");
-                if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
-                    __system("rm -r /data/dalvik-cache");
-                    __system("rm -r /cache/dalvik-cache");
-                    __system("rm -r /sd-ext/dalvik-cache");
-                    ui_print("Dalvik Cache wiped.\n");
-                }
-                ensure_path_unmounted("/data");
+				erase_dalvik_cache(0);
                 break;
             }
             case 2:
