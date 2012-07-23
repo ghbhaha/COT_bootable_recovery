@@ -42,7 +42,7 @@
 #include "flashutils/flashutils.h"
 #include <libgen.h>
 
-#define LIMITED_SPACE 800
+#define LIMITED_SPACE 900
 
 void get_android_version(const char* backup_path)
 {
