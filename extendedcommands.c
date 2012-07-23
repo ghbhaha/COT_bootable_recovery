@@ -49,16 +49,8 @@
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
-int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 static const char *SDCARD_UPDATE_FILE = "/sdcard/update.zip";
-
-void
-toggle_signature_check()
-{
-    signature_check_enabled = !signature_check_enabled;
-    ui_print("%s %s\n", signaturecheck, signature_check_enabled ? enabled : disabled);
-}
 
 void toggle_script_asserts()
 {
@@ -141,20 +133,18 @@ void show_install_update_menu()
 {
 	#define ITEM_CHOOSE_ZIP       0
 	#define ITEM_APPLY_SDCARD     1
-	#define ITEM_SIG_CHECK        2
-	#define ITEM_ASSERTS          3
+	#define ITEM_ASSERTS          2
 
-	static char* INSTALL_MENU_ITEMS[5];
+	static char* INSTALL_MENU_ITEMS[4];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
 	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
-	INSTALL_MENU_ITEMS[2] = ziptogglesig;
-	INSTALL_MENU_ITEMS[3] = ziptoggleasserts;
-	INSTALL_MENU_ITEMS[4] = NULL;
+	INSTALL_MENU_ITEMS[2] = ziptoggleasserts;
+	INSTALL_MENU_ITEMS[3] = NULL;
 
     static char* headers[2];
 	headers[0] = zipinstallheader;
 	headers[1] = "\n";
-	headers[2] = NULL;
+    headers[2] = NULL;
 
     for (;;)
     {
@@ -163,9 +153,6 @@ void show_install_update_menu()
         {
             case ITEM_ASSERTS:
                 toggle_script_asserts();
-                break;
-            case ITEM_SIG_CHECK:
-                toggle_signature_check();
                 break;
             case ITEM_APPLY_SDCARD:
             {

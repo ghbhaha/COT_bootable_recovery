@@ -37,6 +37,7 @@
 #include "legacy.h"
 
 #include "extendedcommands.h"
+#include "settingshandler.h"
 
 
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
