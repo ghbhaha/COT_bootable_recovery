@@ -77,10 +77,11 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_ORS_REBOOT    1
     #define SETTINGS_ITEM_ORS_WIPE      2
     #define SETTINGS_ITEM_NAND_PROMPT   3
-    #define SETTINGS_ITEM_LANGUAGE      4
-    #define SETTINGS_ITEM_DEV_OPTIONS   5
+    #define SETTINGS_ITEM_SIGCHECK      4
+    #define SETTINGS_ITEM_LANGUAGE      5
+    #define SETTINGS_ITEM_DEV_OPTIONS   6
 
-    static char* list[6];
+    static char* list[7];
 
     list[0] = "Theme";
     if (orsreboot == 1) {
@@ -98,8 +99,13 @@ void show_settings_menu() {
 	} else {
 		list[3] = "Enable zip flash nandroid prompt";
 	}
-    list[4] = "Language";
-    list[5] = NULL;
+	if (signature_check_enabled == 1) {
+		list[4] = "Disable md5 signature check";
+	} else {
+		list[4] = "Enable md5 signature check";
+	}
+    list[5] = "Language";
+    list[6] = NULL;
 
     for (;;) {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -180,6 +186,19 @@ void show_settings_menu() {
 				}
 				break;
             }
+            case SETTINGS_ITEM_SIGCHECK:
+            {
+				if (signature_check_enabled == 1) {
+					ui_print("Disabling md5 signature check.\n");
+					list[4] = "Enable md5 signature check";
+					signature_check_enabled = 0;
+				} else {
+					ui_print("Enabling md5 signature check.\n");
+					list[4] = "Disable md5 signature check";
+					signature_check_enabled = 1;
+				}
+				break;
+			}
             case SETTINGS_ITEM_LANGUAGE:
             {
                 static char* lang_list[] = {"English",

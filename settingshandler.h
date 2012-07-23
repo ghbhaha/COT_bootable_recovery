@@ -26,6 +26,7 @@ int theme_handler(void* user, const char* section, const char* name, const char*
 extern int backupprompt;
 extern int orswipeprompt;
 extern int orsreboot;
+extern int signature_check_enabled;
 extern char* currenttheme;
 extern char* language;
 

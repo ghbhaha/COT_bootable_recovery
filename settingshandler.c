@@ -63,6 +63,7 @@ COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
 int backupprompt = 0;
 int orswipeprompt = 0;
 int orsreboot = 0;
+int signature_check_enabled = 0;
 char* currenttheme;
 char* language;
 
@@ -71,6 +72,7 @@ typedef struct {
     int orsreboot;
     int orswipeprompt;
     int backupprompt;
+    int signature_check_enabled;
     char* language;
 } settings;
 
@@ -95,7 +97,9 @@ int settings_handler(void* user, const char* section, const char* name,
         pconfig->orswipeprompt = atoi(value);
     } else if (MATCH("settings", "backupprompt")) {
         pconfig->backupprompt = atoi(value);
-    } else if (MATCH("settings", "language")) {
+    } else if (MATCH("settings", "signature_check_enabled")) {
+		pconfig->signature_check_enabled = atoi(value);
+	} else if (MATCH("settings", "language")) {
         pconfig->language = strdup(value);
     } else {
         return 0;
@@ -142,6 +146,7 @@ void create_default_settings(void) {
     "ORSReboot = 0 ;\n"
     "ORSWipePrompt = 1 ;\n"
     "BackupPrompt = 1 ;\n"
+    "SignatureCheckEnabled = 1 ;\n"
     "Language = en ;\n"
     "\n");
     fclose(ini);
@@ -150,7 +155,7 @@ void create_default_settings(void) {
 void update_cot_settings(void) {
     FILE    *   ini ;
 	ini = fopen_path(COTSETTINGS, "w");
-	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, language);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %s ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, language);
     fclose(ini);
     parse_settings();
 }
@@ -168,6 +173,7 @@ void parse_settings() {
     orsreboot = config.orsreboot;
     orswipeprompt = config.orswipeprompt;
     backupprompt = config.backupprompt;
+    signature_check_enabled = config.signature_check_enabled;
 	currenttheme = config.theme;
     language = config.language;
 	parse_language();
