@@ -156,6 +156,13 @@ const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackup
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
+// Ensure a directory exists
+void ensure_directory(const char* dir) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "mkdir -p %s", dir);
+    __system(tmp);
+}
+
 // open a given path, mounting partitions as necessary
 FILE*
 fopen_path(const char *path, const char *mode) {
@@ -674,11 +681,28 @@ wipe_data(int confirm) {
         }
 
         char* items[] = { " No",
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
                           " Yes -- delete all user data",   // [1]
+#else
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " Yes -- delete all user data",   // [7]
+                          " No",
+                          " No",
+                          " No",
+#endif
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
         if (chosen_item != 1) {
+#else
+        if (chosen_itme != 7) {
+#endif
             return;
         }
     }
@@ -690,7 +714,9 @@ wipe_data(int confirm) {
     if (has_datadata()) {
         erase_volume("/datadata");
     }
+#if TARGET_BOOTLOADER_BOARD_NAME != otter	// ToDo: make this check for the partition rather then the device
     erase_volume("/sd-ext");
+#endif
     erase_volume("/sdcard/.android_secure");
     ui_print("%s\n", datawipecomplete);
 }
@@ -870,18 +896,26 @@ int run_script_file(void) {
 				ui_print("command is: '%s' and there is no value\n", command);
 			}
 			if (strcmp(command, "install") == 0) {
-				// Install zip
+				// Install zip -- ToDo : Need to clean this shit up, it's redundant and I know it can be written better
 				ui_print("Installing zip file '%s'\n", value);
 				if (signature_check_enabled) {
 					i = check_package_signature(value);
-					if(i == INSTALL_CORRUPT && confirm_selection("Confirm install?","Yes - Failed Signature Check!")) {
-						ret_val = install_zip(value, 1);
-						if(ret_val != INSTALL_SUCCESS) {
+					if(i == INSTALL_CORRUPT) {
+						if(confirm_selection("Confirm install?","Install - Failed Signature Check!")) {
+							ret_val = install_zip(value, 1);
+							if(ret_val != INSTALL_SUCCESS) {
+								LOGE("Error installing zip file '%s'\n", value);
+								ret_val = 1;
+							}
+						} else {
+							ui_print("Skipping package installation...\n");
+						}
+					} else {
+						ret_val = install_zip(value, 0);
+						if (ret_val != INSTALL_SUCCESS) {
 							LOGE("Error installing zip file '%s'\n", value);
 							ret_val = 1;
 						}
-					} else {
-						ui_print("Skipping package installation...\n");
 					}
 				} else {
 					ret_val = install_zip(value, 0);
@@ -891,7 +925,7 @@ int run_script_file(void) {
 					}
 				}
 			} else if (strcmp(command, "wipe") == 0) {
-				// Wipe
+				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
 					if(ors_no_confirm || confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
 						ui_print("-- Wiping Cache Partition...\n");
@@ -905,13 +939,17 @@ int run_script_file(void) {
 						ret_val = 1;
 						break;
 					}
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 					ensure_path_mounted("/sd-ext");
+#endif
 					ensure_path_mounted("/cache");
 					if(ors_no_confirm || confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
 						ui_print("-- Wiping Dalvik Cache...\n");
 						__system("rm -r /data/dalvik-cache");
 						__system("rm -r /cache/dalvik-cache");
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 						__system("rm -r /sd-ext/dalvik-cache");
+#endif
 						ui_print("Dalvik Cache wiped.\n");
 						ensure_path_unmounted("/data");
 						ui_print("-- Dalvik Cache Wipe Complete!\n");
@@ -957,7 +995,6 @@ int run_script_file(void) {
 				}
 				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
 				nandroid_backup(backup_path);
-				ui_print("Backup complete!\n");
 			} else if (strcmp(command, "restore") == 0) {
 				// Restore
 				tok = strtok(value, " ");
@@ -1038,7 +1075,7 @@ int run_script_file(void) {
 				*/
 			} else if (strcmp(command, "mkdir") == 0) {
 				// Make directory (recursive)
-				ui_print("Recursive mkdir disabledin CWMR: '%s'\n", value);
+				ensure_directory(value); // Untested from ORS
 			} else if (strcmp(command, "reboot") == 0) {
 				// Reboot
 				ui_print("Reboot command found...\n");
@@ -1059,7 +1096,7 @@ int run_script_file(void) {
 		}
 		fclose(fp);
 		ui_print("Done processing script file\n");
-		if(orsreboot == 1) {
+		if(ret_val != 1 && orsreboot == 1) {
 			if(is_path_mounted("sdcard/"))
 				ensure_path_unmounted("sdcard/");
 			delayed_reboot();
