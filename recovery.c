@@ -155,6 +155,13 @@ const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackup
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
+// Ensure a directory exists
+void ensure_directory(const char* dir) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "mkdir -p %s", dir);
+    __system(tmp);
+}
+
 // open a file given in root:path format, mounting partitions as necessary
 static FILE*
 fopen_root_path(const char *root_path, const char *mode) {
@@ -978,7 +985,7 @@ int run_script_file(void) {
 					ret_val = 1;
 				}
 			} else if (strcmp(command, "wipe") == 0) {
-				// Wipe
+				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
 					if(ors_no_confirm || confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
 						ui_print("-- Wiping Cache Partition...\n");
@@ -1044,7 +1051,6 @@ int run_script_file(void) {
 				}
 				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
 				nandroid_backup(backup_path);
-				ui_print("Backup complete!\n");
 			} else if (strcmp(command, "restore") == 0) {
 				// Restore
 				tok = strtok(value, " ");
@@ -1125,7 +1131,7 @@ int run_script_file(void) {
 				*/
 			} else if (strcmp(command, "mkdir") == 0) {
 				// Make directory (recursive)
-				ui_print("Recursive mkdir disabledin CWMR: '%s'\n", value);
+				ensure_directory(value); // Untested from ORS
 			} else if (strcmp(command, "reboot") == 0) {
 				// Reboot
 				ui_print("Reboot command found...\n");
@@ -1146,7 +1152,7 @@ int run_script_file(void) {
 		}
 		fclose(fp);
 		ui_print("Done processing script file\n");
-		if(orsreboot == 1) {
+		if(ret_val != 1 && orsreboot == 1) {
 			if(is_path_mounted("sdcard/"))
 				ensure_path_unmounted("sdcard/");
 			delayed_reboot();

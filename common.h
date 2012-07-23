@@ -120,6 +120,9 @@ void ui_reset_progress();
 // Redraw the entire screen for the purpose of resetting our icons
 void ui_reset_icons();
 
+// Ensure the presence of a given dir by creating it
+void ensure_directory(const char* dir);
+
 #define LOGE(...) ui_print("E:" __VA_ARGS__)
 #define LOGW(...) fprintf(stdout, "W:" __VA_ARGS__)
 #define LOGI(...) fprintf(stdout, "I:" __VA_ARGS__)

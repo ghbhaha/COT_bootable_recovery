@@ -30,7 +30,6 @@
 
 #include "flashutils/flashutils.h"
 #include "extendedcommands.h"
-//#include "extracommands.h"
 
 /* Canonical pointers.
 xxx may just want to use enums
