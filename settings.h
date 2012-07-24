@@ -23,7 +23,6 @@ extern int UI_COLOR_DEBUG;
 
 int UICOLOR0, UICOLOR1, UICOLOR2, UITHEME;
 
-void set_ui_color(int i);
 void show_settings_menu();
 void show_ors_reboot_menu();
 void show_ors_nandroid_prompt_menu();
