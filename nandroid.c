@@ -102,7 +102,7 @@ void nandroid_get_backup_path(const char* backup_path)
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
 	nandroid_get_backup_path(backup_path);
-	get_android_version(backup_path);
+	//get_android_version(backup_path);
     time_t t = time(NULL);
     struct tm *bktime = localtime(&t);
     char tmp[PATH_MAX];

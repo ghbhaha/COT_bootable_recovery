@@ -27,6 +27,7 @@ LOCAL_SRC_FILES := \
     settingshandler_lang.c \
     settingshandler.c \
     settings.c \
+	power.c \
     iniparse/ini.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
@@ -38,7 +39,7 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_NAME := Cannibal Open Touch
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v1.2.1
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.9.99
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2

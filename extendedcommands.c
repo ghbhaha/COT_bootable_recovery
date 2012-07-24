@@ -135,11 +135,10 @@ void show_install_update_menu()
 	#define ITEM_APPLY_SDCARD     1
 	#define ITEM_ASSERTS          2
 
-	static char* INSTALL_MENU_ITEMS[4];
+	static char* INSTALL_MENU_ITEMS[3];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
 	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
-	INSTALL_MENU_ITEMS[2] = ziptoggleasserts;
-	INSTALL_MENU_ITEMS[3] = NULL;
+	INSTALL_MENU_ITEMS[2] = NULL;
 
     static char* headers[2];
 	headers[0] = zipinstallheader;
@@ -151,9 +150,11 @@ void show_install_update_menu()
         int chosen_item = get_menu_selection(headers, INSTALL_MENU_ITEMS, 0, 0);
         switch (chosen_item)
         {
-            case ITEM_ASSERTS:
+            /*
+			case ITEM_ASSERTS:
                 toggle_script_asserts();
                 break;
+			*/
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection(installconfirm, yesinstallupdate))
@@ -576,10 +577,12 @@ int confirm_selection(const char* title, const char* confirm)
     if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
-    char* confirm_headers[1];
-	confirm_headers[0] = wipedataheader2;
+    static char* confirm_headers[3];
+	confirm_headers[0] = title;
+	confirm_headers[1] = wipedataheader2;
+	confirm_headers[2] = NULL;
 
-    char* items[11];
+    static char* items[11];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -598,10 +601,11 @@ int confirm_selection(const char* title, const char* confirm)
 
 int confirm_nandroid_backup(const char* title, const char* confirm)
 {
-    char* confirm_headers[1];
+    static char* confirm_headers[1];
 	confirm_headers[0] = recommended;
+	confirm_headers[1] = NULL;
 
-    char* items[12];    
+    static char* items[11];    
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -801,24 +805,24 @@ void show_partition_menu()
 
     typedef char* string;
     string mounts[MOUNTABLE_COUNT][3] = {
-        { "mount /system", "unmount /system", "SYSTEM:" },
-        { "mount /data", "unmount /data", "DATA:" },
-        { "mount /cache", "unmount /cache", "CACHE:" },
-        { "mount /sdcard", "unmount /sdcard", "SDCARD:" },
-        { "mount /sd-ext", "unmount /sd-ext", "SDEXT:" }
+        { "Mount /system", "Unmount /system", "SYSTEM:" },
+        { "Mount /data", "Unmount /data", "DATA:" },
+        { "Mount /cache", "Unmount /cache", "CACHE:" },
+        { "Mount /sdcard", "Unmount /sdcard", "SDCARD:" },
+        { "Mount /sd-ext", "Unmount /sd-ext", "SDEXT:" }
         };
 	
 
     string mtds[MTD_COUNT][2] = {
-        { "format boot", "BOOT:" },
-        { "format system", "SYSTEM:" },
-        { "format data", "DATA:" },
-        { "format cache", "CACHE:" },
+        { "Erase boot", "BOOT:" },
+        { "Erase system", "SYSTEM:" },
+        { "Erase data", "DATA:" },
+        { "Erase cache", "CACHE:" },
     };
 
     string mmcs[MMC_COUNT][3] = {
-      { "format sdcard", "SDCARD:" },
-      { "format sd-ext", "SDEXT:" }
+      { "Erase sdcard", "SDCARD:" },
+      { "Erase sd-ext", "SDEXT:" }
     };
 
     static char* confirm_format  = "Confirm format?";
@@ -828,7 +832,7 @@ void show_partition_menu()
     {
         int ismounted[MOUNTABLE_COUNT];
         int i;
-        static string options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1]; // mountables, format mtds, format mmcs, usb storage, null
+        static string options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1 + 1 + 1]; // mountables, format mtds, format mmcs, wipe dalvik, usb storage, sd part, null
         for (i = 0; i < MOUNTABLE_COUNT; i++)
         {
             ismounted[i] = is_root_path_mounted(mounts[i][2]);
@@ -845,15 +849,75 @@ void show_partition_menu()
             options[MOUNTABLE_COUNT + MTD_COUNT + i] = mmcs[i][0];
         }
 
-        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT] = usbmsmount;
-        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1] = NULL;
+        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT] = "Erase dalvik-cache";
+		options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1] = usbmsmount;
+		options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1] = "Partition SD Card";
+        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1 + 1] = NULL;
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
-        if (chosen_item == MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT)
+		if (chosen_item == MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT)
+		{
+			if (0 != ensure_path_mounted("/data"))
+                    break;
+            ensure_path_mounted("/sd-ext");
+            ensure_path_mounted("/cache");
+            if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+                __system("rm -r /data/dalvik-cache");
+                __system("rm -r /cache/dalvik-cache");
+                __system("rm -r /sd-ext/dalvik-cache");
+                ui_print("Dalvik Cache wiped.\n");
+            }
+            ensure_path_unmounted("/data");
+			break;
+		}
+        else if (chosen_item == MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1)
         {
             show_mount_usb_storage_menu();
+        }
+		else if (chosen_item == MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1)
+        {
+                static char* ext_sizes[] = { "128M",
+                                             "256M",
+                                             "512M",
+                                             "1024M",
+                                             "2048M",
+                                             "4096M",
+                                             NULL };
+
+                static char* swap_sizes[] = { "0M",
+                                              "32M",
+                                              "64M",
+                                              "128M",
+                                              "256M",
+                                              NULL };
+
+                static char* ext_headers[] = { "Ext Size", "", NULL };
+                static char* swap_headers[] = { "Swap Size", "", NULL };
+
+                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
+                if (ext_size == GO_BACK)
+                    continue;
+
+                int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
+                if (swap_size == GO_BACK)
+                    continue;
+
+                char sddevice[256];
+                Volume *vol = volume_for_path("/sdcard");
+                strcpy(sddevice, vol->device);
+                // we only want the mmcblk, not the partition
+                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+                char cmd[PATH_MAX];
+                setenv("SDPATH", sddevice, 1);
+                sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
+                ui_print("Partitioning SD Card... please wait...\n");
+                if (0 == __system(cmd))
+                    ui_print("Done!\n");
+                else
+                    ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
+                break;
         }
         else if (chosen_item < MOUNTABLE_COUNT)
         {
@@ -1042,11 +1106,11 @@ void show_nandroid_menu()
                                 NULL
     };
 
-    static char* list[] = { "backup",
-                            "restore",
-                            "advanced backup",
-                            "advanced restore",
-                            "delete old backups",
+    static char* list[] = { "Backup",
+                            "Restore",
+                            "Advanced Backup",
+                            "Advanced Restore",
+                            "Delete old backups",
                             NULL
     };
 
@@ -1080,182 +1144,6 @@ void show_nandroid_menu()
 				return;
 		}
 	}
-}
-
-void show_advanced_debugging_menu()
-{
-	static char* headers[] = { "Debugging Options",
-								"",
-								NULL
-	};
-
-	static char* list[] = { "Fix Permissions",
-							"Fix Recovery Boot Loop",
-							"Report Error",
-							"Key Test",
-							"Show log",
-							"Toggle UI Debugging",
-							NULL
-	};
-
-	for (;;)
-	{
-		int chosen_item = get_menu_selection(headers, list, 0, 0);
-		if(chosen_item == GO_BACK)
-			break;
-		switch(chosen_item)
-		{
-			case 0:
-			{
-				ensure_path_mounted("/system");
-				ensure_path_mounted("/data");
-				ui_print("Fixing permissions...\n");
-				__system("fix_permissions");
-				ui_print("Done!\n");
-				break;
-			}
-			case 1:
-			{
-				format_root_device("MISC:");
-				format_root_device("PERSIST:");
-				reboot(RB_AUTOBOOT);
-				break;
-			}
-			case 2:
-				handle_failure(1);
-				break;
-			case 3:
-			{
-				ui_print("Outputting key codes.\n");
-				ui_print("Go back to end debugging.\n");
-				struct keyStruct{
-					int code;
-					int x;
-					int y;
-				}*key;
-				int action;
-				do
-				{
-					key = ui_wait_key();
-					if(key->code == ABS_MT_POSITION_X)
-					{
-						action = device_handle_mouse(key, 1);
-						ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
-					}
-					else
-					{
-						action = device_handle_key(key->code, 1);
-						ui_print("Key: %x\n", key->code);
-					}
-				}
-				while (action != GO_BACK);
-				break;
-			}
-			case 4:
-				ui_printlogtail(12);
-				break;
-			case 5:
-				toggle_ui_debugging();
-				break;
-		}
-	}
-}
-
-void show_advanced_menu()
-{
-    static char* headers[] = {  "Advanced Options",
-                                "",
-                                NULL
-    };
-
-    static char* list[] = { "Reboot Recovery",
-                            "Wipe Dalvik Cache",
-#ifndef BOARD_HAS_SMALL_RECOVERY
-							"Partition SD Card",
-#endif
-							"COT Settings",
-							"Debugging Options",
-                            NULL
-    };
-
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-            case 0:
-                reboot_wrapper("recovery");
-                break;
-            case 1:
-            {
-                if (0 != ensure_path_mounted("/data"))
-                    break;
-                ensure_path_mounted("/sd-ext");
-                ensure_path_mounted("/cache");
-                if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
-                    __system("rm -r /data/dalvik-cache");
-                    __system("rm -r /cache/dalvik-cache");
-                    __system("rm -r /sd-ext/dalvik-cache");
-                    ui_print("Dalvik Cache wiped.\n");
-                }
-                ensure_path_unmounted("/data");
-                break;
-            }
-            case 2:
-            {
-                static char* ext_sizes[] = { "128M",
-                                             "256M",
-                                             "512M",
-                                             "1024M",
-                                             "2048M",
-                                             "4096M",
-                                             NULL };
-
-                static char* swap_sizes[] = { "0M",
-                                              "32M",
-                                              "64M",
-                                              "128M",
-                                              "256M",
-                                              NULL };
-
-                static char* ext_headers[] = { "Ext Size", "", NULL };
-                static char* swap_headers[] = { "Swap Size", "", NULL };
-
-                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
-                if (ext_size == GO_BACK)
-                    continue;
-
-                int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
-                if (swap_size == GO_BACK)
-                    continue;
-
-                char sddevice[256];
-                Volume *vol = volume_for_path("/sdcard");
-                strcpy(sddevice, vol->device);
-                // we only want the mmcblk, not the partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
-                char cmd[PATH_MAX];
-                setenv("SDPATH", sddevice, 1);
-                sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-                ui_print("Partitioning SD Card... please wait...\n");
-                if (0 == __system(cmd))
-                    ui_print("Done!\n");
-                else
-                    ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
-                break;
-			}
-			case 3:
-			    show_settings_menu();
-                break;
-			case 4:
-				show_advanced_debugging_menu();
-				break;
-			default:
-				return;
-        }
-    }
 }
 
 void write_fstab_root(char *root_path, FILE *file)

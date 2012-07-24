@@ -60,6 +60,8 @@
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
 
+#define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
+
 int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
@@ -67,44 +69,165 @@ int UITHEME = 0;
 
 int UI_COLOR_DEBUG = 0;
 
+void show_cot_options_menu() {
+    static char* headers[] = { "COT Options",
+                                "",
+                                NULL
+    };
+
+	#define COT_OPTIONS_ITEM_QUICKFIXES	0
+	#define COT_OPTIONS_ITEM_RECDEBUG	1
+	#define COT_OPTIONS_ITEM_SETTINGS	2
+
+	static char* list[4];
+	list[0] = "Quick Fixes";
+	list[1] = "Recovery Debugging";
+	list[2] = "COT Settings";
+	list[3] = NULL;
+	for (;;) {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+		switch (chosen_item) {
+			case GO_BACK:
+				return;
+			case COT_OPTIONS_ITEM_QUICKFIXES:
+			{
+				static char* fixes_headers[3];
+				fixes_headers[0] = "Quick Fixes";
+				fixes_headers[1] = "\n";
+				fixes_headers[2] = NULL;
+				static char* fixes_list[2];
+				fixes_list[0] = "Fix Recovery Boot Loop";
+				fixes_list[1] = NULL;
+				int chosen_fix = get_menu_selection(fixes_headers, fixes_list, 0, 0);
+				switch (chosen_fix) {
+					case GO_BACK:
+						continue;
+					case 0:
+						format_root_device("MISC:");
+						format_root_device("PERSIST:");
+						reboot(RB_AUTOBOOT);
+						break;
+				}
+			}
+			case COT_OPTIONS_ITEM_RECDEBUG:
+				show_recovery_debugging_menu();
+				break;
+			case COT_OPTIONS_ITEM_SETTINGS:
+				show_settings_menu();
+				break;
+		}
+	}
+}
+
+void show_recovery_debugging_menu()
+{
+	static char* headers[] = { "Recovery Debugging",
+								"",
+								NULL
+	};
+
+	static char* list[] = { "Fix Permissions",
+							"Report Error",
+							"Key Test",
+							"Show log",
+							"Toggle UI Debugging",
+							NULL
+	};
+
+	for (;;)
+	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+		if(chosen_item == GO_BACK)
+			break;
+		switch(chosen_item)
+		{
+			case 0:
+			{
+				ensure_path_mounted("/system");
+				ensure_path_mounted("/data");
+				ui_print("Fixing permissions...\n");
+				__system("fix_permissions");
+				ui_print("Done!\n");
+				break;
+			}
+			case 1:
+				handle_failure(1);
+				break;
+			case 2:
+			{
+				ui_print("Outputting key codes.\n");
+				ui_print("Go back to end debugging.\n");
+				struct keyStruct{
+					int code;
+					int x;
+					int y;
+				}*key;
+				int action;
+				do
+				{
+					key = ui_wait_key();
+					if(key->code == ABS_MT_POSITION_X)
+					{
+						action = device_handle_mouse(key, 1);
+						ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
+					}
+					else
+					{
+						action = device_handle_key(key->code, 1);
+						ui_print("Key: %x\n", key->code);
+					}
+				}
+				while (action != GO_BACK);
+				break;
+			}
+			case 3:
+				ui_printlogtail(12);
+				break;
+			case 4:
+				toggle_ui_debugging();
+				break;
+		}
+	}
+}
+
 void show_settings_menu() {
     static char* headers[] = { "COT Settings",
                                 "",
                                 NULL
     };
 
-    #define SETTINGS_ITEM_THEME         0
-    #define SETTINGS_ITEM_ORS_REBOOT    1
-    #define SETTINGS_ITEM_ORS_WIPE      2
-    #define SETTINGS_ITEM_NAND_PROMPT   3
-    #define SETTINGS_ITEM_SIGCHECK      4
-    #define SETTINGS_ITEM_LANGUAGE      5
+    #define SETTINGS_ITEM_LANGUAGE      0
+    #define SETTINGS_ITEM_THEME         1
+    #define SETTINGS_ITEM_ORS_REBOOT    2
+    #define SETTINGS_ITEM_ORS_WIPE      3
+    #define SETTINGS_ITEM_NAND_PROMPT   4
+    #define SETTINGS_ITEM_SIGCHECK      5
     #define SETTINGS_ITEM_DEV_OPTIONS   6
 
     static char* list[7];
 
-    list[0] = "Theme";
+    list[0] = "Language";
+    list[1] = "Theme";
     if (orsreboot == 1) {
-		list[1] = "Disable forced reboots";
+		list[2] = "Disable forced reboots";
 	} else {
-		list[1] = "Enable forced reboots";
+		list[2] = "Enable forced reboots";
 	}
 	if (orswipeprompt == 1) {
-		list[2] = "Disable wipe prompt";
+		list[3] = "Disable wipe prompt";
 	} else {
-		list[2] = "Enable wipe prompt";
+		list[3] = "Enable wipe prompt";
 	}
 	if (backupprompt == 1) {
-		list[3] = "Disable zip flash nandroid prompt";
+		list[4] = "Disable zip flash nandroid prompt";
 	} else {
-		list[3] = "Enable zip flash nandroid prompt";
+		list[4] = "Enable zip flash nandroid prompt";
 	}
 	if (signature_check_enabled == 1) {
-		list[4] = "Disable md5 signature check";
+		list[5] = "Disable md5 signature check";
 	} else {
-		list[4] = "Enable md5 signature check";
+		list[5] = "Enable md5 signature check";
 	}
-    list[5] = "Language";
     list[6] = NULL;
 
     for (;;) {
