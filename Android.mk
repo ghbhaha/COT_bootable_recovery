@@ -17,6 +17,7 @@ LOCAL_SRC_FILES := \
     verifier.c \
     encryptedfs_provisioning.c \
     mounts.c \
+    eraseandformat.c \
     extendedcommands.c \
     nandroid.c \
     legacy.c \

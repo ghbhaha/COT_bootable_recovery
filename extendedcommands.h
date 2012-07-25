@@ -22,9 +22,6 @@ void
 show_nandroid_menu();
 
 void
-show_partition_menu();
-
-void
 show_choose_zip_menu();
 
 int
@@ -35,8 +32,6 @@ __system(const char *command);
 
 void
 show_advanced_menu();
-
-int format_unknown_device(const char *device, const char* path, const char *fs_type);
 
 void
 wipe_battery_stats();
