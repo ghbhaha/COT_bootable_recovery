@@ -22,15 +22,14 @@
 
 char* MENU_HEADERS[] = { NULL };
 
-char* MENU_ITEMS[] = { "reboot system now",
-                       "wipe data/factory reset",
-                       "wipe cache partition",
-		       "wipe system, data, cache",
-                       "install zip from sdcard",
-                       "backup and restore",
-                       "mounts and storage",
-                       "advanced",
-                       "power off",
+char* MENU_ITEMS[] = { "Boot Android",
+                       "Factory Reset",
+					   "Pre-flash Wipe",
+                       "ZIP Flashing",
+                       "Nandroid",
+                       "Partition Management",
+                       "COT Options",
+                       "Power Options",
                        NULL };
 
 int device_recovery_start() {

@@ -19,8 +19,12 @@ void erase_cache(int orscallback);
 
 void erase_dalvik_cache(int orscallback);
 
+void show_partition_menu();
+
 void wipe_all(int orscallback);
 
 int erase_volume(const char *volume);
 
 int format_device(const char *device, const char *path, const char *fs_type);
+
+int format_non_mtd_device(const char* root);

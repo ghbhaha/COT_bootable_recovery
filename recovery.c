@@ -43,6 +43,7 @@
 #include "settings.h"
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
+#include "power.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
@@ -682,9 +683,6 @@ prompt_and_wait() {
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
                 break;
-            case ITEM_WIPE_CACHE:
-			    erase_cache(0);
-                break;
 			case ITEM_WIPE_ALL:
 				wipe_all(0);
 				break;
@@ -697,12 +695,13 @@ prompt_and_wait() {
             case ITEM_PARTITION:
                 show_partition_menu();
                 break;
-            case ITEM_ADVANCED:
-                show_advanced_menu();
+            case ITEM_COTOPTIONS:
+                show_cot_options_menu();
                 break;
-            case ITEM_POWEROFF:
-                poweroff=1;
-                return;
+            case ITEM_POWEROPTIONS:
+                //poweroff=1;
+				show_power_options_menu();
+                break;
         }
     }
 }

@@ -38,6 +38,7 @@
 #include "common.h"
 #include "cutils/properties.h"
 #include "roots.h"
+#include "recovery_ui.h"
 
 #include "extendedcommands.h"
 #include "nandroid.h"
@@ -316,4 +317,234 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 
     ensure_path_unmounted(path);
     return 0;
+}
+#define MKE2FS_BIN      "/sbin/mke2fs"
+#define TUNE2FS_BIN     "/sbin/tune2fs"
+#define E2FSCK_BIN      "/sbin/e2fsck"
+
+typedef struct {
+    char mount[255];
+    char unmount[255];
+    Volume* v;
+} MountMenuEntry;
+
+typedef struct {
+    char txt[255];
+    Volume* v;
+} FormatMenuEntry;
+
+int is_safe_to_format(char* name)
+{
+    char str[255];
+    char* partition;
+    /* Add /sdcard here because formatting it could cause issues, espescially
+     * for dual boot systems also removing splash, haven't tested it but just
+     * to be safe we'll pull it, if someone wants to format their splash and
+     * confirm it's safe I'll add it back in. */
+    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs,/sdcard,/splash");
+    partition = strtok(str, ", ");
+    while (partition != NULL) {
+        if (strcmp(name, partition) == 0) {
+            return 0;
+        }
+        partition = strtok(NULL, ", ");
+    }
+
+    return 1;
+}
+
+/* While this really shouldn't be neccessary in the fact that mounting
+ * something shouldn't normally be dangerous. However unmounting the
+ * sdcard does create issues, subsequently both it and splash are being
+ * removed as listed in above notes */
+int is_safe_to_mount(char* name) {
+	char str[255];
+	char* partition;
+	property_get("ro.ing.forbid_mount", str, "/sdcard,/splash");
+	
+	partition = strtok(str, ", ");
+	while (partition != NULL) {
+		if (strcmp(name, partition) == 0) {
+			return 0;
+		}
+		partition = strtok(NULL, ", ");
+	}
+	
+	return 1;
+}
+
+void show_partition_menu()
+{
+    static char* headers[3];
+	headers[0] = showpartitionheader;
+	headers[1] = "\n";
+	headers[2] = NULL;
+
+    static MountMenuEntry* mount_menue = NULL;
+    static FormatMenuEntry* format_menue = NULL;
+
+    typedef char* string;
+
+    int i, mountable_volumes, formatable_volumes;
+    int num_volumes;
+    Volume* device_volumes;
+
+    num_volumes = get_num_volumes();
+    device_volumes = get_device_volumes();
+
+    string options[255];
+
+    if(!device_volumes)
+		return;
+
+		mountable_volumes = 0;
+		formatable_volumes = 0;
+
+		mount_menue = malloc(num_volumes * sizeof(MountMenuEntry));
+		format_menue = malloc(num_volumes * sizeof(FormatMenuEntry));
+
+		for (i = 0; i < num_volumes; ++i) {
+  			Volume* v = &device_volumes[i];
+  			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
+					if (is_safe_to_mount(v->mount_point)) {
+						sprintf(&mount_menue[mountable_volumes].mount, "Mount %s", v->mount_point);
+						sprintf(&mount_menue[mountable_volumes].unmount, "Unmount %s", v->mount_point);
+						mount_menue[mountable_volumes].v = &device_volumes[i];
+						++mountable_volumes;
+					}
+    				if (is_safe_to_format(v->mount_point)) {
+      					sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
+      					format_menue[formatable_volumes].v = &device_volumes[i];
+      					++formatable_volumes;
+    				}
+  		  }
+  		  else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
+  		  {
+    				sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
+    				format_menue[formatable_volumes].v = &device_volumes[i];
+    				++formatable_volumes;
+  			}
+		}
+
+
+    static char* confirm_format  = "Confirm format?";
+    static char* confirm = "Yes - Format";
+    char confirm_string[255];
+
+    for (;;)
+    {
+		for (i = 0; i < mountable_volumes; i++)
+		{
+			MountMenuEntry* e = &mount_menue[i];
+			Volume* v = e->v;
+			if(is_path_mounted(v->mount_point))
+				options[i] = e->unmount;
+			else
+				options[i] = e->mount;
+		}
+
+		for (i = 0; i < formatable_volumes; i++)
+		{
+			FormatMenuEntry* e = &format_menue[i];
+
+			options[mountable_volumes+i] = e->txt;
+		}
+
+		options[mountable_volumes+formatable_volumes] = "Erase dalvik-cache";
+		options[mountable_volumes+formatable_volumes + 1] = usbmsmount;
+		options[mountable_volumes+formatable_volumes + 1 + 1] = "Partition SD Card";
+		options[mountable_volumes+formatable_volumes + 1 + + 1] = NULL;
+
+        int chosen_item = get_menu_selection(headers, &options, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        if (chosen_item == (mountable_volumes+formatable_volumes))
+        {
+            erase_dalvik_cache(0);
+        }
+        else if (chosen_item == (mountable_volumes+formatable_volumes + 1))
+        {
+            show_mount_usb_storage_menu();
+        }
+        else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1))
+        {
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+				ui_print("Disabled for this device!\n");
+#else
+				static char* ext_sizes[] = { "128M",
+                                             "256M",
+                                             "512M",
+                                             "1024M",
+                                             "2048M",
+                                             "4096M",
+                                             NULL };
+
+                static char* swap_sizes[] = { "0M",
+                                              "32M",
+                                              "64M",
+                                              "128M",
+                                              "256M",
+                                              NULL };
+
+                static char* ext_headers[] = { "Ext Size", "", NULL };
+                static char* swap_headers[] = { "Swap Size", "", NULL };
+
+                int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
+                if (ext_size == GO_BACK)
+                    continue;
+
+                int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
+                if (swap_size == GO_BACK)
+                    continue;
+
+                char sddevice[256];
+                Volume *vol = volume_for_path("/sdcard");
+                strcpy(sddevice, vol->device);
+                // we only want the mmcblk, not the partition
+                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+                char cmd[PATH_MAX];
+                setenv("SDPATH", sddevice, 1);
+                sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
+                ui_print("Partitioning SD Card... please wait...\n");
+                if (0 == __system(cmd))
+                    ui_print("Done!\n");
+                else
+                    ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
+#endif
+        }
+        else if (chosen_item < mountable_volumes)
+        {
+			MountMenuEntry* e = &mount_menue[chosen_item];
+            Volume* v = e->v;
+
+            if (is_path_mounted(v->mount_point))
+            {
+                if (0 != ensure_path_unmounted(v->mount_point))
+                    ui_print("%s %s!\n", unmounterror, v->mount_point);
+            }
+            else
+            {
+                if (0 != ensure_path_mounted(v->mount_point))
+                    ui_print("%s %s!\n", mounterror, v->mount_point);
+            }
+        }
+        else if (chosen_item < (mountable_volumes + formatable_volumes))
+        {
+            chosen_item = chosen_item - mountable_volumes;
+            FormatMenuEntry* e = &format_menue[chosen_item];
+            Volume* v = e->v;
+
+            sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
+
+            if (!confirm_selection(confirm_string, confirm))
+                continue;
+            ui_print("Formatting %s...\n", v->mount_point);
+            if (0 != format_volume(v->mount_point))
+                ui_print("Error formatting %s!\n", v->mount_point);
+            else
+                ui_print("%s\n", done);
+        }
+    }
+    free(mount_menue);
+    free(format_menue);
 }
