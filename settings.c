@@ -328,12 +328,10 @@ void show_settings_menu() {
             case SETTINGS_ITEM_SIGCHECK:
             {
 				if (signature_check_enabled == 1) {
-					ui_print("Sigcheck: %i\n", signature_check_enabled);
 					ui_print("Disabling md5 signature check.\n");
 					list[5] = "Enable md5 signature check";
 					signature_check_enabled = 0;
 				} else {
-					ui_print("Sigcheck: %i\n", signature_check_enabled);
 					ui_print("Enabling md5 signature check.\n");
 					list[5] = "Disable md5 signature check";
 					signature_check_enabled = 1;
