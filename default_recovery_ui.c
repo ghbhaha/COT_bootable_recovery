@@ -69,6 +69,7 @@ char* MENU_ITEMS[] = { "Boot Android",
                        "Nandroid",
                        "Partition Management",
                        "COT Options",
+					   "Utilities",
                        "Power Options",
                        NULL };
 

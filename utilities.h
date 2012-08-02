@@ -14,5 +14,4 @@
  * limitations under the License.
  */
 
-void show_power_options_menu();
-
+void show_utilities_menu();
