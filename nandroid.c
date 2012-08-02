@@ -441,7 +441,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     ensure_directory(mount_point);
 
     unyaffs_callback callback = NULL;
-    if (0 != stat("/sdcard/clockworkmod/.hidenandroidprogress", &file_info)) {
+    if (0 != stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info)) {
 		callback = yaffs_callback;
 	}
 
