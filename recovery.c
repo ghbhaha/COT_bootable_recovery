@@ -45,6 +45,7 @@
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
 #include "power.h"
+#include "utilities.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
@@ -792,6 +793,9 @@ prompt_and_wait() {
             case ITEM_COTOPTIONS:
                 show_cot_options_menu();
                 break;
+			case ITEM_UTILITIES:
+				show_utilities_menu();
+				break;
             case ITEM_POWEROPTIONS:
                 //poweroff=1;
 				show_power_options_menu();
