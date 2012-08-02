@@ -154,6 +154,7 @@ void create_default_settings(void) {
 
 void update_cot_settings(void) {
     FILE    *   ini ;
+	ui_print("Sigcheck: %i\n", signature_check_enabled);
 	ini = fopen_path(COTSETTINGS, "w");
 	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, language);
     fclose(ini);

@@ -27,6 +27,7 @@ LOCAL_SRC_FILES := \
     settingshandler.c \
     settings.c \
 	power.c \
+	utilities.c \
     iniparse/ini.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)

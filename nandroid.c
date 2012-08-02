@@ -111,11 +111,11 @@ void nandroid_generate_timestamp_path(const char* backup_path)
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(tmp, "%d", tp.tv_sec);
-        strcat(backup_path, "-");
+        //strcat(backup_path, "-");
         strcat(backup_path, tmp);
 	} else {
 		strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
-		strcat(backup_path, "-");
+		//strcat(backup_path, "-");
 		strcat(backup_path, tmp);
 	}
 }
