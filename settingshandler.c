@@ -97,7 +97,7 @@ int settings_handler(void* user, const char* section, const char* name,
         pconfig->orswipeprompt = atoi(value);
     } else if (MATCH("settings", "backupprompt")) {
         pconfig->backupprompt = atoi(value);
-    } else if (MATCH("settings", "signature_check_enabled")) {
+    } else if (MATCH("settings", "signaturecheckenabled")) {
 		pconfig->signature_check_enabled = atoi(value);
 	} else if (MATCH("settings", "language")) {
         pconfig->language = strdup(value);
@@ -154,6 +154,7 @@ void create_default_settings(void) {
 
 void update_cot_settings(void) {
     FILE    *   ini ;
+	ui_print("Sigcheck: %i\n", signature_check_enabled);
 	ini = fopen_path(COTSETTINGS, "w");
 	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, language);
     fclose(ini);
