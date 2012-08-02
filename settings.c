@@ -290,11 +290,11 @@ void show_settings_menu() {
             {
 				if (orsreboot == 1) {
 					ui_print("Disabling forced reboots.\n");
-					list[1] = "Enable forced reboots";
+					list[2] = "Enable forced reboots";
 					orsreboot = 0;
 				} else {
 					ui_print("Enabling forced reboots.\n");
-					list[1] = "Disable forced reboots";
+					list[2] = "Disable forced reboots";
 					orsreboot = 1;
 				}
                 break;
@@ -303,11 +303,11 @@ void show_settings_menu() {
             {
 				if (orswipeprompt == 1) {
 					ui_print("Disabling wipe prompt.\n");
-					list[2] = "Enable wipe prompt";
+					list[3] = "Enable wipe prompt";
 					orswipeprompt = 0;
 				} else {
 					ui_print("Enabling wipe prompt.\n");
-					list[2] = "Disable wipe prompt";
+					list[3] = "Disable wipe prompt";
 					orswipeprompt = 1;
 				}
 				break;
@@ -316,11 +316,11 @@ void show_settings_menu() {
             {
 				if (backupprompt == 1) {
 					ui_print("Disabling zip flash nandroid prompt.\n");
-					list[3] = "Enable zip flash nandroid prompt";
+					list[4] = "Enable zip flash nandroid prompt";
 					backupprompt = 0;
 				} else {
 					ui_print("Enabling zip flash nandroid prompt.\n");
-					list[3] = "Disable zip flash nandroid prompt";
+					list[4] = "Disable zip flash nandroid prompt";
 					backupprompt = 1;
 				}
 				break;
@@ -328,12 +328,14 @@ void show_settings_menu() {
             case SETTINGS_ITEM_SIGCHECK:
             {
 				if (signature_check_enabled == 1) {
+					ui_print("Sigcheck: %i\n", signature_check_enabled);
 					ui_print("Disabling md5 signature check.\n");
-					list[4] = "Enable md5 signature check";
+					list[5] = "Enable md5 signature check";
 					signature_check_enabled = 0;
 				} else {
+					ui_print("Sigcheck: %i\n", signature_check_enabled);
 					ui_print("Enabling md5 signature check.\n");
-					list[4] = "Disable md5 signature check";
+					list[5] = "Disable md5 signature check";
 					signature_check_enabled = 1;
 				}
 				break;
