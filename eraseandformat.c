@@ -124,7 +124,7 @@ void wipe_data(int confirm) {
 
 void erase_cache(int orscallback) {
     if(orscallback) {
-	if(orswipeprompt || !confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
+	if(orswipeprompt && !confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
 	    ui_print("Skipping cache wipe...\n");
 	    return;
 	}
@@ -139,7 +139,7 @@ void erase_cache(int orscallback) {
 
 void erase_dalvik_cache(int orscallback) {
     if(orscallback) {
-	if(orswipeprompt || !confirm_selection("Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+	if(orswipeprompt && !confirm_selection("Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
 	    ui_print("Skipping dalvik cache wipe...\n");
 	    return;
 	}
@@ -162,7 +162,7 @@ void erase_dalvik_cache(int orscallback) {
 
 void wipe_all(int orscallback) {
     if(orscallback) {
-	if(orswipeprompt || !confirm_selection("Confirm wipe all?", "Yes - Wipe All")) {
+	if(orswipeprompt && !confirm_selection("Confirm wipe all?", "Yes - Wipe All")) {
 	    ui_print("Skipping full wipe...\n");
 	    return;
 	}
