@@ -86,6 +86,13 @@ void show_utilities_menu() {
 				break;
 			case UTILITIES_ITEM_PARTSD:
 			{
+/* Assuming we get this on more devices (w/ internal sd cards) this option
+ * is going to be required by other things (is there a way to check if the
+ * sdcard is internal somewhere or should we add a definition for it? ||
+ * I want to say there's a way to check but i'm not sure ATM). */
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+				ui_print("Disabled for this device!\n");
+#else
 				static char* ext_sizes[] = { "128M",
                                              "256M",
                                              "512M",
@@ -127,6 +134,7 @@ void show_utilities_menu() {
                 } else {
                     ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
 				}
+#endif
                 break;
 			}
 		}	
