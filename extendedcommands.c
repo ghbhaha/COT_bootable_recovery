@@ -87,6 +87,7 @@ int install_zip(const char* packagefilepath, int dummy)
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
+// This should really be done by another means; not everything has a vibrate function
 #if TARGET_BOOTLOADER_BOARD_NAME != otter
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
@@ -557,12 +558,32 @@ int confirm_selection(const char* title, const char* confirm)
 	confirm_headers[1] = wipedataheader2;
 	confirm_headers[2] = NULL;
 
+// This should probably be done for all landscape devices
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
     static char* items[2];
 	items[0] = no;
 	items[1] = confirm;
+#else
+    static char* items[11];
+	items[0] = no;
+	items[1] = no;
+	items[2] = no;
+	items[3] = no;
+	items[4] = no;
+	items[5] = no;
+	items[6] = no;
+	items[7] = confirm;
+	items[8] = no;
+	items[9] = no;
+	items[10] = no;
+#endif
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
     return chosen_item == 1;
+#else
+	return chosen_item == 7;
+#endif
 }
 
 int confirm_nandroid_backup(const char* title, const char* confirm)
@@ -571,12 +592,31 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	confirm_headers[0] = recommended;
 	confirm_headers[1] = NULL;
 
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
     static char* items[2];
 	items[0] = no;
 	items[1] = confirm;
+#else
+    static char* items[11];
+	items[0] = no;
+	items[1] = no;
+	items[2] = no;
+	items[3] = no;
+	items[4] = no;
+	items[5] = no;
+	items[6] = no;
+	items[7] = confirm;
+	items[8] = no;
+	items[9] = no;
+	items[10] = no;
+#endif
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
     return chosen_item == 1;
+#else
+	return chosen_item == 7;
+#endif
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
