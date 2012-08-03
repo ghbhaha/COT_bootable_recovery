@@ -177,7 +177,8 @@ void wipe_all(int orscallback) {
 }
 
 /* This isn't present in newer CWM versions, are we using it or is it deprecated
- * by one of the following. */
+ * by one of the following. (I'm pretty sure it is but it's also used still at
+ * least partly by roots.c) */
 int format_non_mtd_device(const char* root)
 {
     // if this is SDEXT:, don't worry about it.
@@ -379,10 +380,6 @@ int is_safe_to_format(char* name)
     return 1;
 }
 
-#define MOUNTABLE_COUNT 5
-#define MTD_COUNT 4
-#define MMC_COUNT 2
-
 void show_partition_menu()
 {
     static char* headers[3];
@@ -390,96 +387,118 @@ void show_partition_menu()
 	headers[1] = "\n";
 	headers[2] = NULL;
 
+    static MountMenuEntry* mount_menue = NULL;
+    static FormatMenuEntry* format_menue = NULL;
+
     typedef char* string;
-    string mounts[MOUNTABLE_COUNT][3] = {
-        { "Mount /system", "Unmount /system", "SYSTEM:" },
-        { "Mount /data", "Unmount /data", "DATA:" },
-        { "Mount /cache", "Unmount /cache", "CACHE:" },
-        { "Mount /sdcard", "Unmount /sdcard", "SDCARD:" },
-        { "Mount /sd-ext", "Unmount /sd-ext", "SDEXT:" }
-        };
-	
 
-    string mtds[MTD_COUNT][2] = {
-        { "Erase boot", "BOOT:" },
-        { "Erase system", "SYSTEM:" },
-        { "Erase data", "DATA:" },
-        { "Erase cache", "CACHE:" },
-    };
+    int i, mountable_volumes, formatable_volumes;
+    int num_volumes;
+    Volume* device_volumes;
 
-    string mmcs[MMC_COUNT][3] = {
-      { "Erase sdcard", "SDCARD:" },
-      { "Erase sd-ext", "SDEXT:" }
-    };
+    num_volumes = get_num_volumes();
+    device_volumes = get_device_volumes();
+
+    string options[255];
+
+    if(!device_volumes)
+		return;
+
+		mountable_volumes = 0;
+		formatable_volumes = 0;
+
+		mount_menue = malloc(num_volumes * sizeof(MountMenuEntry));
+		format_menue = malloc(num_volumes * sizeof(FormatMenuEntry));
+
+		for (i = 0; i < num_volumes; ++i) {
+  			Volume* v = &device_volumes[i];
+  			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
+                    sprintf(&mount_menue[mountable_volumes].mount, "Mount %s", v->mount_point);
+					sprintf(&mount_menue[mountable_volumes].unmount, "Unmount %s", v->mount_point);
+					mount_menue[mountable_volumes].v = &device_volumes[i];
+					++mountable_volumes;
+
+    				if (is_safe_to_format(v->mount_point)) {
+      					sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
+      					format_menue[formatable_volumes].v = &device_volumes[i];
+      					++formatable_volumes;
+    				}
+  		  }
+  		  else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
+  		  {
+    				sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
+    				format_menue[formatable_volumes].v = &device_volumes[i];
+    				++formatable_volumes;
+  			}
+		}
+
 
     static char* confirm_format  = "Confirm format?";
     static char* confirm = "Yes - Format";
+    char confirm_string[255];
 
     for (;;)
     {
-        int ismounted[MOUNTABLE_COUNT];
-        int i;
-        static string options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1 + 1]; // mountables, format mtds, format mmcs, wipe dalvik, null
-        for (i = 0; i < MOUNTABLE_COUNT; i++)
-        {
-            ismounted[i] = is_root_path_mounted(mounts[i][2]);
-            options[i] = ismounted[i] ? mounts[i][1] : mounts[i][0];
-        }
+		for (i = 0; i < mountable_volumes; i++)
+		{
+			MountMenuEntry* e = &mount_menue[i];
+			Volume* v = e->v;
+			if(is_path_mounted(v->mount_point))
+				options[i] = e->unmount;
+			else
+				options[i] = e->mount;
+		}
 
-        for (i = 0; i < MTD_COUNT; i++)
-        {
-            options[MOUNTABLE_COUNT + i] = mtds[i][0];
-        }
+		for (i = 0; i < formatable_volumes; i++)
+		{
+			FormatMenuEntry* e = &format_menue[i];
 
-        for (i = 0; i < MMC_COUNT; i++)
-        {
-            options[MOUNTABLE_COUNT + MTD_COUNT + i] = mmcs[i][0];
-        }
+			options[mountable_volumes+i] = e->txt;
+		}
 
-        options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT] = "Erase dalvik-cache";
-		options[MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT + 1] = NULL;
+		options[mountable_volumes+formatable_volumes] = "Erase dalvik-cache";
+		options[mountable_volumes+formatable_volumes + 1] = NULL;
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
-		if (chosen_item == MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT)
-		{
-			erase_dalvik_cache(0);
-		}
-        else if (chosen_item < MOUNTABLE_COUNT)
+        if (chosen_item == (mountable_volumes+formatable_volumes))
         {
-            if (ismounted[chosen_item])
+            erase_dalvik_cache(0);
+        }
+        else if (chosen_item < mountable_volumes)
+        {
+			MountMenuEntry* e = &mount_menue[chosen_item];
+            Volume* v = e->v;
+
+            if (is_path_mounted(v->mount_point))
             {
-                if (0 != ensure_root_path_unmounted(mounts[chosen_item][2]))
-                    ui_print("%s %s!\n", unmounterror, mounts[chosen_item][2]);
+                if (0 != ensure_path_unmounted(v->mount_point))
+                    ui_print("%s %s!\n", unmounterror, v->mount_point);
             }
             else
             {
-                if (0 != ensure_root_path_mounted(mounts[chosen_item][2]))
-                    ui_print("%s %s!\n", mounterror, mounts[chosen_item][2]);
+                if (0 != ensure_path_mounted(v->mount_point))
+                    ui_print("%s %s!\n", mounterror, v->mount_point);
             }
         }
-        else if (chosen_item < MOUNTABLE_COUNT + MTD_COUNT)
+        else if (chosen_item < (mountable_volumes + formatable_volumes))
         {
-            chosen_item = chosen_item - MOUNTABLE_COUNT;
-            if (!confirm_selection(confirmformat, confirm))
+            chosen_item = chosen_item - mountable_volumes;
+            FormatMenuEntry* e = &format_menue[chosen_item];
+            Volume* v = e->v;
+
+            sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
+
+            if (!confirm_selection(confirm_string, confirm))
                 continue;
-            ui_print("%s %s...\n", formatting, mtds[chosen_item][1]);
-            if (0 != format_root_device(mtds[chosen_item][1]))
-                ui_print("%s %s!\n", formaterror, mtds[chosen_item][1]);
-            else
-                ui_print("%s\n", done);
-        }
-        else if (chosen_item < MOUNTABLE_COUNT + MTD_COUNT + MMC_COUNT)
-        {
-            chosen_item = chosen_item - MOUNTABLE_COUNT - MTD_COUNT;
-            if (!confirm_selection(confirmformat, confirm))
-                continue;
-            ui_print("%s %s...\n", formatting, mmcs[chosen_item][1]);
-            if (0 != format_non_mtd_device(mmcs[chosen_item][1]))
-                ui_print("%s %s!\n", formaterror, mmcs[chosen_item][1]);
+            ui_print("Formatting %s...\n", v->mount_point);
+            if (0 != format_volume(v->mount_point))
+                ui_print("Error formatting %s!\n", v->mount_point);
             else
                 ui_print("%s\n", done);
         }
     }
+    free(mount_menue);
+    free(format_menue);
 }
