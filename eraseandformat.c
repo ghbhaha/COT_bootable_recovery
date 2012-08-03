@@ -347,7 +347,6 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     ensure_path_unmounted(path);
     return 0;
 }
-
 #define MKE2FS_BIN      "/sbin/mke2fs"
 #define TUNE2FS_BIN     "/sbin/tune2fs"
 #define E2FSCK_BIN      "/sbin/e2fsck"

@@ -358,13 +358,6 @@ install_package(const char *path)
         LOGE("Can't mount %s\n", path);
         return INSTALL_CORRUPT;
     }
-	/*
-    char path[PATH_MAX] = "";
-    if (translate_root_path(root_path, path, sizeof(path)) == NULL) {
-        LOGE("Bad path %s\n", root_path);
-        return INSTALL_CORRUPT;
-    }
-	*/
 
     ui_print("Opening update package...\n");
     LOGI("Update file path: %s\n", path);

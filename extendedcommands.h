@@ -33,8 +33,6 @@ __system(const char *command);
 void
 show_advanced_menu();
 
-void
-wipe_battery_stats();
 
 void create_fstab();
 
