@@ -149,12 +149,16 @@ void erase_dalvik_cache(int orscallback) {
     if (0 != ensure_path_mounted("/data")) {
 	return;
     }
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
     ensure_path_mounted("/sd-ext");
+#endif
     ensure_path_mounted("/cache");
     
     __system("rm -r /data/dalvik-cache");
     __system("rm -r /cache/dalvik-cache");
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
     __system("rm -r /sd-ext/dalvik-cache");
+#endif
     ui_print("Dalvik Cache wiped.\n");
     
     ensure_path_unmounted("/data");
