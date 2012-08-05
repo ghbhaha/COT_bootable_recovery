@@ -1115,8 +1115,8 @@ main(int argc, char **argv) {
 		return busybox_driver(argc, argv);
 	}
     __system("/sbin/postrecoveryboot.sh");
-    __system("mkdir -p /storage");
-    __system("ln -s /sdcard /storage/sdcard0");
+    __system("mkdir -p /storage/sdcard0");
+    __system("mount /sdcard /storage/sdcard0");
 
     int is_user_initiated_recovery = 0;
     time_t start = time(NULL);
