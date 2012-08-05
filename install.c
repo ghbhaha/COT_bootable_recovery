@@ -363,14 +363,8 @@ int check_package_signature(const char *path) {
 static int
 really_install_package(const char *path, int dummy)
 {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
-    ui_print("Finding update package...\n");
     ui_show_indeterminate_progress();
     LOGI("Update location: %s\n", path);
-    if (ensure_path_mounted(path) != 0) {
-        LOGE("Can't mount %s\n", path);
-        return INSTALL_CORRUPT;
-    }
 
     ui_print("Opening update package...\n");
 
@@ -415,5 +409,7 @@ install_package(const char* path, int dummy)
         fclose(install_log);
         chmod(LAST_INSTALL_FILE, 0644);
     }
+    ui_set_background(BACKGROUND_ICON_INSTALLING);
+    ui_print("Finding update package...\n");
     return result;
 }
