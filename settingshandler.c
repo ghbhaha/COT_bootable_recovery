@@ -201,7 +201,10 @@ void handle_theme(char * theme_name) {
     UICOLOR0 = themeconfig.uicolor0;
     UICOLOR1 = themeconfig.uicolor1;
     UICOLOR2 = themeconfig.uicolor2;
-    UITHEME = themeconfig.bgicon;
+	if (UITHEME == EASTEREGG) {
+	} else {
+		UITHEME = themeconfig.bgicon;
+    }
 
     ui_dyn_background();
     ui_reset_icons();
