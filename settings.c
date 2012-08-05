@@ -66,6 +66,7 @@ int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
 int UITHEME = 0;
+int easter = 0;
 
 int UI_COLOR_DEBUG = 0;
 
@@ -311,6 +312,12 @@ void show_settings_menu() {
             }
             case SETTINGS_ITEM_SIGCHECK:
             {
+				easter++;
+				if (easter == EASTEREGG) {
+					UITHEME = EASTEREGG;
+					ui_dyn_background();
+					easter = 0;
+				}
 				if (signature_check_enabled == 1) {
 					ui_print("Disabling md5 signature check.\n");
 					list[5] = "Enable md5 signature check";
@@ -369,6 +376,9 @@ void ui_dyn_background()
 			break;
 		case DOODERBUTT_BLUE_UI:
 			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
+			break;
+		case EASTEREGG:
+			ui_set_background(BACKGROUND_ICON_EASTER);
 			break;
 		// Anything else is the clockwork icon
 		default:
