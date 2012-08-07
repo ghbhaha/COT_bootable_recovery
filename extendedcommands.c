@@ -852,7 +852,7 @@ void handle_failure(int ret)
         return;
     mkdir("/sdcard/cotrecovery", S_IRWXU);
     __system("cp /tmp/recovery.log /sdcard/cotrecovery/recovery.log");
-    ui_print("This is the entirely wrong message and Drew is going to replace it with his inis eventually... in the meantime :P\n");
+    ui_print("A copy of the recovery log has been copied to /sdcard/cotrecovery/recovery.log. Please submit this file with your bug report.\n");
 }
 
 int is_path_mounted(const char* path) {
