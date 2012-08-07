@@ -816,6 +816,7 @@ int run_script_file(void) {
 			}
 			if (strcmp(command, "install") == 0) {
 				// Install zip -- ToDo : Need to clean this shit up, it's redundant and I know it can be written better
+				ensure_path_mounted(SDCARD_ROOT);
 				ui_print("Installing zip file '%s'\n", value);
 				if (signature_check_enabled) {
 					i = check_package_signature(value);
