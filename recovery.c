@@ -906,6 +906,7 @@ int run_script_file(void) {
 			}
 			if (strcmp(command, "install") == 0) {
 				// Install zip
+				ensure_path_mounted(SDCARD_ROOT);
 				ui_print("Installing zip file '%s'\n", value);
 				ret_val = install_zip(value);
 				if (ret_val != INSTALL_SUCCESS) {
