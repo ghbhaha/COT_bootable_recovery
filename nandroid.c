@@ -79,14 +79,16 @@ void get_android_version(const char* backup_path)
 
 void nandroid_get_backup_path(const char* backup_path)
 {
+    char tmp[PATH_MAX];
     struct stat st;
     if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
         FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-        fscanf(file, "%s/", &backup_path);
+        fscanf(file, "%s", &tmp);
         fclose(file);
     } else {
-        sprintf(backup_path, "%s/", DEFAULT_BACKUP_PATH);
+        sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
     }
+    sprintf(backup_path, "/%s/", tmp);
 }
 
 void nandroid_generate_timestamp_path(const char* backup_path)
