@@ -489,8 +489,7 @@ void show_nandroid_restore_menu(const char* path)
 	headers[2] = NULL;
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/cotrecovery/backup/", path); // Need to fix up the default backup path to not point to sdcard so that we can use a variable here...
-    char* file = choose_file_menu(tmp, NULL, headers);
+    char* file = choose_file_menu(path, NULL, headers);
     if (file == NULL)
         return;
 
@@ -635,9 +634,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
 	advancedheaders[5] = "\n";
 	advancedheaders[6] = NULL;
 
-    char tmp[PATH_MAX];
-    sprintf(tmp, "%s/cotrecovery/backup/", path);
-    char* file = choose_file_menu(tmp, NULL, advancedheaders);
+    char* file = choose_file_menu(path, NULL, advancedheaders);
     if (file == NULL)
         return;
 
@@ -708,11 +705,17 @@ void show_nandroid_menu()
 				return;
 			}
 			case 1:
-				show_nandroid_restore_menu("/sdcard");
+			{
+				nandroid_get_backup_path(backup_path);
+				show_nandroid_restore_menu(backup_path);
 				return;
+			}
 			case 2:
-				show_nandroid_advanced_restore_menu("/sdcard");
+			{
+				nandroid_get_backup_path(backup_path);
+				show_nandroid_advanced_restore_menu(backup_path);
 				return;
+			}
 			case 3: 
 			{
 				nandroid_get_backup_path(backup_path);
