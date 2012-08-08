@@ -765,7 +765,7 @@ void show_nandroid_menu()
 			}
 			case 2:
 			{
-				nandroid_get_backup_path(backup_path)
+				nandroid_get_backup_path(backup_path);
 				show_nandroid_advanced_backup_menu(backup_path);
 				return;
 			case 3:
