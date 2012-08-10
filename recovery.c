@@ -74,7 +74,9 @@ static int poweroff = 0;
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
-const char *DEFAULT_BACKUP_PATH = "/sdcard/cotrecovery/backup/";
+/* Leave directory separating forward slashes out of the default path
+ * they will be added when the path is determined in nandroid.c */
+const char *DEFAULT_BACKUP_PATH = "sdcard/cotrecovery/backup";
 const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackups";
 
 /*
