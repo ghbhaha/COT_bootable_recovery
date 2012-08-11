@@ -69,7 +69,7 @@ static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
-static int allow_display_toggle = 1;
+static int allow_display_toggle = 0;
 static int poweroff = 0;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
@@ -201,7 +201,7 @@ static void
 get_args(int *argc, char ***argv) {
     struct bootloader_message boot;
     memset(&boot, 0, sizeof(boot));
-    if (device_flash_type() == MTD) {
+    if (device_flash_type() == MTD || device_flash_type() == MMC) {
         get_bootloader_message(&boot);  // this may fail, leaving a zeroed structure
     }
 
@@ -260,9 +260,7 @@ get_args(int *argc, char ***argv) {
         strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
         strlcat(boot.recovery, "\n", sizeof(boot.recovery));
     }
-    if (device_flash_type() == MTD) {
-        set_bootloader_message(&boot);
-    }
+    set_bootloader_message(&boot);
 }
 
 void
@@ -536,8 +534,8 @@ static int compare_string(const void* a, const void* b) {
 }
 
 static int
-sdcard_directory(const char* path) {
-    ensure_path_mounted(SDCARD_ROOT);
+update_directory(const char* path, const char* unmount_when_done) {
+    ensure_path_mounted(path);
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
                                    path,
@@ -548,7 +546,9 @@ sdcard_directory(const char* path) {
     d = opendir(path);
     if (d == NULL) {
         LOGE("error opening %s: %s\n", path, strerror(errno));
-        ensure_path_unmounted(SDCARD_ROOT);
+        if (unmount_when_done != NULL) {
+            ensure_path_unmounted(unmount_when_done);
+        }
         return 0;
     }
 
@@ -613,7 +613,7 @@ sdcard_directory(const char* path) {
         char* item = zips[chosen_item];
         int item_len = strlen(item);
         if (chosen_item == 0) {          // item 0 is always "../"
-            // go up but continue browsing (if the caller is sdcard_directory)
+            // go up but continue browsing (if the caller is update_directory)
             result = -1;
             break;
         } else if (item[item_len-1] == '/') {
@@ -623,7 +623,7 @@ sdcard_directory(const char* path) {
             strlcat(new_path, "/", PATH_MAX);
             strlcat(new_path, item, PATH_MAX);
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
-            result = sdcard_directory(new_path);
+            result = update_directory(new_path, unmount_when_done);
             if (result >= 0) break;
         } else {
             // selected a zip file:  attempt to install it, and return
@@ -636,7 +636,9 @@ sdcard_directory(const char* path) {
             ui_print("\n-- Install %s ...\n", path);
             set_sdcard_update_bootloader_message();
             char* copy = copy_sideloaded_package(new_path);
-            ensure_path_unmounted(SDCARD_ROOT);
+            if (unmount_when_done != NULL) {
+                ensure_path_unmounted(unmount_when_done);
+            }
             if (copy) {
                 result = install_package(copy, 0);
                 free(copy);
@@ -652,7 +654,9 @@ sdcard_directory(const char* path) {
     free(zips);
     free(headers);
 
-    ensure_path_unmounted(SDCARD_ROOT);
+    if (unmount_when_done != NULL) {
+        ensure_path_unmounted(unmount_when_done);
+    }
     return result;
 }
 
@@ -1063,7 +1067,6 @@ main(int argc, char **argv) {
     process_volumes();
     ui_init();
     //ui_print(EXPAND(RECOVERY_VERSION)"\n");
-
     LOGI("Processing arguments.\n");
     get_args(&argc, &argv);
 
@@ -1144,6 +1147,7 @@ main(int argc, char **argv) {
     } else if (wipe_data) {
         if (device_wipe_data()) status = INSTALL_ERROR;
         if (erase_volume("/data")) status = INSTALL_ERROR;
+        if (has_datadata() && erase_volume("/datadata")) status = INSTALL_ERROR;
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Data wipe failed.\n");
     } else if (wipe_cache) {
@@ -1154,7 +1158,6 @@ main(int argc, char **argv) {
         status = INSTALL_ERROR;  // No command specified
         // we are starting up in user initiated recovery here
         // let's set up some default options
-        script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         parse_settings();

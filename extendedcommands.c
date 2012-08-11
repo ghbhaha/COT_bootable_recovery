@@ -26,14 +26,11 @@
 #include "cutils/properties.h"
 #include "firmware.h"
 #include "install.h"
-#include "utilities/ext4_utils/make_ext4fs.h"
+#include "make_ext4fs.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
-
-#include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
-#include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
 
 #include "extendedcommands.h"
 #include "nandroid.h"

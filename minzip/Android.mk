@@ -11,7 +11,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES += \
 	external/zlib \
 	external/safe-iop/include
-	
+
 LOCAL_MODULE := libminzip
 
 LOCAL_CFLAGS += -Wall

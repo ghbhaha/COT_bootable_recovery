@@ -17,6 +17,8 @@
 #ifndef _RECOVERY_UI_H
 #define _RECOVERY_UI_H
 
+#include "common.h"
+
 // Called when recovery starts up.  Returns 0.
 extern int device_recovery_start();
 

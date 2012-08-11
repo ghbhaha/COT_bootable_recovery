@@ -37,7 +37,7 @@
 
 #include "common.h"
 #include "cutils/properties.h"
-#include "utilities/ext4_utils/make_ext4fs.h"
+#include "make_ext4fs.h"
 #include "roots.h"
 #include "recovery_ui.h"
 
