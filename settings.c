@@ -60,6 +60,8 @@
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
 
+#define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
+
 int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
