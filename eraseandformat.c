@@ -347,8 +347,15 @@ int is_safe_to_format(char* name)
     /* Add /sdcard here because formatting it could cause issues, espescially
      * for dual boot systems also removing splash, haven't tested it but just
      * to be safe we'll pull it, if someone wants to format their splash and
-     * confirm it's safe I'll add it back in. */
+     * confirm it's safe I'll add it back in.
+	 *
+	 * Need to change this and define the restrictions on in the kindle sysprop
+	 * this will work for now for testing though */
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
     property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs,/sdcard,/splash");
+#else
+	property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs");
+#endif
     partition = strtok(str, ", ");
     while (partition != NULL) {
         if (strcmp(name, partition) == 0) {
@@ -367,7 +374,11 @@ int is_safe_to_format(char* name)
 int is_safe_to_mount(char* name) {
 	char str[255];
 	char* partition;
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
 	property_get("ro.ing.forbid_mount", str, "/sdcard,/splash");
+#else
+	property_get("ro.ing.forbid_mount", str, "/splash");
+#endif
 	
 	partition = strtok(str, ", ");
 	while (partition != NULL) {

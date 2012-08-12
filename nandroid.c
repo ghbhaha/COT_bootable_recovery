@@ -43,7 +43,12 @@
 #include <libgen.h>
 #include "eraseandformat.h"
 
-#define LIMITED_SPACE 900
+// ToDo: Move this into the device configuration
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+	#define LIMITED_SPACE 900
+#else
+	#define LIMITED_SPACE 400
+#endif
 
 void get_android_version(const char* backup_path)
 {

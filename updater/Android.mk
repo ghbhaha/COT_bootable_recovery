@@ -21,9 +21,7 @@ LOCAL_SRC_FILES := $(updater_src_files)
 
 ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
 LOCAL_CFLAGS += -DUSE_EXT4
-# Use a local copy of the ICS ext4_utils for use by the retouch binaries
-LOCAL_C_INCLUDES += bootable/recovery/utilities/ext4_utils
-#LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_C_INCLUDES += system/extras/ext4_utils
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 endif
 

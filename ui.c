@@ -54,7 +54,12 @@ static int gShowBackButton = 0;
 #endif
 
 #define MAX_COLS 96
-#define MAX_ROWS 30
+// We should go ahead and assign this from the device config as well
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+	#define MAX_ROWS 30
+#else
+	#define MAX_ROWS 22
+#endif
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
@@ -594,8 +599,7 @@ int device_handle_mouse(struct keyStruct *key, int visible)
 			ui_print("HIGHLIGHT_UP\n");
 		else if(position > MENU_ICON[MENU_SELECT].xL && position < MENU_ICON[MENU_SELECT].xR)
 			ui_print("SELECT_ITEM\n");
-		*/
-		// End DEBUG code
+		*/ // End DEBUG code
 		if(position > MENU_ICON[MENU_BACK].xL && position < MENU_ICON[MENU_BACK].xR)
 			return GO_BACK;
 		else if(position > MENU_ICON[MENU_DOWN].xL && position < MENU_ICON[MENU_DOWN].xR)
@@ -713,9 +717,11 @@ static void *input_thread(void *cookie)
           } while (got_data==-1);
 
             if (ev.type == EV_SYN) {
+#ifndef BUILD_IN_LANDSCAPE
                 if (touchY > 0 && actPos.y < touchY) {
                     continue;
                 }
+#endif
                 // end of a multitouch point
                 if (ev.code == SYN_MT_REPORT) {
                   if (actPos.num>=0 && actPos.num<MAX_MT_POINTS) {

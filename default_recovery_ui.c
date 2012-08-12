@@ -24,8 +24,9 @@
 	to enable on-screen debug code printing set this to 1
 	to disable on-screen debug code printing set this to 0
 
-	please note: enabling this on certain devices (such as the kindle fire)
-	will cause it to freak the fuck out and not process events properly
+	WARNING
+	enabling this on certain devices (such as the kindle fire) will
+	cause it to freak the fuck out and not process events properly
 */
 int TOUCH_CONTROL_DEBUG = 0;
 

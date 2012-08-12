@@ -146,6 +146,9 @@ void show_recovery_debugging_menu()
 
 	static char* list[] = { "Fix Permissions",
 							"Report Error",
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
+							"Key Test",
+#endif
 							"Show log",
 							"Toggle UI Debugging",
 							NULL
@@ -170,8 +173,8 @@ void show_recovery_debugging_menu()
 			case 1:
 				handle_failure(1);
 				break;
-/*	Leave this out for now, this version of the recovery doesn't have everything for it and keytest isn't needed on the kindle
 			case 2:
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 			{
 				ui_print("Outputting key codes.\n");
 				ui_print("Go back to end debugging.\n");
@@ -198,11 +201,15 @@ void show_recovery_debugging_menu()
 				while (action != GO_BACK);
 				break;
 			}
-*/
-			case 2:
+			case 3:
+#endif
 				ui_printlogtail(12);
 				break;
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
 			case 3:
+#else
+			case 4:
+#endif
 				toggle_ui_debugging();
 				break;
 		}
@@ -221,7 +228,7 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_ORS_WIPE      3
     #define SETTINGS_ITEM_NAND_PROMPT   4
     #define SETTINGS_ITEM_SIGCHECK      5
-//    #define SETTINGS_ITEM_DEV_OPTIONS   6
+    #define SETTINGS_ITEM_DEV_OPTIONS   6
 
     static char* list[7];
 

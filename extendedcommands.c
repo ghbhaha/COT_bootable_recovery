@@ -84,7 +84,6 @@ int install_zip(const char* packagefilepath, int dummy)
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
-// This should really be done by another means; not everything has a vibrate function
 #if TARGET_BOOTLOADER_BOARD_NAME != otter
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
@@ -713,7 +712,7 @@ void show_nandroid_menu()
 				show_nandroid_advanced_restore_menu(backup_path);
 				return;
 			}
-			case 3: 
+			case 3:
 			{
 				nandroid_get_backup_path(backup_path);
 				delete_old_backups(backup_path);
