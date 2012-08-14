@@ -43,8 +43,9 @@ int TOUCH_NOSHOW_LOG = 0;
 	check the values returned by on screen touch output by click on the 
 	touch panel extremeties
 */
-int maxX=320;		//Set to 0 for debugging (Optimus S/V: 320, M: 1808)
-int maxY=480;		//Set to 0 for debugging (Optimus S/V: 480, M: 2704)
+
+int maxX=TS_MAX_X;	// Set to 0 for debugging
+int maxY=TS_MAX_Y;	// Set to 0 for debugging
 
 /*
 	the values of following two variables are dependent on specifc device resolution
