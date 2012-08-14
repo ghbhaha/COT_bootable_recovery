@@ -70,7 +70,12 @@ LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 LOCAL_MODULE_TAGS := eng
 
-LOCAL_SRC_FILES += default_recovery_ui.c
+LOCAL_STATIC_LIBRARIES :=
+ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
+  LOCAL_SRC_FILES += default_recovery_ui.c
+else
+  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
+endif
 
 LOCAL_STATIC_LIBRARIES := librebootrecovery
 LOCAL_STATIC_LIBRARIES += libext4_utils libz

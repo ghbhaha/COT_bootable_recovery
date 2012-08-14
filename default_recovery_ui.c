@@ -44,8 +44,8 @@ int TOUCH_NOSHOW_LOG = 0;
 	touch panel extremeties
 */
 
-int maxX=TS_MAX_X;	// Set to 0 for debugging
-int maxY=TS_MAX_Y;	// Set to 0 for debugging
+int maxX=0;	// Set to 0 for debugging
+int maxY=0;	// Set to 0 for debugging
 
 /*
 	the values of following two variables are dependent on specifc device resolution
