@@ -161,6 +161,9 @@ static void compute_directory_stats(const char* directory)
     ui_show_progress(1, 0);
 }
 
+typedef void (*file_event_callback)(const char* filename);
+typedef int (*nandroid_backup_handler)(const char* backup_path, const char* backup_file_image, int callback);
+
 // We use CLI because it doesn't corrupt backups on thunderc varients.
 static int mkyaffs2image_wrapper(const char* name, const char* backup_path) {
 	char tmp[PATH_MAX];
@@ -182,15 +185,75 @@ static int unyaffs_wrapper(const char* name, const char* backup_path) {
 	return __system(tmp);
 }
 
+static int tar_compress_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
+    char tmp[PATH_MAX];
+    if (strcmp(backup_path, "/data") == 0 && volume_for_path("/sdcard") == NULL)
+      sprintf(tmp, "cd $(dirname %s) ; tar cvf %s.tar --exclude 'media' $(basename %s) ; exit $?", backup_path, backup_file_image, backup_path);
+    else
+      sprintf(tmp, "cd $(dirname %s) ; tar cvf %s.tar $(basename %s) ; exit $?", backup_path, backup_file_image, backup_path);
+
+    FILE *fp = __popen(tmp, "r");
+    if (fp == NULL) {
+        ui_print("Unable to execute tar.\n");
+        return -1;
+    }
+
+    while (fgets(tmp, PATH_MAX, fp) != NULL) {
+        tmp[PATH_MAX - 1] = NULL;
+        if (callback)
+            yaffs_callback(tmp);
+    }
+
+    return __pclose(fp);
+}
+
+static nandroid_backup_handler get_backup_handler(const char *backup_path) {
+    Volume *v = volume_for_path(backup_path);
+    if (v == NULL) {
+        ui_print("Unable to find volume.\n");
+        return NULL;
+    }
+    MountedVolume *mv = find_mounted_volume_by_mount_point(v->mount_point);
+    if (mv == NULL) {
+        ui_print("Unable to find mounted volume: %s\n", v->mount_point);
+        return NULL;
+    }
+
+    if (strcmp(backup_path, "/data") == 0 && is_data_media()) {
+        return tar_compress_wrapper;
+    }
+
+    // cwr5, we prefer tar for everything except yaffs2
+    /*
+     * Remove this blocker to test tar backups of yaffs2 filesystems
+    if (strcmp("yaffs2", mv->filesystem) == 0) {
+        return mkyaffs2image_wrapper;
+    }
+    */
+
+    char str[255];
+    char* partition;
+    property_get("ro.cwm.prefer_tar", str, "true");
+    if (strcmp("true", str) != 0) {
+        return mkyaffs2image_wrapper;
+    }
+
+    return tar_compress_wrapper;
+}
+
 int nandroid_backup_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
     int ret = 0;
     char* name = basename(mount_point);
 
     struct stat file_info;
+	int callback = stat("/sdcard/cotrecovery/.hideandroidprogress", &file_info) != 0;
+
+	/*
     mkyaffs2image_callback callback = NULL;
     if (0 != stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info)) {
         callback = yaffs_callback;
     }
+	*/
 
     ui_print("Backing up %s...\n", name);
     if (0 != (ret = ensure_path_mounted(mount_point) != 0)) {
@@ -199,14 +262,28 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
     }
     compute_directory_stats(mount_point);
     char tmp[PATH_MAX];
-
-	ret = mkyaffs2image_wrapper(name, backup_path);
-
+	scan_mounted_volumes();
+	Volume *v = volume_for_path(mount_point);
+	MountedVolume *mv = NULL;
+	if (v != NULL) {
+		mv = find_mounted_volume_by_mount_point(v->mount_point);
+	}
+	if (mv == NULL || mv->filesystem == NULL) {
+		sprintf(tmp, "%s/%s.auto", backup_path, name);
+	} else {
+		sprintf(tmp, "%s/%s.%s", backup_path, name, mv->filesystem);
+	}
+	nandroid_backup_handler backup_handler = get_backup_handler(mount_point);
+	if (backup_handler == NULL) {
+        ui_print("Error finding an appropriate backup handler.\n");
+        return -2;
+    }
+	ret = backup_handler(mount_point, tmp, callback);
     if (umount_when_finished) {
         ensure_path_unmounted(mount_point);
     }
     if (0 != ret) {
-        ui_print("Error while making a yaffs2 image of %s!\n", mount_point);
+        ui_print("Error while making a backup image of %s!\n", mount_point);
         return ret;
     }
     return 0;
