@@ -268,7 +268,7 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
 	if (mv == NULL || mv->filesystem == NULL) {
 		sprintf(tmp, "%s/%s.auto", backup_path, name);
 	} else {
-		sprintf(tmp, "%s/%s.%s", backup_path, name, mv->filesystem);
+		sprintf(tmp, "%s", backup_path);
 	}
 	nandroid_backup_handler backup_handler = get_backup_handler(mount_point);
 	if (backup_handler == NULL) {
