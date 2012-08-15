@@ -224,12 +224,9 @@ static nandroid_backup_handler get_backup_handler(const char *backup_path) {
     }
 
     // cwr5, we prefer tar for everything except yaffs2
-    /*
-     * Remove this blocker to test tar backups of yaffs2 filesystems
     if (strcmp("yaffs2", mv->filesystem) == 0) {
         return mkyaffs2image_wrapper;
     }
-    */
 
     char str[255];
     char* partition;
