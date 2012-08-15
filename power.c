@@ -67,57 +67,28 @@ void show_power_options_menu() {
                                 NULL
     };
 
-	#define POWER_OPTIONS_ITEM_REBOOT	0
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-	#define POWER_OPTIONS_ITEM_FASTBOOT 1
-	#define POWER_OPTIONS_ITEM_POWEROFF	2
-#else
-	#define POWER_OPTIONS_ITEM_POWEROFF	1
-#endif
+	#define POWER_OPTIONS_ITEM_REBOOT		0
+	#define POWER_OPTIONS_ITEM_BOOTLOADER	1
+	#define POWER_OPTIONS_ITEM_POWEROFF		2
 
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
 	static char* list[4];
-#else
-	static char* list[3];
-#endif
 	list[0] = "Reboot Recovery";
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-	list[1] = "Reboot Fastboot";
-#else
-	list[1] = "Power Off";
-#endif
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+	list[1] = "Reboot Bootloader";
 	list[2] = "Power Off";
-#else
-	list[2] = NULL;
-#endif
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
 	list[3] = NULL;
-#endif
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
 		switch (chosen_item) {
 			case GO_BACK:
 				return;
 			case POWER_OPTIONS_ITEM_REBOOT:
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-				__system("/sbin/reboot_recovery");
-#else
 				reboot_wrapper("recovery");
-#endif
 				break;
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-			case POWER_OPTIONS_ITEM_FASTBOOT:
-				__system("/sbin/reboot_fastboot");
+			case POWER_OPTIONS_ITEM_BOOTLOADER:
+				reboot_wrapper("bootloader");
 				break;
-#endif
 			case POWER_OPTIONS_ITEM_POWEROFF:
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-				__system("/sbin/reboot_system");
-
-#else
 				__system("reboot -p");
-#endif
 				break;
 		}
 	}
