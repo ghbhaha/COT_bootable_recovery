@@ -117,6 +117,11 @@ void show_install_update_menu()
 	headers[1] = "\n";
     headers[2] = NULL;
 
+    if(fallback_settings) {
+		ui_print("Menu not available...\nInsert an sdcard and reboot.\n");
+		return;
+	}
+
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, INSTALL_MENU_ITEMS, 0, 0);
@@ -688,6 +693,11 @@ void show_nandroid_menu()
                             "Delete old backups",
                             NULL
     };
+
+    if(fallback_settings) {
+		ui_print("Menu not available...\nInsert an sdcard and reboot.\n");
+		return;
+	}
 
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
