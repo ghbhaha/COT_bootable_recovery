@@ -154,7 +154,7 @@ void create_default_settings(void) {
 }
 
 void load_fallback_settings() {
-	ui_print("Unable to mount sdcard,\nloading failsafe setting...\nSettings will not work\nwithout an sdcard...");
+	ui_print("Unable to mount sdcard,\nloading failsafe setting...\n\nSettings will not work\nwithout an sdcard...\n");
 	fallback_settings = 1;
 	currenttheme = "hydro";
 	language = "en";
