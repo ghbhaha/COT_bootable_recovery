@@ -59,6 +59,7 @@
 #include "iniparse/ini.h"
 
 COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
+int fallback_settings = 0;
 
 int backupprompt = 0;
 int orswipeprompt = 0;
@@ -152,6 +153,17 @@ void create_default_settings(void) {
     fclose(ini);
 }
 
+void load_fallback_settings() {
+	ui_print("Unable to mount sdcard,\nloading failsafe setting...\nSettings will not work\nwithout an sdcard...");
+	fallback_settings = 1;
+	currenttheme = "hydro";
+	language = "en";
+	signature_check_enabled = 1;
+	backupprompt = 1;
+	orswipeprompt = 1;
+	orsreboot = 0;
+}
+
 void update_cot_settings(void) {
     FILE    *   ini ;
 	ini = fopen_path(COTSETTINGS, "w");
@@ -161,7 +173,12 @@ void update_cot_settings(void) {
 }
 
 void parse_settings() {
-    ensure_path_mounted("/sdcard");
+    if(ensure_path_mounted("/sdcard") != 0) {
+		load_fallback_settings();
+		parse_language();
+		handle_theme(currenttheme);
+		return;
+	}
     settings config;
 
     if (ini_parse(COTSETTINGS, settings_handler, &config) < 0) {

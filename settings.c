@@ -114,8 +114,13 @@ void show_cot_options_menu() {
 				show_recovery_debugging_menu();
 				break;
 			case COT_OPTIONS_ITEM_SETTINGS:
-				show_settings_menu();
-				break;
+			{
+				if(fallback_settings) {
+					ui_print("Settings disabled, please insert\nan sdcard and reboot...\n");
+				} else {
+					show_settings_menu();
+				} break;
+			}
 		}
 	}
 }
