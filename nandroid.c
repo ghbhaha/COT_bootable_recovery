@@ -40,13 +40,6 @@
 #include <libgen.h>
 #include "eraseandformat.h"
 
-// ToDo: Move this into the device configuration
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-	#define LIMITED_SPACE 900
-#else
-	#define LIMITED_SPACE 400
-#endif
-
 void get_android_version(const char* backup_path)
 {
     char* result;
@@ -327,7 +320,7 @@ int nandroid_backup(const char* backup_path)
     uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
 
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-    if (sdcard_free_mb < LIMITED_SPACE) {
+    if (sdcard_free_mb < minimum_storage) {
         if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
 			return 0;
 		}
