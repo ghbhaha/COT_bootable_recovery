@@ -19,8 +19,6 @@
 
 #include <stdio.h>
 
-#define BUILD_IN_LANDSCAPE true
-
 extern const char *DEFAULT_BACKUP_PATH;
 extern const char *USER_DEFINED_BACKUP_MARKER;
 extern char** prepend_title(char** headers);
