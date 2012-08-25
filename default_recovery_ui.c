@@ -61,6 +61,12 @@ int resY=480;		//Value obtained from function 'gr_fb_height()'
  */
 int touchY=400;
 
+/*
+	define a storage limit for backup requirements, we recommend setting
+	this to something appropriate to your device
+ */
+int minimum_storage=512;
+
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "Boot Android",
