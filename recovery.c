@@ -773,7 +773,7 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_REBOOT:
-                poweroff=0;
+                pass_normal_reboot();
                 return;
 
             case ITEM_WIPE_DATA:
