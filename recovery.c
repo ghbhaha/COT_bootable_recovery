@@ -730,11 +730,7 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_REBOOT:
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-                __system("/sbin/reboot_system");
-#else
-				reboot(RB_AUTOBOOT);
-#endif
+                pass_normal_reboot();
                 return;
 
             case ITEM_WIPE_DATA:
