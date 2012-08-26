@@ -13,7 +13,6 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libmmcutils
 LOCAL_MODULE_TAGS := eng
-LOCAL_STATIC_LIBRARIES := libcannibal_e2fsck libcannibal_tune2fs libcannibal_mke2fs libcannibal_ext2fs libcannibal_ext2_blkid libcannibal_ext2_uuid libcannibal_ext2_profile libcannibal_ext2_com_err libcannibal_ext2_e2p
 
 include $(BUILD_STATIC_LIBRARY)
 
