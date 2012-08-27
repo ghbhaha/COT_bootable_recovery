@@ -423,8 +423,17 @@ static void draw_screen_locked(void)
 				gr_color(255, 0, 0, 255);
 			}
 			char batt_text[40];
+			char time_gmt[40];
+			
+			// Get a usable time
+			struct tm *current;
+			time_t now;
+			now = time(0);
+			current = localtime(&now);
 			sprintf(batt_text, "[%d%%]", batt_level);
+			sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
 			draw_text_line(0, batt_text, RIGHT_ALIGN);
+			draw_text_line(1, time_gmt, RIGHT_ALIGN);
 			
 			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
