@@ -28,8 +28,7 @@ LOCAL_SRC_FILES := \
     settingshandler_lang.c \
     settingshandler.c \
     settings.c \
-	power.c \
-	utilities.c \
+    utilities.c \
     iniparse/ini.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
@@ -73,6 +72,12 @@ ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
   LOCAL_SRC_FILES += default_recovery_ui.c
 else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
+endif
+
+ifeq ($(BOARD_CUSTOM_RECOVERY_POWER_PROFILE),)
+  LOCAL_SRC_FILES += power.c
+else
+  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_POWER_PROFILE)
 endif
 
 LOCAL_STATIC_LIBRARIES := librebootrecovery
