@@ -559,7 +559,7 @@ int confirm_selection(const char* title, const char* confirm)
 	confirm_headers[2] = NULL;
 
 // This should probably be done for all landscape devices
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
     static char* items[2];
 	items[0] = no;
 	items[1] = confirm;
@@ -577,9 +577,8 @@ int confirm_selection(const char* title, const char* confirm)
 	items[9] = no;
 	items[10] = no;
 #endif
-
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
     return chosen_item == 1;
 #else
 	return chosen_item == 7;
