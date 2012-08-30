@@ -444,7 +444,8 @@ get_menu_selection(char** headers, char** items, int menu_only,
     int wrap_count = 0;
 
     while (chosen_item < 0 && chosen_item != GO_BACK) {
-        int key = ui_wait_key();
+        struct keyStruct *key;
+        key = ui_wait_key();
         int visible = ui_text_visible();
 
         if (key == -1) {   // ui_wait_key() timed out
@@ -457,7 +458,12 @@ get_menu_selection(char** headers, char** items, int menu_only,
             }
         }
 
-        int action = ui_handle_key(key, visible);
+        int action;
+        if(key->code == ABS_MT_POSITION_X) {
+			action = device_handle_mouse(key, visible);
+		} else {
+			action = device_handle_key(key->code, visible);
+		}
 
         int old_selected = selected;
         selected = ui_get_selected_item();
@@ -800,7 +806,6 @@ main(int argc, char **argv) {
 
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");

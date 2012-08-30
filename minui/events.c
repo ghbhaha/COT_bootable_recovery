@@ -62,18 +62,18 @@ int ev_init(ev_callback input_cb, void *data)
             fd = openat(dirfd(dir), de->d_name, O_RDONLY);
             if(fd < 0) continue;
 
-            /* read the evbits of the input device */
+			/* read the evbits of the input device
             if (ioctl(fd, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits) < 0) {
                 close(fd);
                 continue;
-            }
+            } */
 
             /* TODO: add ability to specify event masks. For now, just assume
-             * that only EV_KEY and EV_REL event types are ever needed. */
+             * that only EV_KEY and EV_REL event types are ever needed.
             if (!test_bit(EV_KEY, ev_bits) && !test_bit(EV_REL, ev_bits) && !test_bit(EV_ABS, ev_bits)) {
                 close(fd);
                 continue;
-            }
+            } */
 
             ev_fds[ev_count].fd = fd;
             ev_fds[ev_count].events = POLLIN;
