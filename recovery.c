@@ -799,9 +799,10 @@ main(int argc, char **argv) {
     printf("Starting recovery on %s", ctime(&start));
 
     device_ui_init(&ui_parameters);
-    ui_init();
     load_volume_table();
     process_volumes();
+    ui_init();
+
     LOGI("Processing arguments.\n");
     get_args(&argc, &argv);
 
