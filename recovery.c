@@ -428,55 +428,10 @@ copy_sideloaded_package(const char* original_path) {
   return strdup(copy_path);
 }
 
-int get_battery_level(void)
-{
-	static int lastVal = -1;
-	static time_t nextSecCheck = 0;
-
-	struct timeval curTime;
-	gettimeofday(&curTime, NULL);
-	if (curTime.tv_sec > nextSecCheck)
-	{
-		char cap_s[4];
-		FILE * cap = fopen("/sys/class/power_supply/battery/capacity","rt");
-		if (cap)
-		{
-			fgets(cap_s, 4, cap);
-			fclose(cap);
-			lastVal = atoi(cap_s);
-			if (lastVal > 100)  lastVal = 100;
-			if (lastVal < 0)    lastVal = 0;
-		}
-		nextSecCheck = curTime.tv_sec + 60;
-	}
-	return lastVal;
-}
-
-char* print_batt_cap() {
-	char* full_cap_s = (char*)malloc(30);
-	char full_cap_a[30];
-
-	int cap_i = get_battery_level();
-
-	// Get a usable time
-	struct tm *current;
-	time_t now;
-	now = time(0);
-	current = localtime(&now);
-
-	sprintf(full_cap_a, "Battery Level: %i%% @ %02D:%02D", cap_i, current->tm_hour, current->tm_min);
-	strcpy(full_cap_s, full_cap_a);
-
-	return full_cap_s;
-}
-
 char** prepend_title(char** headers) {
     char* title[] = { EXPAND(RECOVERY_VERSION),
                       "",
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
-					  print_batt_cap(),
 					  "",
-#endif
                       NULL };
 
     // count the number of lines in our title, plus the
@@ -555,13 +510,9 @@ get_menu_selection(char** headers, char** items, int menu_only,
 
         if (abs(selected - old_selected) > 1) {
             wrap_count++;
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-            if (wrap_count == 3) {
-#else		// This should really be defined for thunderc not if not otter
-			if (wrap_count == 300) {
-#endif
+            if (wrap_count == 300) {
                 wrap_count = 0;
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifdef BUILD_IN_LANDSCAPE
                 if (ui_get_showing_back_button()) {
                     ui_print("Back menu button disabled.\n");
                     ui_set_showing_back_button(0);
@@ -775,11 +726,7 @@ void delayed_reboot() {
 		ui_print("Rebooting system in (%d)\n", i);
 		sleep(1);
 	}
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-	__system("/sbin/reboot_system");
-#else
-	reboot(RB_AUTOBOOT);
-#endif
+	pass_normal_reboot();
 }
 
 static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openrecoveryscript";
@@ -1240,18 +1187,11 @@ main(int argc, char **argv) {
     else
         ui_print("%s\n", shutdown);
     sync();
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
     if(!poweroff) {
-		// reboot into system
-		__system("/sbin/reboot_system");
+		pass_normal_reboot();
 	} else {
-		// shift to normal bootmode and power off
-		__system("/sbin/nbmode");
-		reboot(RB_POWER_OFF);
+		pass_shutdown_cmd();
 	}
-#else
-	reboot((!poweroff) ? RB_AUTOBOOT : RB_POWER_OFF);
-#endif
     return EXIT_SUCCESS;
 }
 

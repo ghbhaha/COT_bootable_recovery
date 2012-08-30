@@ -558,7 +558,6 @@ int confirm_selection(const char* title, const char* confirm)
 	confirm_headers[1] = wipedataheader2;
 	confirm_headers[2] = NULL;
 
-// This should probably be done for all landscape devices
 #ifdef BUILD_IN_LANDSCAPE
     static char* items[2];
 	items[0] = no;
@@ -591,7 +590,7 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	confirm_headers[0] = recommended;
 	confirm_headers[1] = NULL;
 
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
     static char* items[2];
 	items[0] = no;
 	items[1] = confirm;
@@ -611,11 +610,90 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 #endif
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
     return chosen_item == 1;
 #else
 	return chosen_item == 7;
 #endif
+}
+
+void show_nandroid_advanced_backup_menu(){
+    static char* advancedheaders[3];
+	advancedheaders[0] = advbackupheader;
+	advancedheaders[1] = "\n";
+	advancedheaders[2] = NULL;
+
+    int backup_list [7];
+    char* list[7];
+
+    backup_list[0] = 1;
+    backup_list[1] = 1;
+    backup_list[2] = 1;
+    backup_list[3] = 1;
+    backup_list[4] = 1;
+    backup_list[5] = 1;
+    backup_list[6] = NULL;
+
+    list[6] = performbackup;
+    list[7] = NULL;
+
+    int cont = 1;
+    for (;cont;) {
+	    if (backup_list[0] == 1)
+	    	list[0] = nandroidbackupbootyes;
+	    else
+	    	list[0] = nandroidbackupbootno;
+		
+
+	    if (backup_list[1] == 1)
+	    	list[1] = nandroidbackuprecyes;
+	    else
+	    	list[1] = nandroidbackuprecno;
+
+	    if (backup_list[2] == 1)
+    		list[2] = nandroidbackupsysyes;
+	    else
+	    	list[2] = nandroidbackupsysno;
+
+	    if (backup_list[3] == 1)
+	    	list[3] = nandroidbackupdatayes;
+	    else
+	    	list[3] = nandroidbackupdatano;
+
+	    if (backup_list[4] == 1)
+	    	list[4] = nandroidbackupcacheyes;
+	    else
+	    	list[4] = nandroidbackupcacheno;
+
+	    if (backup_list[5] == 1)
+	    	list[5] = nandroidbackupsdyes;
+	    else
+	    	list[5] = nandroidbackupsdno;
+
+    	int chosen_item = get_menu_selection (advancedheaders, list, 0, 0);
+	switch (chosen_item) {
+	    case GO_BACK: return;
+	    case 0: backup_list[0] = !backup_list[0];
+		    break;
+	    case 1: backup_list[1] = !backup_list[1];
+		    break;
+	    case 2: backup_list[2] = !backup_list[2];
+		    break;
+	    case 3: backup_list[3] = !backup_list[3];
+		    break;
+	    case 4: backup_list[4] = !backup_list[4];
+		    break;
+	    case 5: backup_list[5] = !backup_list[5];
+		    break;
+
+	    case 6: cont = 0;
+	    	    break;
+	}
+    }
+
+    char backup_path[PATH_MAX];
+    nandroid_generate_timestamp_path(backup_path);
+	return nandroid_advanced_backup(backup_path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
@@ -688,6 +766,7 @@ void show_nandroid_menu()
 
     static char* list[] = { "Backup",
                             "Restore",
+                            "Advanced Backup",
                             "Advanced Restore",
                             "Delete old backups",
                             NULL
@@ -718,10 +797,16 @@ void show_nandroid_menu()
 			case 2:
 			{
 				nandroid_get_backup_path(backup_path);
-				show_nandroid_advanced_restore_menu(backup_path);
+				show_nandroid_advanced_backup_menu(backup_path);
 				return;
 			}
 			case 3:
+			{
+				nandroid_get_backup_path(backup_path);
+				show_nandroid_advanced_restore_menu(backup_path);
+				return;
+			}
+			case 4:
 			{
 				nandroid_get_backup_path(backup_path);
 				delete_old_backups(backup_path);

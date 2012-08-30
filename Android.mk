@@ -78,7 +78,6 @@ else
 endif
 
 LOCAL_STATIC_LIBRARIES += librebootrecovery
-LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libcannibal_e2fsck libcannibal_tune2fs libcannibal_mke2fs libcannibal_ext2fs libcannibal_ext2_blkid libcannibal_ext2_uuid libcannibal_ext2_profile libcannibal_ext2_com_err libcannibal_ext2_e2p
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 

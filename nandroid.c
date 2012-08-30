@@ -334,7 +334,6 @@ int nandroid_backup(const char* backup_path)
     if (0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
         return ret;
 
-
     if (0 != (ret = nandroid_backup_partition(backup_path, "/system")))
         return ret;
 
@@ -361,6 +360,86 @@ int nandroid_backup(const char* backup_path)
     if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
     } else {
+        if (0 != ensure_path_mounted("/sd-ext"))
+            ui_print("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
+        else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
+            return ret;
+    }
+#endif
+
+    ui_print("Generating md5 sum...\n");
+    sprintf(tmp, "nandroid-md5.sh %s", backup_path);
+    if (0 != (ret = __system(tmp))) {
+        ui_print("Error while generating md5 sum!\n");
+        return ret;
+    }
+
+    sync();
+    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_reset_progress();
+    ui_print("\nBackup complete!\n");
+    return 0;
+}
+
+int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, int system, int data, int cache, int sdext)
+{
+    ui_set_background(BACKGROUND_ICON_INSTALLING);
+
+	char tmp[PATH_MAX];
+	if (ensure_path_mounted(backup_path) != 0) {
+		sprintf(tmp, "Can't mount %s\n", backup_path);
+        return print_and_error(tmp);
+	}
+
+    int ret;
+    struct statfs s;
+    Volume* volume = volume_for_path(backup_path);
+    if (0 != (ret = statfs(volume->mount_point, &s)))
+        return print_and_error("Unable to stat backup path.\n");
+
+    uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
+
+    ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+    if (sdcard_free_mb < minimum_storage) {
+        if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
+			return 0;
+		}
+	}
+
+	ensure_directory(backup_path);
+
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+        return ret;
+
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
+        return ret;
+
+    if (system && 0 != (ret = nandroid_backup_partition(backup_path, "/system")))
+        return ret;
+
+    if (data && 0 != (ret = nandroid_backup_partition(backup_path, "/data")))
+        return ret;
+
+    if (data && has_datadata()) {
+        if (0 != (ret = nandroid_backup_partition(backup_path, "/datadata")))
+            return ret;
+    }
+
+    if (0 != stat("/sdcard/.android_secure", &s)) {
+        ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
+    } else {
+        if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
+            return ret;
+    }
+
+    if (cache && 0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
+        return ret;
+
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
+    Volume *vol = volume_for_path("/sd-ext");
+    if (sdext && vol == NULL || 0 != stat(vol->device, &s)) {
+        ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
+    } else if (sdext) {
         if (0 != ensure_path_mounted("/sd-ext"))
             ui_print("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))

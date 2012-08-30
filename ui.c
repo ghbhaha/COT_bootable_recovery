@@ -56,7 +56,7 @@ static int gShowBackButton = 0;
 #define MAX_COLS 96
 // We should go ahead and assign this from the device config as well
 #if TARGET_BOOTLOADER_BOARD_NAME == otter
-	#define MAX_ROWS 30
+	#define MAX_ROWS 27
 #else
 	#define MAX_ROWS 22
 #endif
@@ -762,7 +762,7 @@ static void *input_thread(void *cookie)
           } while (got_data==-1);
 
             if (ev.type == EV_SYN) {
-#ifndef BUILD_IN_LANDSCAPE
+#ifndef BUILD_IN_LANDSCAPE	// I don't remember why?
                 if (touchY > 0 && actPos.y < touchY) {
                     continue;
                 }
@@ -886,11 +886,7 @@ static void *input_thread(void *cookie)
         }
 
         if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-			__system("/sbin/reboot_system");
-#else
-			reboot(RB_AUTOBOOT);
-#endif
+			pass_normal_reboot();
         }
     }
     return NULL;
