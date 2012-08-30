@@ -17,6 +17,7 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
+    colorific.c \
     default_recovery_ui.c \
     verifier.c
 

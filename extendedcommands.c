@@ -39,6 +39,7 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
+//#include "colorific.h"
 #include "cutils/android_reboot.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
@@ -1247,12 +1248,13 @@ void show_advanced_menu()
                                 NULL
     };
 
-    static char* list[] = { "reboot recovery",
-                            "wipe dalvik cache",
-                            "report error",
-                            "key test",
-                            "show log",
-                            "fix permissions",
+    static char* list[] = { "Reboot Recovery",
+                            "Wipe Dalvik Cache",
+                            "Report Error",
+                            "Key Test",
+                            "Show Log",
+                            "Fix Permissions",
+                            "Set UI Color",
                             "partition sdcard",
                             "partition external sdcard",
                             "partition internal sdcard",
@@ -1329,12 +1331,32 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             case 6:
+			{
+				static char* ui_colors[] = {"Hydro (default)",
+											"Blood Red",
+											"Key Lime Pie",
+											"Citrus Orange",
+											"Dooderbutt Blue",
+											NULL
+				};
+				static char* ui_header[] = {"UI Color", "", NULL};
+				
+				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
+				if(ui_color == GO_BACK) {
+					continue;
+				} else {
+					set_ui_color(ui_color);
+					break;
+				}
+			}
+			
+            case 7:
                 partition_sdcard("/sdcard");
                 break;
-            case 7:
+            case 8:
                 partition_sdcard("/external_sd");
                 break;
-            case 8:
+            case 9:
                 partition_sdcard("/emmc");
                 break;
         }

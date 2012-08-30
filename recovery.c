@@ -44,6 +44,10 @@
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 #include "dedupe/dedupe.h"
+#include "colorific.h"
+
+#define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
+#define ABS_MT_POSITION_Y 0x36  /* Center Y ellipse position */
 
 struct selabel_handle *sehandle = NULL;
 
@@ -447,16 +451,6 @@ get_menu_selection(char** headers, char** items, int menu_only,
         struct keyStruct *key;
         key = ui_wait_key();
         int visible = ui_text_visible();
-
-        if (key == -1) {   // ui_wait_key() timed out
-            if (ui_text_ever_visible()) {
-                continue;
-            } else {
-                LOGI("timed out waiting for key input; rebooting.\n");
-                ui_end_menu();
-                return ITEM_REBOOT;
-            }
-        }
 
         int action;
         if(key->code == ABS_MT_POSITION_X) {
@@ -887,7 +881,9 @@ main(int argc, char **argv) {
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
-        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+        // Append cases as neccessary
+        get_config_settings();
+		ui_dyn_background();
         
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
