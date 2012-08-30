@@ -42,44 +42,34 @@
 
 void get_android_version(const char* backup_path)
 {
-	char* ANDROID_VERSION;
-	char* result;
-	FILE * vers = fopen_path("/system/build.prop", "r");
-	if (vers == NULL)
-		return NULL;
-
-	char line[512];
-	while(fgets(line, sizeof(line), vers) != NULL && fgets(line, sizeof(line), vers) != EOF) { // read a line
-		if (strstr(line, "ro.build.display.id") != NULL) {
-			char* strptr = strstr(line, "=") + 1;
-			result = calloc(strlen(strptr) + 1, sizeof(char));
-			strcpy(result, strptr);
-			break;
-		}
-	}
-	fclose(vers);
-	ensure_path_unmounted("/system");
-
-	int LENGTH = strlen(result);
-	int i, k, found;
-	for (i=0; i<LENGTH; i++) {
-		k = i;
-		//Android versions follow this scheme: AAADD, A=A-Z, D=0-9, ICS has an extra digit at the end
-		if (isalpha(result[k]) && isalpha(result[k++]) && isalpha(result[k++]) && isdigit(result[k++]) && isdigit(result[k++])) {
-			found = 1;
-			break;
-		}
-	}
-	if (found) {
-		ANDROID_VERSION = calloc(strlen(result) + 1, sizeof(char)); //allocate the length of result plus 1
-		int n = 0;
-		for(i-=1; i<=k; i++) {
-			ANDROID_VERSION[n] = result[i];
-			n++;
-		}
-		ANDROID_VERSION[n] = NULL;
-		strcat(backup_path, ANDROID_VERSION);
-	}
+    char* result;
+    FILE * vers = fopen_path("/system/build.prop", "r");
+    int which = 0;
+    if (vers == NULL)
+        return;
+        
+    char line[512];
+    char* strptr;
+    while(fgets(line, sizeof(line), vers) != NULL && fgets(line, sizeof(line), vers) != EOF) {
+        if (strstr(line, "ro.goo.rom") != NULL) {
+            strptr = strstr(line, "=") + 1;
+            break;
+        }
+        else if (strstr(line, "ro.build.id") != NULL) {
+            strptr = strstr(line, "=") + 1;
+            break;
+        }
+    }
+    result = calloc(strlen(strptr) + 1, sizeof(char));
+    strcpy(result, strptr);
+    fclose(vers);
+    ensure_path_unmounted("/system");
+    
+    if(result == NULL)
+        return;
+    
+    strcat(result, "-");
+    strcat(backup_path, result);
 }
 
 void nandroid_get_backup_path(const char* backup_path)
@@ -100,6 +90,7 @@ void nandroid_generate_timestamp_path(const char* backup_path)
 {
 	nandroid_get_backup_path(backup_path);
 	//get_android_version(backup_path);
+
     time_t t = time(NULL);
     struct tm *bktime = localtime(&t);
     char tmp[PATH_MAX];
@@ -107,11 +98,9 @@ void nandroid_generate_timestamp_path(const char* backup_path)
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(tmp, "%d", tp.tv_sec);
-        //strcat(backup_path, "-");
         strcat(backup_path, tmp);
 	} else {
 		strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
-		//strcat(backup_path, "-");
 		strcat(backup_path, tmp);
 	}
 }
@@ -228,6 +217,7 @@ static nandroid_backup_handler get_backup_handler(const char *backup_path) {
     return tar_compress_wrapper;
 }
 
+
 int nandroid_backup_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
     int ret = 0;
     char* name = basename(mount_point);
@@ -268,6 +258,26 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
 }
 
 int nandroid_backup_partition(const char* backup_path, const char* root) {
+    Volume *vol = volume_for_path(root);
+    // make sure the volume exists before attempting anything...
+    if (vol == NULL || vol->fs_type == NULL)
+        return NULL;
+
+    // see if we need a raw backup (mtd)
+    char tmp[PATH_MAX];
+    int ret;
+    if (strcmp(vol->fs_type, "mtd") == 0 ||
+            strcmp(vol->fs_type, "bml") == 0 ||
+            strcmp(vol->fs_type, "emmc") == 0) {
+        const char* name = basename(root);
+        sprintf(tmp, "%s/%s.img", backup_path, name);
+        ui_print("Backing up %s image...\n", name);
+        if (0 != (ret = backup_raw_partition(vol->fs_type, vol->device, tmp))) {
+            ui_print("Error while backing up %s image!", name);
+            return ret;
+        }
+        return 0;
+    }
     return nandroid_backup_partition_extended(backup_path, root, 1);
 }
 
@@ -318,19 +328,11 @@ int nandroid_backup(const char* backup_path)
 
 	ensure_directory(backup_path);
 
-#ifndef BOARD_RECOVERY_IGNORE_BOOTABLES
-    ui_print("Backing up boot...\n");
-    sprintf(tmp, "%s/%s", backup_path, "boot.img");
-    ret = backup_raw_partition("boot", tmp);
-    if (0 != ret)
-        return print_and_error("Error while dumping boot image!\n");
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+        return ret;
 
-    ui_print("Backing up recovery...\n");
-    sprintf(tmp, "%s/%s", backup_path, "recovery.img");
-    ret = backup_raw_partition("recovery", tmp);
-    if (0 != ret)
-        return print_and_error("Error while dumping recovery image!\n");
-#endif
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
+        return ret;
 
     if (0 != (ret = nandroid_backup_partition(backup_path, "/system")))
         return ret;
@@ -353,6 +355,7 @@ int nandroid_backup(const char* backup_path)
     if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
         return ret;
 
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
     Volume *vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -362,6 +365,7 @@ int nandroid_backup(const char* backup_path)
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
             return ret;
     }
+#endif
 
     ui_print("Generating md5 sum...\n");
     sprintf(tmp, "nandroid-md5.sh %s", backup_path);
@@ -404,21 +408,11 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
 
 	ensure_directory(backup_path);
 
-    if (boot) {
-        ui_print("Backing up boot...\n");
-        sprintf(tmp, "%s/%s", backup_path, "boot.img");
-        ret = backup_raw_partition("boot", tmp);
-        if (0 != ret)
-            return print_and_error("Error while dumping boot image!\n");
-    }
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+        return ret;
 
-    if (recovery) {
-        ui_print("Backing up recovery...\n");
-        sprintf(tmp, "%s/%s", backup_path, "recovery.img");
-        ret = backup_raw_partition("recovery", tmp);
-        if (0 != ret)
-            return print_and_error("Error while dumping recovery image!\n");
-    }
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
+        return ret;
 
     if (system && 0 != (ret = nandroid_backup_partition(backup_path, "/system")))
         return ret;
@@ -630,6 +624,31 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
 }
 
 int nandroid_restore_partition(const char* backup_path, const char* root) {
+    Volume *vol = volume_for_path(root);
+    // make sure the volume exists...
+    if (vol == NULL || vol->fs_type == NULL)
+        return 0;
+
+    // see if we need a raw restore (mtd)
+    char tmp[PATH_MAX];
+    if (strcmp(vol->fs_type, "mtd") == 0 ||
+            strcmp(vol->fs_type, "bml") == 0 ||
+            strcmp(vol->fs_type, "emmc") == 0) {
+        int ret;
+        const char* name = basename(root);
+        ui_print("Erasing %s before restore...\n", name);
+        if (0 != (ret = format_volume(root))) {
+            ui_print("Error while erasing %s image!", name);
+            return ret;
+        }
+        sprintf(tmp, "%s%s.img", backup_path, root);
+        ui_print("Restoring %s image...\n", name);
+        if (0 != (ret = restore_raw_partition(vol->fs_type, vol->device, tmp))) {
+            ui_print("Error while flashing %s image!", name);
+            return ret;
+        }
+        return 0;
+    }
     return nandroid_restore_partition_extended(backup_path, root, 1);
 }
 
@@ -651,25 +670,9 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return print_and_error("MD5 mismatch!\n");
 
     int ret;
-    struct stat st;
 
-#ifndef BOARD_RECOVERY_IGNORE_BOOTABLES
-	sprintf(tmp, "%s/boot.img", backup_path);
-    if (restore_boot && (stat(tmp, &st) == 0))
-    {
-        ui_print("Erasing boot before restore...\n");
-        if (0 != (ret = format_root_device("BOOT:")))
-            return print_and_error("Error while formatting BOOT:!\n");
-        sprintf(tmp, "%s/boot.img", backup_path);
-        ui_print("Restoring boot image...\n");
-        if (0 != (ret = restore_raw_partition("boot", tmp))) {
-            ui_print("Error while flashing boot image!");
-            return ret;
-        }
-    } else {
-		ui_print("No boot image present, skipping to system...\n");
-	}
-#endif
+    if (restore_boot && NULL != volume_for_path("/boot") && 0 != (ret = nandroid_restore_partition(backup_path, "/boot")))
+        return ret;
 
     if (restore_system && 0 != (ret = nandroid_restore_partition(backup_path, "/system")))
         return ret;

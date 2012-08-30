@@ -64,10 +64,16 @@ static const struct option OPTIONS[] = {
   { NULL, 0, NULL, 0 },
 };
 
-static const char *COMMAND_FILE = "CACHE:recovery/command";
-static const char *INTENT_FILE = "CACHE:recovery/intent";
-static const char *LOG_FILE = "CACHE:recovery/log";
-static const char *LAST_LOG_FILE = "CACHE:recovery/last_log";
+static const char *ROOT_COMMAND_FILE = "CACHE:recovery/command";
+static const char *ROOT_INTENT_FILE = "CACHE:recovery/intent";
+static const char *ROOT_LOG_FILE = "CACHE:reCovery/log";
+static const char *ROOT_LAST_LOG_FILE = "CACHE:recovery/last_log";
+
+static const char *COMMAND_FILE = "/cache/recovery/command";
+static const char *INTENT_FILE = "/cache/recovery/intent";
+static const char *LOG_FILE = "/cache/recovery/log";
+static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
+
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 1;
 static int poweroff = 0;
@@ -186,7 +192,7 @@ fopen_root_path(const char *root_path, const char *mode) {
     if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
 
     FILE *fp = fopen(path, mode);
-    if (fp == NULL && root_path != COMMAND_FILE) LOGE("Can't open %s\n", path);
+    if (fp == NULL && root_path != ROOT_COMMAND_FILE) LOGE("Can't open %s\n", path);
     return fp;
 }
 
@@ -256,7 +262,7 @@ get_args(int *argc, char ***argv) {
 
     // --- if that doesn't work, try the command file
     if (*argc <= 1) {
-        FILE *fp = fopen_root_path(COMMAND_FILE, "r");
+        FILE *fp = fopen_path(COMMAND_FILE, "r");
         if (fp != NULL) {
             char *argv0 = (*argv)[0];
             *argv = (char **) malloc(sizeof(char *) * MAX_ARGS);
@@ -332,7 +338,7 @@ static void
 finish_recovery(const char *send_intent) {
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
-        FILE *fp = fopen_root_path(INTENT_FILE, "w");
+        FILE *fp = fopen_path(INTENT_FILE, "w");
         if (fp == NULL) {
             LOGE("Can't open %s\n", INTENT_FILE);
         } else {
@@ -342,7 +348,7 @@ finish_recovery(const char *send_intent) {
     }
 
     // Copy logs to cache so the system can find out what happened.
-    FILE *log = fopen_root_path(LOG_FILE, "a");
+    FILE *log = fopen_path(LOG_FILE, "a");
     if (log == NULL) {
         LOGE("Can't open %s\n", LOG_FILE);
     } else {
@@ -369,9 +375,8 @@ finish_recovery(const char *send_intent) {
 
     // Remove the command file, so recovery won't repeat indefinitely.
     char path[PATH_MAX] = "";
-    if (ensure_root_path_mounted(COMMAND_FILE) != 0 ||
-        translate_root_path(COMMAND_FILE, path, sizeof(path)) == NULL ||
-        (unlink(path) && errno != ENOENT)) {
+    if (ensure_path_mounted(COMMAND_FILE) != 0 ||
+        (unlink(COMMAND_FILE) && errno != ENOENT)) {
         LOGW("Can't unlink %s\n", COMMAND_FILE);
     }
 

@@ -297,7 +297,7 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     LOGI("Formatting unknown device.\n");
 
     if (fs_type != NULL && get_flash_type(fs_type) != UNSUPPORTED)
-        return erase_raw_partition(device);
+        return erase_raw_partition(fs_type, device);
 
     // if this is SDEXT:, don't worry about it if it does not exist.
     if (0 == strcmp(path, "/sd-ext"))

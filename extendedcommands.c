@@ -556,6 +556,11 @@ int confirm_selection(const char* title, const char* confirm)
 	confirm_headers[1] = wipedataheader2;
 	confirm_headers[2] = NULL;
 
+#ifdef BUILD_IN_LANDSCAPE
+    static char* items[2];
+	items[0] = no;
+	items[1] = confirm;
+#else
     static char* items[11];
 	items[0] = no;
 	items[1] = no;
@@ -564,13 +569,17 @@ int confirm_selection(const char* title, const char* confirm)
 	items[4] = no;
 	items[5] = no;
 	items[6] = no;
-	items[8] = no;
 	items[7] = confirm;
+	items[8] = no;
 	items[9] = no;
 	items[10] = no;
-
+#endif
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-    return chosen_item == 7;
+#ifdef BUILD_IN_LANDSCAPE
+    return chosen_item == 1;
+#else
+	return chosen_item == 7;
+#endif
 }
 
 int confirm_nandroid_backup(const char* title, const char* confirm)
@@ -797,26 +806,23 @@ void show_nandroid_menu()
 	}
 }
 
-void write_fstab_root(char *root_path, FILE *file)
+void write_fstab_root(char *path, FILE *file)
 {
-    RootInfo *info = get_root_info_for_path(root_path);
-    if (info == NULL) {
-        LOGW("Unable to get root info for %s during fstab generation!", root_path);
+    Volume *vol = volume_for_path(path);
+    if (vol == NULL) {
+        LOGW("Unable to get recovery.fstab info for %s during fstab generation!\n", path);
         return;
     }
-    char device[PATH_MAX];
-    int ret = get_root_partition_device(root_path, device);
-    if (ret == 0)
-    {
-        fprintf(file, "%s ", device);
-    }
+    char device[200];
+    if (vol->device[0] != '/')
+        get_partition_device(vol->device, device);
     else
-    {
-        fprintf(file, "%s ", info->device);
-    }
+        strcpy(device, vol->device);
 
-    fprintf(file, "%s ", info->mount_point);
-    fprintf(file, "%s %s\n", info->filesystem, info->filesystem_options == NULL ? "rw" : info->filesystem_options);
+    fprintf(file, "%s ", device);
+    fprintf(file, "%s ", path);
+    // special case rfs cause auto will mount it as vfat on samsung.
+    fprintf(file, "%s rw\n", vol->fs_type2 != NULL && strcmp(vol->fs_type, "rfs") != 0 ? "auto" : vol->fs_type);
 }
 
 void create_fstab()
@@ -830,14 +836,14 @@ void create_fstab()
     }
     Volume *vol = volume_for_path("/boot");
     if (NULL != vol && strcmp(vol->fs_type, "mtd") != 0 && strcmp(vol->fs_type, "emmc") != 0 && strcmp(vol->fs_type, "bml") != 0)
-    write_fstab_root("CACHE:", file);
-    write_fstab_root("DATA:", file);
-#ifdef BOARD_HAS_DATADATA
-    write_fstab_root("DATADATA:", file);
-#endif
-    write_fstab_root("SYSTEM:", file);
-    write_fstab_root("SDCARD:", file);
-    write_fstab_root("SDEXT:", file);
+    write_fstab_root("/boot", file);
+    write_fstab_root("/cache", file);
+    write_fstab_root("/data", file);
+    write_fstab_root("/datadata", file);
+    write_fstab_root("/emmc", file);
+    write_fstab_root("/system", file);
+    write_fstab_root("/sdcard", file);
+    write_fstab_root("/sd-ext", file);
     fclose(file);
     LOGI("Completed outputting fstab.\n");
 }

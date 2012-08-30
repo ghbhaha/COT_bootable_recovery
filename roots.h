@@ -142,6 +142,7 @@ Volume* get_device_volumes();
 
 int is_data_media();
 void setup_data_media();
+int is_data_media_volume_path(const char* path);
 
 /* "root" must be the exact name of the root; no relative path is permitted.
  * If the named root is mounted, this will attempt to unmount it first.
