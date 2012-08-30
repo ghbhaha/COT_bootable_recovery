@@ -426,7 +426,9 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
             // Setup our text colors
 			get_config_settings();
-			LOGI("%s %i\n", "UI_BG:", bg_icon);
+			if(UI_COLOR_DEBUG) {
+				LOGI("%s %i\n", "UI_BG:", bg_icon);
+			}
 			set_bg_icon(bg_icon);
 			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
@@ -567,6 +569,9 @@ static int input_callback(int fd, short revents, void *data)
         return -1;
 
     if (ev.type == EV_SYN) {
+		if (actPos.y < 1000) {
+			return 0;
+		}
         // end of a multitouch point
         if (ev.code == SYN_MT_REPORT) {
 			if (actPos.num>=0 && actPos.num<MAX_MT_POINTS) {

@@ -27,6 +27,8 @@
 // Define a location for our configuration file
 extern const char *UI_CONFIG_FILE;
 
+extern int UI_COLOR_DEBUG;
+
 int UICOLOR0, UICOLOR1, UICOLOR2, bg_icon;
 
 extern void set_ui_color(int i);
