@@ -76,7 +76,7 @@ void nandroid_get_backup_path(const char* backup_path, int other_sd)
 {
     char tmp[PATH_MAX];
 	nandroid_get_base_backup_path(tmp, other_sd);
-    sprintf(backup_path, "%s/backup", tmp);
+    sprintf(backup_path, "%s/backup/", tmp);
 }
 
 void nandroid_generate_timestamp_path(const char* backup_path, int other_sd)
