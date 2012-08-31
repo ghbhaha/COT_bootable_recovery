@@ -466,7 +466,7 @@ void show_partition_menu()
 			if (!is_data_media()) {
 				show_mount_usb_storage_menu();
 			} else {
-				erase_dalvik_cache();
+				erase_dalvik_cache(NULL);
 			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1)) {
 			if (!is_data_media()) {
