@@ -56,14 +56,14 @@ int touchY=0;
 
 char* MENU_HEADERS[] = { NULL };
 
-char* MENU_ITEMS[] = { "reboot system now",
-                       "install zip from sdcard",
-                       "wipe data/factory reset",
-                       "wipe cache partition",
-                       "wipe system, data, cache",
-                       "backup and restore",
-                       "mounts and storage",
-                       "advanced",
+char* MENU_ITEMS[] = { "Boot Android",
+                       "ZIP Flashing",
+                       "Factory Reset",
+                       "Pre-flash Wipe",
+                       "Nandroid",
+                       "Storage Management",
+                       "COT Options",
+                       "Power Options",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {

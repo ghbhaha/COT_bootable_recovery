@@ -910,7 +910,7 @@ int is_safe_to_format(char* name)
 
 void show_partition_menu()
 {
-    static char* headers[] = {  "Mounts and Storage Menu",
+    static char* headers[] = {  "Storage Management",
                                 "",
                                 NULL
     };
@@ -941,19 +941,19 @@ void show_partition_menu()
     for (i = 0; i < num_volumes; ++i) {
         Volume* v = &device_volumes[i];
         if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
-            sprintf(&mount_menu[mountable_volumes].mount, "mount %s", v->mount_point);
-            sprintf(&mount_menu[mountable_volumes].unmount, "unmount %s", v->mount_point);
+            sprintf(&mount_menu[mountable_volumes].mount, "Mount %s", v->mount_point);
+            sprintf(&mount_menu[mountable_volumes].unmount, "Unmount %s", v->mount_point);
             mount_menu[mountable_volumes].v = &device_volumes[i];
             ++mountable_volumes;
             if (is_safe_to_format(v->mount_point)) {
-                sprintf(&format_menu[formatable_volumes].txt, "format %s", v->mount_point);
+                sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
                 format_menu[formatable_volumes].v = &device_volumes[i];
                 ++formatable_volumes;
             }
         }
         else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
         {
-            sprintf(&format_menu[formatable_volumes].txt, "format %s", v->mount_point);
+            sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
             format_menu[formatable_volumes].v = &device_volumes[i];
             ++formatable_volumes;
         }
@@ -983,20 +983,85 @@ void show_partition_menu()
         }
 
         if (!is_data_media()) {
-          options[mountable_volumes + formatable_volumes] = "mount USB storage";
-          options[mountable_volumes + formatable_volumes + 1] = NULL;
+			options[mountable_volumes + formatable_volumes] = "Mount USB Storage";
+			options[mountable_volumes + formatable_volumes + 1] = "Erase dalvik-cache";
+			if (!can_partition("/sdcard")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
+			}
+			if (!can_partition("/external_sd")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
+			}
+			if (!can_partition("/emmc")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
+			}
+			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1 + 1] = NULL;
         }
         else {
-          options[mountable_volumes + formatable_volumes] = NULL;
+			options[mountable_volumes + formatable_volumes] = "Erase dalvik-cache";
+			if (!can_partition("/sdcard")) {
+				options[mountable_volumes + formatable_volumes + 1 ] = NULL;
+			}
+			if (!can_partition("/external_sd")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
+			}
+			if (!can_partition("/emmc")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
+			}
+			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
         }
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
         if (chosen_item == (mountable_volumes+formatable_volumes)) {
-            show_mount_usb_storage_menu();
-        }
-        else if (chosen_item < mountable_volumes) {
+			if (!is_data_media()) {
+				show_mount_usb_storage_menu();
+			} else {
+				if (0 != ensure_path_mounted("/data"))
+					break;
+				ensure_path_mounted("/sd-ext");
+				ensure_path_mounted("/cache");
+				if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+					__system("rm -r /data/dalvik-cache");
+					__system("rm -r /cache/dalvik-cache");
+					__system("rm -r /sd-ext/dalvik-cache");
+					ui_print("Dalvik Cache wiped.\n");
+				}
+				ensure_path_unmounted("/data");
+			}
+		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1)) {
+			if (!is_data_media()) {
+				if (0 != ensure_path_mounted("/data"))
+					break;
+				ensure_path_mounted("/sd-ext");
+				ensure_path_mounted("/cache");
+				if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+					__system("rm -r /data/dalvik-cache");
+					__system("rm -r /cache/dalvik-cache");
+					__system("rm -r /sd-ext/dalvik-cache");
+					ui_print("Dalvik Cache wiped.\n");
+				}
+				ensure_path_unmounted("/data");
+			} else {
+				partition_sdcard("/sdcard");
+			}
+		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1)) {
+			if (!is_data_media()) {
+				partition_sdcard("/sdcard");
+			} else {
+				partition_sdcard("/external_sd");
+			}
+		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1 + 1)) {
+			if (!is_data_media()) {
+				partition_sdcard("/external_sd");
+			} else {
+				partition_sdcard("/emmc");
+			}
+		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1 + 1 + 1)) {
+			if (!is_data_media()) {
+				partition_sdcard("/emmc");
+			}
+        } else if (chosen_item < mountable_volumes) {
             MountMenuEntry* e = &mount_menu[chosen_item];
             Volume* v = e->v;
 
@@ -1147,12 +1212,12 @@ void show_nandroid_menu()
                                 NULL
     };
 
-    char* list[] = { "backup",
-                            "restore",
-                            "delete",
-                            "advanced restore",
-                            "free unused backup data",
-                            "choose backup format",
+    char* list[] = { "Backup",
+                            "Restore",
+                            "Delete old backups",
+                            "Advanced Restore",
+                            "Free unused backup data",
+                            "Choose backup format",
                             NULL,
                             NULL,
                             NULL,
@@ -1276,7 +1341,7 @@ void show_nandroid_menu()
     }
 }
 
-static void partition_sdcard(const char* volume) {
+void partition_sdcard(const char* volume) {
     if (!can_partition(volume)) {
         ui_print("Can't partition device: %s\n", volume);
         return;
@@ -1343,149 +1408,6 @@ int can_partition(const char* volume) {
     }
 
     return 1;
-}
-
-void show_advanced_debugging_menu() {
-	static char* headers[] = { "Debugging Options",
-								"",
-								NULL
-	};
-	
-	static char* list[] = { "Fix Permissions",
-							"Report Error",
-							"Key Test",
-							"Show Log",
-							"Toggle UI Debugging",
-							NULL
-	};
-	
-	for (;;) {
-		int chosen_item = get_menu_selection(headers, list, 0, 0);
-		if(chosen_item == GO_BACK)
-			break;
-		switch(chosen_item) {
-			case 0:
-			{
-				ensure_path_mounted("/system");
-                ensure_path_mounted("/data");
-                ui_print("Fixing permissions...\n");
-                __system("fix_permissions");
-                ui_print("Done!\n");
-                break;
-			}
-            case 1:
-			{
-				handle_failure(1);
-                break;
-			}
-			case 2:
-			{
-				ui_print("Outputting key codes.\n");
-                ui_print("Go back to end debugging.\n");
-                struct keyStruct{
-					int code;
-					int x;
-					int y;
-				}*key;
-                int action;
-                do
-                {
-                    if(key->code == ABS_MT_POSITION_X) {
-						action = device_handle_mouse(key, 1);
-						ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
-					} else {
-						action = device_handle_key(key->code, 1);
-						ui_print("Key: %x\n", key->code);
-					}
-                }
-                while (action != GO_BACK);
-                break;
-			}
-			case 3:
-			{
-				ui_printlogtail(12);
-                break;
-			}
-			case 4:
-			{
-				toggle_ui_debugging();
-				break;
-			}
-		}
-	}
-}
-
-void show_advanced_menu()
-{
-    static char* headers[] = {  "Advanced Options",
-                                "",
-                                NULL
-    };
-
-    static char* list[] = { "Reboot Recovery",
-                            "Wipe Dalvik Cache",
-                            "COT Settings",
-                            "Debugging Options",
-                            "partition sdcard",
-                            "partition external sdcard",
-                            "partition internal sdcard",
-                            NULL
-    };
-
-    if (!can_partition("/sdcard")) {
-        list[4] = NULL;
-    }
-    if (!can_partition("/external_sd")) {
-        list[5] = NULL;
-    }
-    if (!can_partition("/emmc")) {
-        list[6] = NULL;
-    }
-
-    for (;;)
-    {
-        int chosen_item = get_filtered_menu_selection(headers, list, 0, 0, sizeof(list) / sizeof(char*));
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-            case 0:
-                android_reboot(ANDROID_RB_RESTART2, 0, "recovery");
-                break;
-            case 1:
-                if (0 != ensure_path_mounted("/data"))
-                    break;
-                ensure_path_mounted("/sd-ext");
-                ensure_path_mounted("/cache");
-                if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
-                    __system("rm -r /data/dalvik-cache");
-                    __system("rm -r /cache/dalvik-cache");
-                    __system("rm -r /sd-ext/dalvik-cache");
-                    ui_print("Dalvik Cache wiped.\n");
-                }
-                ensure_path_unmounted("/data");
-                break;
-            case 2:
-			{
-				show_settings_menu();
-				break;
-			}
-			case 3:
-			{
-				show_advanced_debugging_menu();
-				break;
-			}
-            case 4:
-                partition_sdcard("/sdcard");
-                break;
-            case 5:
-                partition_sdcard("/external_sd");
-                break;
-            case 6:
-                partition_sdcard("/emmc");
-                break;
-        }
-    }
 }
 
 void write_fstab_root(char *path, FILE *file)

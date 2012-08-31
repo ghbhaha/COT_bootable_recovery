@@ -58,7 +58,7 @@ extern int __system(const char *command);
 static int gShowBackButton = 0;
 
 #define MAX_COLS 96
-#define MAX_ROWS 32
+#define MAX_ROWS 62
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
@@ -371,10 +371,28 @@ static void draw_progress_locked()
     }
 }
 
-static void draw_text_line(int row, const char* t) {
-  if (t[0] != '\0') {
-    gr_text(0, (row+1)*CHAR_HEIGHT-1, t);
-  }
+#define LEFT_ALIGN 0
+#define CENTER_ALIGN 1
+#define RIGHT_ALIGN 2
+
+static void draw_text_line(int row, const char* t, int align) {
+	int col = 0; 
+	if (t[0] != '\0') {
+		int length = strnlen(t, MENU_MAX_COLS) * CHAR_WIDTH;
+		switch(align)
+		{
+			case LEFT_ALIGN:
+				col = 1;
+				break;
+			case CENTER_ALIGN:
+				col = ((gr_fb_width() - length) / 2);
+				break;
+			case RIGHT_ALIGN:
+				col = gr_fb_width() - length - 1;
+				break;
+		}
+		gr_text(col, (row+1)*CHAR_HEIGHT-1, t);
+	}
 }
 
 //#define MENU_TEXT_COLOR 255, 0, 0, 255
@@ -385,80 +403,113 @@ static void draw_text_line(int row, const char* t) {
 // Should only be called with gUpdateMutex locked.
 static void draw_screen_locked(void)
 {
-    if (!ui_has_initialized) return;
-    //ToDo: Following structure should be global
-	struct { int x; int y; int xL; int xR; } MENU_ICON[] = {
-		{  get_menu_icon_info(MENU_BACK,MENU_ICON_X),	get_menu_icon_info(MENU_BACK,MENU_ICON_Y), get_menu_icon_info(MENU_BACK,MENU_ICON_XL), get_menu_icon_info(MENU_BACK,MENU_ICON_XR) },
-		{  get_menu_icon_info(MENU_DOWN,MENU_ICON_X),	get_menu_icon_info(MENU_DOWN,MENU_ICON_Y), get_menu_icon_info(MENU_DOWN,MENU_ICON_XL), get_menu_icon_info(MENU_DOWN,MENU_ICON_XR) },
-		{  get_menu_icon_info(MENU_UP,MENU_ICON_X),	get_menu_icon_info(MENU_UP,MENU_ICON_Y), get_menu_icon_info(MENU_UP,MENU_ICON_XL), get_menu_icon_info(MENU_UP,MENU_ICON_XR) },
-		{  get_menu_icon_info(MENU_SELECT,MENU_ICON_X),	get_menu_icon_info(MENU_SELECT,MENU_ICON_Y), get_menu_icon_info(MENU_SELECT,MENU_ICON_XL), get_menu_icon_info(MENU_SELECT,MENU_ICON_XR) },
-	};
-    draw_background_locked(gCurrentIcon);
-    draw_progress_locked();
+	if (!ui_has_initialized) return;
+#ifdef BUILD_IN_LANDSCAPE
+		//In this case MENU_SELECT icon has maximum possible height.
+		int menu_max_height = gr_get_height(gMenuIcon[MENU_SELECT]);
+		struct { int x; int y; } MENU_ICON[] = {
+			{  gr_fb_width() - menu_max_height, 7*gr_fb_height()/8 },
+			{  gr_fb_width() - menu_max_height,	5*gr_fb_height()/8 },
+			{  gr_fb_width() - menu_max_height,	3*gr_fb_height()/8 },
+			{  gr_fb_width() - menu_max_height,	1*gr_fb_height()/8 }, 
+#else
+//ToDo: Following structure should be global
+		struct { int x; int y; int xL; int xR; } MENU_ICON[] = {
+			{  get_menu_icon_info(MENU_BACK,MENU_ICON_X),	get_menu_icon_info(MENU_BACK,MENU_ICON_Y), get_menu_icon_info(MENU_BACK,MENU_ICON_XL), get_menu_icon_info(MENU_BACK,MENU_ICON_XR) },
+			{  get_menu_icon_info(MENU_DOWN,MENU_ICON_X),	get_menu_icon_info(MENU_DOWN,MENU_ICON_Y), get_menu_icon_info(MENU_DOWN,MENU_ICON_XL), get_menu_icon_info(MENU_DOWN,MENU_ICON_XR) },
+			{  get_menu_icon_info(MENU_UP,MENU_ICON_X),	get_menu_icon_info(MENU_UP,MENU_ICON_Y), get_menu_icon_info(MENU_UP,MENU_ICON_XL), get_menu_icon_info(MENU_UP,MENU_ICON_XR) },
+			{  get_menu_icon_info(MENU_SELECT,MENU_ICON_X),	get_menu_icon_info(MENU_SELECT,MENU_ICON_Y), get_menu_icon_info(MENU_SELECT,MENU_ICON_XL), get_menu_icon_info(MENU_SELECT,MENU_ICON_XR) },
+#endif
+		};
 
-    if (show_text) {
-        // don't "disable" the background anymore with this...
-        // gr_color(0, 0, 0, 160);
-        // gr_fill(0, 0, gr_fb_width(), gr_fb_height());
+    		draw_background_locked(gCurrentIcon);
+    		draw_progress_locked();
 
-        int total_rows = gr_fb_height() / CHAR_HEIGHT;
-        int i = 0;
-        int j = 0;
-        int row = 0;            // current row that we are drawing on
-        if (show_menu) {
-			draw_icon_locked(gMenuIcon[MENU_BACK], MENU_ICON[MENU_BACK].x, MENU_ICON[MENU_BACK].y );
-			draw_icon_locked(gMenuIcon[MENU_DOWN], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
-			draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
-			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
-            // Setup our text colors
-			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
-            gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
-                    gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+		if (show_text) {
+	        	gr_color(0, 0, 0, 160);
+        		gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 
-            gr_color(HEADER_TEXT_COLOR);
-            for (i = 0; i < menu_top; ++i) {
-                draw_text_line(i, menu[i]);
-                row++;
-            }
+        		int i = 0;
+        		int j = 0;
+        		int row = 0;            // current row that we are drawing on
+        		if (show_menu) {
+				draw_icon_locked(gMenuIcon[MENU_BACK], MENU_ICON[MENU_BACK].x, MENU_ICON[MENU_BACK].y );
+				draw_icon_locked(gMenuIcon[MENU_DOWN], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
+				draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
+				draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
+            			// Setup our text colors
+            			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+            
+            			// Show battery level
+            			int batt_level = 0;
+            			batt_level = get_batt_stats();
+            			if(batt_level < 21) {
+					gr_color(255, 0, 0, 255);
+				}
+				char batt_text[40];
+				char time_gmt[40];
+			
+				// Get a usable time
+				struct tm *current;
+				time_t now;
+				now = time(0);
+				current = localtime(&now);
+				sprintf(batt_text, "[%d%%]", batt_level);
+				sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
+#ifdef BUILD_IN_LANDSCAPE
+            			draw_text_line(29, batt_text, LEFT_ALIGN);
+            			draw_text_line(30, time_gmt, LEFT_ALIGN);
+#else	
+            			draw_text_line(0, batt_text, RIGHT_ALIGN);
+            			draw_text_line(1, time_gmt, RIGHT_ALIGN);
+#endif
+			
+				gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
-            if (menu_items - menu_show_start + menu_top >= max_menu_rows)
-                j = max_menu_rows - menu_top;
-            else
-                j = menu_items - menu_show_start;
+            			gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
+#ifdef BUILD_IN_LANDSCAPE
+					gr_fb_width()-menu_max_height*2, (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+#else
+					gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+#endif
 
-            gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
-            for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
-                if (i == menu_top + menu_sel) {
-                    gr_color(255, 255, 255, 255);
-                    draw_text_line(i - menu_show_start , menu[i]);
-                    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
-                } else {
-                    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
-                    draw_text_line(i - menu_show_start, menu[i]);
-                }
-                row++;
-                if (row >= max_menu_rows)
-                    break;
-            }
 
-            gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
-                    gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
-        }
+            			gr_color(HEADER_TEXT_COLOR);
+            			for (i = 0; i < menu_top; ++i) {
+					draw_text_line(i, menu[i], LEFT_ALIGN);
+                			row++;
+            			}
 
-        gr_color(NORMAL_TEXT_COLOR);
-        int cur_row = text_row;
-        int available_rows = total_rows - row - 1;
-        int start_row = row + 1;
-        if (available_rows < MAX_ROWS)
-            cur_row = (cur_row + (MAX_ROWS - available_rows)) % MAX_ROWS;
-        else
-            start_row = total_rows - MAX_ROWS;
+	            		if (menu_items - menu_show_start + menu_top >= MAX_ROWS)
+                			j = MAX_ROWS - menu_top;
+            			else
+                			j = menu_items - menu_show_start;
 
-        int r;
-        for (r = 0; r < (available_rows < MAX_ROWS ? available_rows : MAX_ROWS); r++) {
-            draw_text_line(start_row + r, text[(cur_row + r) % MAX_ROWS]);
-        }
-    }
+            			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+            			for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
+                			if (i == menu_top + menu_sel) {
+                    				gr_color(255, 255, 255, 255);
+                    				draw_text_line(i - menu_show_start , menu[i], LEFT_ALIGN);
+                    				gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+                		} else {
+                    			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+                    			draw_text_line(i - menu_show_start, menu[i], LEFT_ALIGN);
+                		}
+                		row++;
+            		}
+            		gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
+#ifdef BUILD_IN_LANDSCAPE
+				gr_fb_width()-menu_max_height*2, row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+#else
+				gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+#endif
+        	}
+
+        	gr_color(NORMAL_TEXT_COLOR);
+        	for (; row < text_rows; ++row) {
+        		draw_text_line(row, text[(row+text_top) % text_rows], LEFT_ALIGN);
+        	}
+    	}
 }
 
 // Redraw everything on the screen and flip the screen (make it visible).
@@ -1405,4 +1456,23 @@ void ui_delete_line() {
 void ui_increment_frame() {
     gInstallingFrame =
         (gInstallingFrame + 1) % ui_parameters.installing_frames;
+}
+
+int get_batt_stats(void) {
+	static int level = -1;
+	
+	char value[4];
+	FILE * capacity = fopen("/sys/class/power_supply/battery/capacity","rt");
+	if (capacity) {
+		fgets(value, 4, capacity);
+		fclose(capacity);
+		level = atoi(value);
+		
+		if (level > 100)
+			level = 100;
+		if (level < 0)
+			level = 0;
+		
+	}
+	return level;
 }

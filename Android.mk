@@ -20,6 +20,7 @@ LOCAL_SRC_FILES := \
     settingshandler.c \
     settingshandler_lang.c \
     settings.c \
+    power.c \
     default_recovery_ui.c \
     verifier.c \
     iniparse/ini.c

@@ -47,6 +47,7 @@
 #include "settings.h"
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
+#include "power.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 #define ABS_MT_POSITION_Y 0x36  /* Center Y ellipse position */
@@ -707,16 +708,6 @@ prompt_and_wait() {
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
                 break;
-
-            case ITEM_WIPE_CACHE:
-                if (confirm_selection("Confirm wipe?", "Yes - Wipe Cache"))
-                {
-                    ui_print("\n-- Wiping cache...\n");
-                    erase_volume("/cache");
-                    ui_print("Cache wipe complete.\n");
-                    if (!ui_text_visible()) return;
-                }
-                break;
                 
             case ITEM_WIPE_ALL:
 			if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
@@ -743,12 +734,12 @@ prompt_and_wait() {
                 break;
 
             case ITEM_ADVANCED:
-                show_advanced_menu();
+                show_cot_options_menu();
                 break;
                 
-            case ITEM_POWEROFF:
-                poweroff = 1;
-                return;
+            case ITEM_POWEROPTIONS:
+                show_power_options_menu();
+                break;
         }
     }
 }
