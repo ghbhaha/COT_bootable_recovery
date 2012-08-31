@@ -68,14 +68,14 @@ void nandroid_get_base_backup_path(const char* backup_path, int other_sd)
 static void get_post_backup_cmd(const char* cmd, int other_sd)
 {
 	char tmp[PATH_MAX];
-	get_base_backup_path(tmp, other_sd);
+	nandroid_get_base_backup_path(tmp, other_sd);
 	sprintf(cmd, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w %s ; chmod u+x,g+x,o+x %s/backup ; chmod u+x,g+x,o+x %s/blobs", tmp, tmp, tmp);
 }
 
 void nandroid_get_backup_path(const char* backup_path, int other_sd)
 {
     char tmp[PATH_MAX];
-	get_base_backup_path(tmp, other_sd);
+	nandroid_get_base_backup_path(tmp, other_sd);
     sprintf(backup_path, "/%s/backup", tmp);
 }
 
@@ -462,7 +462,7 @@ int nandroid_backup(const char* backup_path)
         return ret;
     }
 
-	get_post_backup_cmd(tmp);
+	get_post_backup_cmd(tmp, 0);
     __system(tmp);
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
@@ -796,7 +796,7 @@ int nandroid_main(int argc, char** argv)
             return nandroid_usage();
         
         char backup_path[PATH_MAX];
-        nandroid_generate_timestamp_path(backup_path);
+        nandroid_generate_timestamp_path(backup_path, 0);
         return nandroid_backup(backup_path);
     }
 

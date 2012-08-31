@@ -422,7 +422,7 @@ void show_choose_zip_menu(const char *mount_point)
 			switch(chosen_item) {
 				case ITEM_BACKUP_AND_INSTALL: {
 					char backup_path[PATH_MAX];
-					nandroid_generate_timestamp_path(backup_path);
+					nandroid_generate_timestamp_path(backup_path, 0);
 					nandroid_backup(backup_path);
 					install_zip(file);
 					return;
@@ -473,7 +473,7 @@ void show_nandroid_delete_menu(const char* path)
     };
 
     char tmp[PATH_MAX];
-	nandroid_get_backup_path(tmp);
+	nandroid_get_backup_path(tmp, 0);
     char* file = choose_file_menu(tmp, NULL, headers);
     if (file == NULL)
         return;
@@ -773,7 +773,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
                             NULL
     };
     
-    if (0 != get_partition_device("wimax", tmp)) {
+    if (0 != get_partition_device("wimax", path)) {
         // disable wimax restore option
         list[5] = NULL;
     }
@@ -823,17 +823,17 @@ static void run_dedupe_gc(const char* other_sd) {
 }
 
 static void choose_backup_format() {
-    static char* headers[] = {  "Backup Format",
+    static char* cb_headers[] = {  "Backup Format",
                                 "",
                                 NULL
     };
 
-    char* list[] = { "dup (default)",
+    char* cb_list[] = { "dup (default)",
         "tar"
     };
 
-    int chosen_item = get_menu_selection(headers, list, 0, 0);
-    switch (chosen_item) {
+    int cb_chosen_item = get_menu_selection(cb_headers, cb_list, 0, 0);
+    switch (cb_chosen_item) {
         case 0:
             write_string_to_file(NANDROID_BACKUP_FORMAT_FILE, "dup");
             ui_print("Backup format set to dedupe.\n");
@@ -925,7 +925,7 @@ void show_nandroid_menu()
                 break;
             case 6:
                 {
-					nandroid_get_timestamp_path(backup_path, 1);
+					nandroid_get_backup_path(backup_path, 1);
                     nandroid_backup(backup_path);
 					break;
                 }
@@ -1123,7 +1123,7 @@ void process_volumes() {
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
     struct stat st;
 	char base_path[PATH_MAX];
-	nandroid_get_base_backup_path(base_path);
+	nandroid_get_base_backup_path(base_path, 0);
     char tmp[PATH_MAX];
 	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
 		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
@@ -1153,7 +1153,7 @@ void handle_failure(int ret)
     if (0 != ensure_path_mounted("/sdcard"))
         return;
 	char tmp[PATH_MAX];
-	nandroid_get_base_backup_path(tmp);
+	nandroid_get_base_backup_path(tmp, 0);
 	char cmd[PATH_MAX];
 	sprintf(cmd, "/sdcard/%s", tmp);
     mkdir(cmd, S_IRWXU | S_IRWXG | S_IRWXO);

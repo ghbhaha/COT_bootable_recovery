@@ -116,4 +116,7 @@ set_sdcard_update_bootloader_message();
 
 extern int ui_handle_key(int key, int visible);
 
+extern const char *DEFAULT_BACKUP_PATH;
+extern const char *USER_DEFINED_BACKUP_MARKER;
+
 #endif
