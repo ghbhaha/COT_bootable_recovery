@@ -1178,7 +1178,7 @@ void handle_failure(int ret)
         return;
     mkdir("/sdcard/cotrecovery", S_IRWXU | S_IRWXG | S_IRWXO);
     __system("cp /tmp/recovery.log /sdcard/cotrecovery/recovery.log");
-    ui_print("/tmp/recovery.log was copied to /sdcard/cotrecovery/recovery.log. Please open ROM Manager to report the issue.\n");
+    ui_print("A copy of the recovery log has been copied to /sdcard/cotrecovery/recovery.log. Please submit this file with your bug report.\n");
 }
 
 int is_path_mounted(const char* path) {
