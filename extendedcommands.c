@@ -451,7 +451,7 @@ void show_nandroid_restore_menu(const char* path)
     };
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/cotrecovery/backup/", path);
+    nandroid_get_backup_path(tmp, 0);
     char* file = choose_file_menu(tmp, NULL, headers);
     if (file == NULL)
         return;
