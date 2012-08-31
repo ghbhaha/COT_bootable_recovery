@@ -122,10 +122,15 @@ void wipe_data(int confirm) {
     return;
 }
 
-void erase_cache() {
-    if (!confirm_selection("Confirm wipe?", "Yes - Wipe Cache")) {
+void erase_cache(int orscallback) {
+	if(orscallback) {
+		if(orswipeprompt && !confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
+			ui_print("Skipping cache wipe...\n");
+			return;
+		}
+    } else if (!confirm_selection("Confirm wipe?","Yes - Wipe Cache")) {
 		return;
-    }
+	}
     ui_print("\n-- Wiping cache...\n");
     erase_volume("/cache");
     ui_print("%s\n", cachewipecomplete);
@@ -133,30 +138,46 @@ void erase_cache() {
     return;
 }
 
-void erase_dalvik_cache() {
+void erase_dalvik_cache(int orscallback) {
+	if(orscallback) {
+		if(orswipeprompt && !confirm_selection("Confirm wipe?","Yes- Wipe Dalvik Cache")) {
+			ui_print("Skipping dalvik cache wipe...\n");
+			return;
+		}
+	} else if (!confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+		return;
+	}
+
 	if (0 != ensure_path_mounted("/data"))
 		return;
+
 	ensure_path_mounted("/sd-ext");
 	ensure_path_mounted("/cache");
-	if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
-		__system("rm -r /data/dalvik-cache");
-		__system("rm -r /cache/dalvik-cache");
-		__system("rm -r /sd-ext/dalvik-cache");
-		ui_print("Dalvik Cache wiped.\n");
-	}
+
+	__system("rm -r /data/dalvik-cache");
+	__system("rm -r /cache/dalvik-cache");
+	__system("rm -r /sd-ext/dalvik-cache");
+	ui_print("Dalvik Cache wiped.\n");
+
 	ensure_path_unmounted("/data");
 	return;
 }
 
-void wipe_all() {
-	if (confirm_selection("Confirm wipe all?", "Yes - Wipe All")) {
-		ui_print("\n-- Wiping system, data, cache...\n");
-		erase_volume("/system");
-		erase_volume("/data");
-		erase_volume("/cache");
-		ui_print("\nFull wipe complete!\n");
-		if (!ui_text_visible()) return;
+void wipe_all(int orscallback) {
+	if(orscallback) {
+		if(orswipeprompt && !confirm_selection("Confirm wipe all?","Yes - Wipe All")) {
+			ui_print("Skipping full wipe...\n");
+			return;
+		}
+	} else if (!confirm_selection("Confirm wipe all?", "Yes - Wipe All")) {
+		return;
 	}
+	ui_print("\n-- Wiping system, data, cache...\n");
+	erase_volume("/system");
+	erase_volume("/data");
+	erase_volume("/cache");
+	ui_print("\nFull wipe complete!\n");
+	if (!ui_text_visible()) return;
 	return;
 }
 
@@ -192,7 +213,7 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         }
         return 0;
     }
- 
+
     if (strcmp(v->mount_point, path) != 0) {
         return format_unknown_device(v->device, path, NULL);
     }
@@ -304,7 +325,6 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     ensure_path_unmounted(path);
     return 0;
 }
-
 #define MKE2FS_BIN      "/sbin/mke2fs"
 #define TUNE2FS_BIN     "/sbin/tune2fs"
 #define E2FSCK_BIN      "/sbin/e2fsck"

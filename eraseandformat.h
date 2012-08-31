@@ -18,11 +18,11 @@ int erase_volume(const char *volume);
 
 void wipe_data(int confirm);
 
-void erase_cache();
+void erase_cache(int orscallback);
 
-void erase_dalvik_cache();
+void erase_dalvik_cache(int orscallback);
 
-void wipe_all();
+void wipe_all(int orscallback);
 
 int format_device(const char *device, const char *path, const char *fs_type);
 

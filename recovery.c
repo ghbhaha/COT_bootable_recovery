@@ -429,7 +429,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
     // throw away keys pressed previously, so user doesn't
     // accidentally trigger menu items.
     ui_clear_key_queue();
-    
+
     int item_count = ui_start_menu(headers, items, initial_selection);
     int selected = initial_selection;
     int chosen_item = -1;
@@ -628,7 +628,7 @@ prompt_and_wait() {
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
-        
+
         ui_root_menu = 1;
         // ui_menu_level is a legacy variable that i am keeping around to prevent build breakage.
         ui_menu_level = 0;
@@ -653,27 +653,21 @@ prompt_and_wait() {
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
                 break;
-                
             case ITEM_WIPE_ALL:
-				wipe_all();
+				wipe_all(0);
 				break;
-
             case ITEM_APPLY_SDCARD:
                 show_install_update_menu();
                 break;
-
             case ITEM_NANDROID:
                 show_nandroid_menu();
                 break;
-
             case ITEM_PARTITION:
                 show_partition_menu();
                 break;
-
             case ITEM_ADVANCED:
                 show_cot_options_menu();
                 break;
-                
             case ITEM_POWEROPTIONS:
                 show_power_options_menu();
                 break;
@@ -685,6 +679,293 @@ static void
 print_property(const char *key, const char *name, void *cookie) {
     printf("%s=%s\n", key, name);
 }
+
+/* open recovery script code
+ *
+ * this will likely need to be updated slightly for JB */
+void delayed_reboot() {
+	int i;
+	for (i = 3; i > 0; i--) {
+		ui_print("Rebooting system in (%d)\n", i);
+		sleep(1);
+	}
+	pass_normal_reboot();
+}
+
+static const char *SCRIPT_FILE_CACHE = "/cache/recovery/openrecoveryscript";
+static const char *SCRIPT_FILE_TMP = "/tmp/openrecoveryscript";
+#define SCRIPT_COMMAND_SIZE 512
+
+int check_for_script_file(void) {
+	FILE *fp = fopen(SCRIPT_FILE_CACHE, "r");
+	int ret_val = 0;
+	char exec[512];
+
+	if (fp != NULL) {
+		ret_val = 1;
+		LOGI("Script file found: '%s'\n", SCRIPT_FILE_CACHE);
+		fclose(fp);
+		// Copy script file to /tmp
+		strcpy(exec, "cp ");
+		strcat(exec, SCRIPT_FILE_CACHE);
+		strcat(exec, " ");
+		strcat(exec, SCRIPT_FILE_TMP);
+		__system(exec);
+		// Delete the file from /cache
+		strcpy(exec, "rm ");
+		strcat(exec, SCRIPT_FILE_CACHE);
+		__system(exec);
+	}
+	return ret_val;
+}
+
+int run_script_file(void) {
+	FILE *fp = fopen(SCRIPT_FILE_TMP, "r");
+	struct stat st;
+	int ret_val = 0, cindex, line_len, i, remove_nl;
+	char script_line[SCRIPT_COMMAND_SIZE], command[SCRIPT_COMMAND_SIZE],
+		 value[SCRIPT_COMMAND_SIZE], mount[SCRIPT_COMMAND_SIZE],
+		 value1[SCRIPT_COMMAND_SIZE], value2[SCRIPT_COMMAND_SIZE];
+	char *val_start, *tok;
+	int ors_system = 0;
+	int ors_data = 0;
+	int ors_cache = 0;
+	int ors_recovery = 0;
+	int ors_boot = 0;
+	int ors_andsec = 0;
+	int ors_sdext = 0;
+	int ors_no_confirm = 0;
+
+	if (fp != NULL) {
+		for (i = 20; i > 0; i--) {
+			ui_print("Waiting for SD Card to mount (%ds)\n", i);
+			if (ensure_path_mounted(SDCARD_ROOT) ==0) {
+				ui_print("SD Card Mounted...\nContinuing...\n");
+				break;
+			}
+			sleep(1);
+		}
+		if (orswipeprompt == 1) {
+			ors_no_confirm = 1;
+		}
+		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
+			cindex = 0;
+			line_len = strlen(script_line);
+			//if (line_len > 2)
+				//continue; // there's a blank line at the end of the file, we're done!
+			//ui_print("script line: '%s'\n", script_line);
+			for (i=0; i<line_len; i++) {
+				if ((int)script_line[i] == 32) {
+					cindex = i;
+					i = line_len;
+				}
+			}
+			memset(command, 0, sizeof(command));
+			memset(value, 0, sizeof(value));
+			if ((int)script_line[line_len - 1] == 10)
+					remove_nl = 2;
+				else
+					remove_nl = 1;
+			if (cindex != 0) {
+				strncpy(command, script_line, cindex);
+				LOGI("command is: '%s' and ", command);
+				val_start = script_line;
+				val_start += cindex + 1;
+				strncpy(value, val_start, line_len - cindex - remove_nl);
+				LOGI("value is: '%s'\n", value);
+			} else {
+				strncpy(command, script_line, line_len - remove_nl + 1);
+				ui_print("command is: '%s' and there is no value\n", command);
+			}
+			if (strcmp(command, "install") == 0) {
+				// Install zip -- ToDo : Need to clean this shit up, it's redundant and I know it can be written better
+				ensure_path_mounted(SDCARD_ROOT);
+				ui_print("Installing zip file '%s'\n", value);
+				if (signature_check_enabled) {
+					i = check_package_signature(value);
+					if(i == INSTALL_CORRUPT) {
+						if(confirm_selection("Confirm install?","Install - Failed Signature Check!")) {
+							ret_val = install_zip(value, 1);
+							if(ret_val != INSTALL_SUCCESS) {
+								LOGE("Error installing zip file '%s'\n", value);
+								ret_val = 1;
+							}
+						} else {
+							ui_print("Skipping package installation...\n");
+						}
+					} else {
+						ret_val = install_zip(value, 0);
+						if (ret_val != INSTALL_SUCCESS) {
+							LOGE("Error installing zip file '%s'\n", value);
+							ret_val = 1;
+						}
+					}
+				} else {
+					ret_val = install_zip(value, 0);
+					if (ret_val != INSTALL_SUCCESS) {
+						LOGE("Error installing zip file '%s'\n", value);
+						ret_val = 1;
+					}
+				}
+			} else if (strcmp(command, "wipe") == 0) {
+				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
+				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
+					erase_cache(1);
+				} else if (strcmp(value, "dalvik") == 0 || strcmp(value, "dalvick") == 0 || strcmp(value, "dalvikcache") == 0 || strcmp(value, "dalvickcache") == 0) {
+					erase_dalvik_cache(1);
+				} else if (strcmp(value, "data") == 0 || strcmp(value, "/data") == 0 || strcmp(value, "factory") == 0 || strcmp(value, "factoryreset") == 0) {
+					if(ors_no_confirm || confirm_selection("Confirm wipe?", "Yes - Wipe Data")) {
+						ui_print("-- Wiping Data Partition...\n");
+						wipe_data(0);
+						ui_print("-- Data Partition Wipe Complete!\n");
+					} else {
+						ui_print("Skipping data wipe...\n");
+					}
+				} else {
+					LOGE("Error with wipe command value: '%s'\n", value);
+					ret_val = 1;
+				}
+			} else if (strcmp(command, "backup") == 0) {
+				// Backup
+				char backup_path[PATH_MAX];
+
+				tok = strtok(value, " ");
+				strcpy(value1, tok);
+				tok = strtok(NULL, " ");
+				if (tok != NULL) {
+					memset(value2, 0, sizeof(value2));
+					strcpy(value2, tok);
+					line_len = strlen(tok);
+					if ((int)value2[line_len - 1] == 10 || (int)value2[line_len - 1] == 13) {
+						if ((int)value2[line_len - 1] == 10 || (int)value2[line_len - 1] == 13)
+							remove_nl = 2;
+						else
+							remove_nl = 1;
+					} else
+						remove_nl = 0;
+					strncpy(value2, tok, line_len - remove_nl);
+					ui_print("Backup folder set to '%s'\n", value2);
+					nandroid_get_backup_path(backup_path);
+					strcat(backup_path, value2);
+				} else {
+					nandroid_generate_timestamp_path(backup_path);
+				}
+				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
+				nandroid_backup(backup_path);
+			} else if (strcmp(command, "restore") == 0) {
+				// Restore
+				tok = strtok(value, " ");
+				strcpy(value1, tok);
+				ui_print("Restoring '%s'\n", value1);
+				tok = strtok(NULL, " ");
+				if (tok != NULL) {
+					ors_system = 0;
+					ors_data = 0;
+					ors_cache = 0;
+					ors_boot = 0;
+					ors_sdext = 0;
+
+					memset(value2, 0, sizeof(value2));
+					strcpy(value2, tok);
+					ui_print("Setting restore options:\n");
+					line_len = strlen(value2);
+					for (i=0; i<line_len; i++) {
+						if (value2[i] == 'S' || value2[i] == 's') {
+							ors_system = 1;
+							ui_print("System\n");
+						} else if (value2[i] == 'D' || value2[i] == 'd') {
+							ors_data = 1;
+							ui_print("Data\n");
+						} else if (value2[i] == 'C' || value2[i] == 'c') {
+							ors_cache = 1;
+							ui_print("Cache\n");
+						} else if (value2[i] == 'R' || value2[i] == 'r') {
+							//ui_print("Option for recovery ignored in CWMR\n");
+						} else if (value2[i] == '1') {
+							//ui_print("%s\n", "Option for special1 ignored in CWMR");
+						} else if (value2[i] == '2') {
+							//ui_print("%s\n", "Option for special1 ignored in CWMR");
+						} else if (value2[i] == '3') {
+							//ui_print("%s\n", "Option for special1 ignored in CWMR");
+						} else if (value2[i] == 'B' || value2[i] == 'b') {
+							ors_boot = 1;
+							ui_print("Boot\n");
+						} else if (value2[i] == 'A' || value2[i] == 'a') {
+							//ui_print("Option for android secure ignored in CWMR\n");
+						} else if (value2[i] == 'E' || value2[i] == 'e') {
+							ors_sdext = 1;
+							ui_print("SD-Ext\n");
+						} else if (value2[i] == 'M' || value2[i] == 'm') {
+							//ui_print("MD5 check skip option ignored in CWMR\n");
+						}
+					}
+				} else
+					LOGI("No restore options set\n");
+				nandroid_restore(value1, ors_boot, ors_system, ors_data, ors_cache, ors_sdext, 0);
+				ui_print("Restore complete!\n");
+			} else if (strcmp(command, "mount") == 0) {
+				// Mount
+				if (value[0] != '/') {
+					strcpy(mount, "/");
+					strcat(mount, value);
+				} else
+					strcpy(mount, value);
+				ensure_path_mounted(mount);
+				ui_print("Mounted '%s'\n", mount);
+			} else if (strcmp(command, "unmount") == 0 || strcmp(command, "umount") == 0) {
+				// Unmount
+				if (value[0] != '/') {
+					strcpy(mount, "/");
+					strcat(mount, value);
+				} else
+					strcpy(mount, value);
+				ensure_path_unmounted(mount);
+				ui_print("Unmounted '%s'\n", mount);
+			} else if (strcmp(command, "set") == 0) {
+				// Set value
+				/*
+				tok = strtok(value, " ");
+				strcpy(value1, tok);
+				tok = strtok(NULL, " ");
+				strcpy(value2, tok);
+				ui_print("Setting function disabled in CWMR: '%s' to '%s'\n", value1, value2);
+				*/
+			} else if (strcmp(command, "mkdir") == 0) {
+				// Make directory (recursive)
+				ensure_directory(value); // Untested from ORS
+			} else if (strcmp(command, "reboot") == 0) {
+				// Reboot
+				ui_print("Reboot command found...\n");
+				fclose(fp);
+				if(is_path_mounted("sdcard/"))
+					ensure_path_unmounted("sdcard/");
+				delayed_reboot();
+			} else if (strcmp(command, "cmd") == 0) {
+				if (cindex != 0) {
+					__system(value);
+				} else {
+					LOGE("No value given for cmd\n");
+				}
+			} else {
+				LOGE("Unrecognized script command: '%s'\n", command);
+				ret_val = 1;
+			}
+		}
+		fclose(fp);
+		ui_print("Done processing script file\n");
+		if(ret_val != 1 && orsreboot == 1) {
+			if(is_path_mounted("sdcard/"))
+				ensure_path_unmounted("sdcard/");
+			delayed_reboot();
+		}
+	} else {
+		LOGE("Error opening script file '%s'\n");
+		return 1;
+	}
+	return ret_val;
+}
+
+// end of open recovery script file code
 
 int
 main(int argc, char **argv) {
@@ -822,13 +1103,14 @@ main(int argc, char **argv) {
         status = INSTALL_ERROR;  // No command specified
         // we are starting up in user initiated recovery here
         // let's set up some default options
-        signature_check_enabled = 0;
-        script_assert_enabled = 0;
+        signature_check_enabled = 0;	/* I think these are deprecated but */
+        script_assert_enabled = 0;		/* I'm too lazy to look just now */
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         // Append cases as neccessary
 		parse_settings();
         
+		if (check_for_script_file()) run_script_file();
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
             int ret;
@@ -863,11 +1145,11 @@ main(int argc, char **argv) {
     sync();
     if(!poweroff) {
         ui_print("Rebooting...\n");
-        android_reboot(ANDROID_RB_RESTART, 0, 0);
+        pass_normal_reboot();
     }
     else {
         ui_print("Shutting down...\n");
-        android_reboot(ANDROID_RB_POWEROFF, 0, 0);
+        pass_shutdown_cmd();
     }
     return EXIT_SUCCESS;
 }
