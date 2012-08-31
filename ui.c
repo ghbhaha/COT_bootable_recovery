@@ -54,12 +54,7 @@ static int gShowBackButton = 0;
 #endif
 
 #define MAX_COLS 96
-// We should go ahead and assign this from the device config as well
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-	#define MAX_ROWS 27
-#else
-	#define MAX_ROWS 22
-#endif
+#define MAX_ROWS 27
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
@@ -412,10 +407,6 @@ static void draw_progress_locked()
     }
 }
 
-#define LEFT_ALIGN 0
-#define CENTER_ALIGN 1
-#define RIGHT_ALIGN 2
-
 static void draw_text_line(int row, const char* t, int align) {
     int col = 0; 
     if (t[0] != '\0') {
@@ -439,6 +430,9 @@ static void draw_text_line(int row, const char* t, int align) {
 //#define MENU_TEXT_COLOR 255, 0, 0, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
+
+int batt_level = 0;
+int BATT_LINE, TIME_LINE, BATT_POS, TIME_POS;
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
@@ -484,7 +478,6 @@ static void draw_screen_locked(void)
             gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             // Show battery level
-            int batt_level = 0;
             batt_level = get_batt_stats();
             if(batt_level < 21) {
                 gr_color(255, 0, 0, 255);
@@ -499,13 +492,9 @@ static void draw_screen_locked(void)
             current = localtime(&now);
             sprintf(batt_text, "[%d%%]", batt_level);
             sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
-#ifdef BUILD_IN_LANDSCAPE
-            draw_text_line(29, batt_text, LEFT_ALIGN);
-            draw_text_line(30, time_gmt, LEFT_ALIGN);
-#else
-            draw_text_line(0, batt_text, RIGHT_ALIGN);
-            draw_text_line(1, time_gmt, RIGHT_ALIGN);
-#endif
+
+            draw_text_line(BATT_LINE, batt_text, BATT_POS);
+            draw_text_line(TIME_LINE, time_gmt, TIME_POS);
 
             gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
