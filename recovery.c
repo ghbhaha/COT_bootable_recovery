@@ -778,34 +778,13 @@ int run_script_file(void) {
 				ui_print("command is: '%s' and there is no value\n", command);
 			}
 			if (strcmp(command, "install") == 0) {
-				// Install zip -- ToDo : Need to clean this shit up, it's redundant and I know it can be written better
+				// Install zip
 				ensure_path_mounted(SDCARD_ROOT);
 				ui_print("Installing zip file '%s'\n", value);
-				if (signature_check_enabled) {
-					i = check_package_signature(value);
-					if(i == INSTALL_CORRUPT) {
-						if(confirm_selection("Confirm install?","Install - Failed Signature Check!")) {
-							ret_val = install_zip(value, 1);
-							if(ret_val != INSTALL_SUCCESS) {
-								LOGE("Error installing zip file '%s'\n", value);
-								ret_val = 1;
-							}
-						} else {
-							ui_print("Skipping package installation...\n");
-						}
-					} else {
-						ret_val = install_zip(value, 0);
-						if (ret_val != INSTALL_SUCCESS) {
-							LOGE("Error installing zip file '%s'\n", value);
-							ret_val = 1;
-						}
-					}
-				} else {
-					ret_val = install_zip(value, 0);
-					if (ret_val != INSTALL_SUCCESS) {
-						LOGE("Error installing zip file '%s'\n", value);
-						ret_val = 1;
-					}
+				ret_val = install_zip(value);
+				if (ret_val != INSTALL_SUCCESS) {
+					LOGE("Error installing zip file '%s'\n", value);
+					ret_val = 1;
 				}
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
