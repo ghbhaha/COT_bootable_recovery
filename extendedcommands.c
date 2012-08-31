@@ -422,15 +422,7 @@ void show_choose_zip_menu(const char *mount_point)
 			switch(chosen_item) {
 				case ITEM_BACKUP_AND_INSTALL: {
 					char backup_path[PATH_MAX];
-					time_t t = time(NULL);
-					struct tm *tmp = localtime(&t);
-					if (tmp == NULL) {
-						struct timeval tp;
-						gettimeofday(&tp, NULL);
-						sprintf(backup_path, "/sdcard/cotrecovery/backup/%d", tp.tv_sec);
-					} else {
-						strftime(backup_path, sizeof(backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
-					}
+					nandroid_generate_timestamp_path(backup_path);
 					nandroid_backup(backup_path);
 					install_zip(file);
 					return;
@@ -481,7 +473,7 @@ void show_nandroid_delete_menu(const char* path)
     };
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/cotrecovery/backup/", path);
+	nandroid_get_backup_path(tmp);
     char* file = choose_file_menu(tmp, NULL, headers);
     if (file == NULL)
         return;
@@ -750,7 +742,7 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 void show_nandroid_advanced_restore_menu(const char* path)
 {
     if (ensure_path_mounted(path) != 0) {
-        LOGE ("Can't mount sdcard\n");
+        LOGE ("Can't mount %s\n", path);
         return;
     }
 
@@ -763,9 +755,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 NULL
     };
 
-    char tmp[PATH_MAX];
-    sprintf(tmp, "%s/cotrecovery/backup/", path);
-    char* file = choose_file_menu(tmp, NULL, advancedheaders);
+    char* file = choose_file_menu(path, NULL, advancedheaders);
     if (file == NULL)
         return;
 
@@ -822,13 +812,14 @@ void show_nandroid_advanced_restore_menu(const char* path)
 
 static void run_dedupe_gc(const char* other_sd) {
     ensure_path_mounted("/sdcard");
-    nandroid_dedupe_gc("/sdcard/cotrecovery/blobs");
+	char path[PATH_MAX], tmp[PATH_MAX];
+	nandroid_get_base_backup_path(path, 0);
     if (other_sd) {
         ensure_path_mounted(other_sd);
-        char tmp[PATH_MAX];
-        sprintf(tmp, "%s/cotrecovery/blobs", other_sd);
-        nandroid_dedupe_gc(tmp);
+		nandroid_get_base_backup_path(path, 1);
     }
+	sprintf(tmp, "%s/blobs", path);
+	nandroid_dedupe_gc(tmp);
 }
 
 static void choose_backup_format() {
@@ -901,33 +892,31 @@ void show_nandroid_menu()
             break;
         switch (chosen_item)
         {
+			char backup_path[PATH_MAX];
             case 0:
                 {
-                    char backup_path[PATH_MAX];
-                    time_t t = time(NULL);
-                    struct tm *tmp = localtime(&t);
-                    if (tmp == NULL)
-                    {
-                        struct timeval tp;
-                        gettimeofday(&tp, NULL);
-                        sprintf(backup_path, "/sdcard/cotrecovery/backup/%d", tp.tv_sec);
-                    }
-                    else
-                    {
-                        strftime(backup_path, sizeof(backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
-                    }
+					nandroid_generate_timestamp_path(backup_path, 0);
                     nandroid_backup(backup_path);
+					break;
                 }
-                break;
             case 1:
-                show_nandroid_restore_menu("/sdcard");
-                break;
+				{
+					nandroid_get_backup_path(backup_path, 0);
+                	show_nandroid_restore_menu(backup_path);
+                	break;
+				}
             case 2:
-                show_nandroid_delete_menu("/sdcard");
-                break;
+				{
+					nandroid_get_backup_path(backup_path, 0);
+                	show_nandroid_delete_menu(backup_path);
+                	break;
+				}
             case 3:
-                show_nandroid_advanced_restore_menu("/sdcard");
-                break;
+				{
+					nandroid_get_backup_path(backup_path, 0);
+                	show_nandroid_advanced_restore_menu(backup_path);
+                	break;
+				}
             case 4:
                 run_dedupe_gc(other_sd);
                 break;
@@ -936,49 +925,26 @@ void show_nandroid_menu()
                 break;
             case 6:
                 {
-                    char backup_path[PATH_MAX];
-                    time_t t = time(NULL);
-                    struct tm *timeptr = localtime(&t);
-                    if (timeptr == NULL)
-                    {
-                        struct timeval tp;
-                        gettimeofday(&tp, NULL);
-                        if (other_sd != NULL) {
-                            sprintf(backup_path, "%s/cotrecovery/backup/%d", other_sd, tp.tv_sec);
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (other_sd != NULL) {
-                            char tmp[PATH_MAX];
-                            strftime(tmp, sizeof(tmp), "cotrecovery/backup/%F.%H.%M.%S", timeptr);
-                            // this sprintf results in:
-                            // /emmc/cotrecovery/backup/%F.%H.%M.%S (time values are populated too)
-                            sprintf(backup_path, "%s/%s", other_sd, tmp);
-                        }
-                        else {
-                            break;
-                        }
-                    }
+					nandroid_get_timestamp_path(backup_path, 1);
                     nandroid_backup(backup_path);
+					break;
                 }
-                break;
             case 7:
                 if (other_sd != NULL) {
-                    show_nandroid_restore_menu(other_sd);
+					nandroid_get_backup_path(backup_path, 1);
+                    show_nandroid_restore_menu(backup_path);
                 }
                 break;
             case 8:
                 if (other_sd != NULL) {
-                    show_nandroid_advanced_restore_menu(other_sd);
+					nandroid_get_backup_path(backup_path, 1);
+                    show_nandroid_advanced_restore_menu(backup_path);
                 }
                 break;
             case 9:
                 if (other_sd != NULL) {
-                    show_nandroid_delete_menu(other_sd);
+					nandroid_get_backup_path(backup_path, 1);
+                    show_nandroid_delete_menu(backup_path);
                 }
                 break;
             default:
@@ -1066,7 +1032,6 @@ void write_fstab_root(char *path, FILE *file)
         LOGW("Unable to get recovery.fstab info for %s during fstab generation!\n", path);
         return;
     }
-
     char device[200];
     if (vol->device[0] != '/')
         get_partition_device(vol->device, device);
@@ -1090,7 +1055,7 @@ void create_fstab()
     }
     Volume *vol = volume_for_path("/boot");
     if (NULL != vol && strcmp(vol->fs_type, "mtd") != 0 && strcmp(vol->fs_type, "emmc") != 0 && strcmp(vol->fs_type, "bml") != 0)
-         write_fstab_root("/boot", file);
+    write_fstab_root("/boot", file);
     write_fstab_root("/cache", file);
     write_fstab_root("/data", file);
     write_fstab_root("/datadata", file);
@@ -1109,13 +1074,13 @@ int bml_check_volume(const char *path) {
         ensure_path_unmounted(path);
         return 0;
     }
-    
+
     Volume *vol = volume_for_path(path);
     if (vol == NULL) {
         LOGE("Unable process volume! Skipping...\n");
         return 0;
     }
-    
+
     ui_print("%s may be rfs. Checking...\n", path);
     char tmp[PATH_MAX];
     sprintf(tmp, "mount -t rfs %s %s", vol->device, path);
@@ -1144,19 +1109,30 @@ void process_volumes() {
     if (has_datadata())
         ret |= bml_check_volume("/datadata");
     ret |= bml_check_volume("/cache");
-    
+
     if (ret == 0) {
         ui_print("Done!\n");
         return;
     }
-    
+
     char backup_path[PATH_MAX];
     time_t t = time(NULL);
     char backup_name[PATH_MAX];
     struct timeval tp;
     gettimeofday(&tp, NULL);
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
-    sprintf(backup_path, "/sdcard/cotrecovery/backup/%s", backup_name);
+    struct stat st;
+	char base_path[PATH_MAX];
+	nandroid_get_base_backup_path(base_path);
+    char tmp[PATH_MAX];
+	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+		fscanf(file, "%s", &tmp);
+		fclose(file);
+	} else {
+		sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
+	}
+    sprintf(backup_path, "%s/%s%s", base_path, tmp, backup_name);
 
     ui_set_show_text(1);
     ui_print("Filesystems need to be converted to ext4.\n");
@@ -1176,8 +1152,13 @@ void handle_failure(int ret)
         return;
     if (0 != ensure_path_mounted("/sdcard"))
         return;
-    mkdir("/sdcard/cotrecovery", S_IRWXU | S_IRWXG | S_IRWXO);
-    __system("cp /tmp/recovery.log /sdcard/cotrecovery/recovery.log");
+	char tmp[PATH_MAX];
+	nandroid_get_base_backup_path(tmp);
+	char cmd[PATH_MAX];
+	sprintf(cmd, "/sdcard/%s", tmp);
+    mkdir(cmd, S_IRWXU | S_IRWXG | S_IRWXO);
+	sprintf(cmd, "cp /tmp/recovery.log /sdcard/%s/recovery.log", tmp);
+    __system(cmd);
     ui_print("A copy of the recovery log has been copied to /sdcard/cotrecovery/recovery.log. Please submit this file with your bug report.\n");
 }
 

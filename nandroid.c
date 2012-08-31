@@ -42,19 +42,57 @@
 
 #define LIMITED_SPACE 10000
 
-void nandroid_generate_timestamp_path(const char* backup_path)
+void nandroid_get_base_backup_path(const char* backup_path, int other_sd)
 {
+    char base_path[PATH_MAX];
+	if (other_sd) {
+		if (volume_for_path("/emmc") != NULL)
+			strcpy(base_path, "/emmc");
+    	else if (volume_for_path("/external_sd") != NULL)
+        	strcpy(base_path, "/external_sd");
+	} else {
+		strcpy(base_path, "/sdcard");
+	}
+	char tmp[PATH_MAX];
+    struct stat st;
+    if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
+        FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
+        fscanf(file, "%s", &tmp);
+        fclose(file);
+    } else {
+        sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
+    }
+    sprintf(backup_path, "%s/%s/", base_path, tmp);
+}
+
+static void get_post_backup_cmd(const char* cmd, int other_sd)
+{
+	char tmp[PATH_MAX];
+	get_base_backup_path(tmp, other_sd);
+	sprintf(cmd, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w %s ; chmod u+x,g+x,o+x %s/backup ; chmod u+x,g+x,o+x %s/blobs", tmp, tmp, tmp);
+}
+
+void nandroid_get_backup_path(const char* backup_path, int other_sd)
+{
+    char tmp[PATH_MAX];
+	get_base_backup_path(tmp, other_sd);
+    sprintf(backup_path, "/%s/backup", tmp);
+}
+
+void nandroid_generate_timestamp_path(const char* backup_path, int other_sd)
+{
+	nandroid_get_backup_path(backup_path, other_sd);
     time_t t = time(NULL);
-    struct tm *tmp = localtime(&t);
-    if (tmp == NULL)
-    {
+    struct tm *bktime = localtime(&t);
+	char tmp[PATH_MAX];
+    if (bktime == NULL) {
         struct timeval tp;
         gettimeofday(&tp, NULL);
-        sprintf(backup_path, "/sdcard/cotrecovery/backup/%d", tp.tv_sec);
-    }
-    else
-    {
-        strftime(backup_path, PATH_MAX, "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
+        sprintf(tmp, "%d", tp.tv_sec);
+		strcat(backup_path, tmp);
+    } else {
+        strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
+		strcat(backup_path, tmp);
     }
 }
 
@@ -309,7 +347,6 @@ int nandroid_backup_partition(const char* backup_path, const char* root) {
         }
         return 0;
     }
-
     return nandroid_backup_partition_extended(backup_path, root, 1);
 }
 
@@ -424,8 +461,8 @@ int nandroid_backup(const char* backup_path)
         ui_print("Error while generating md5 sum!\n");
         return ret;
     }
-    
-    sprintf(tmp, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w /sdcard/cotrecovery ; chmod u+x,g+x,o+x /sdcard/cotrecovery/backup ; chmod u+x,g+x,o+x /sdcard/cotrecovery/blobs", backup_path);
+
+	get_post_backup_cmd(tmp);
     __system(tmp);
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
@@ -632,7 +669,6 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     if (umount_when_finished) {
         ensure_path_unmounted(mount_point);
     }
-    
     return 0;
 }
 
