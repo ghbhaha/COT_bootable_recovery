@@ -1083,46 +1083,49 @@ int ui_get_text_cols() {
 
 void ui_print(const char *fmt, ...)
 {
-    char buf[256];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, 256, fmt, ap);
-    va_end(ap);
+	if(TOUCH_NOSHOW_LOG);
+	else {
+		char buf[256];
+		va_list ap;
+		va_start(ap, fmt);
+		vsnprintf(buf, 256, fmt, ap);
+		va_end(ap);
 
-    if (ui_log_stdout)
-        fputs(buf, stdout);
+		if (ui_log_stdout)
+			fputs(buf, stdout);
+	
+		// if we are running 'ui nice' mode, we do not want to force a screen update
+		// for this line if not necessary.
+		ui_niced = 0;
+		if (ui_nice) {
+			struct timeval curtime;
+			gettimeofday(&curtime, NULL);
+			long ms = delta_milliseconds(lastupdate, curtime);
+			if (ms < NICE_INTERVAL && ms >= 0) {
+				ui_niced = 1;
+				return;
+			}
+		}
 
-    // if we are running 'ui nice' mode, we do not want to force a screen update
-    // for this line if not necessary.
-    ui_niced = 0;
-    if (ui_nice) {
-        struct timeval curtime;
-        gettimeofday(&curtime, NULL);
-        long ms = delta_milliseconds(lastupdate, curtime);
-        if (ms < NICE_INTERVAL && ms >= 0) {
-            ui_niced = 1;
-            return;
-        }
-    }
-
-    // This can get called before ui_init(), so be careful.
-    pthread_mutex_lock(&gUpdateMutex);
-    gettimeofday(&lastupdate, NULL);
-    if (text_rows > 0 && text_cols > 0) {
-        char *ptr;
-        for (ptr = buf; *ptr != '\0'; ++ptr) {
-            if (*ptr == '\n' || text_col >= text_cols) {
-                text[text_row][text_col] = '\0';
-                text_col = 0;
-                text_row = (text_row + 1) % text_rows;
-                if (text_row == text_top) text_top = (text_top + 1) % text_rows;
-            }
-            if (*ptr != '\n') text[text_row][text_col++] = *ptr;
-        }
-        text[text_row][text_col] = '\0';
-        update_screen_locked();
-    }
-    pthread_mutex_unlock(&gUpdateMutex);
+		// This can get called before ui_init(), so be careful.
+		pthread_mutex_lock(&gUpdateMutex);
+		gettimeofday(&lastupdate, NULL);
+		if (text_rows > 0 && text_cols > 0) {
+			char *ptr;
+			for (ptr = buf; *ptr != '\0'; ++ptr) {
+				if (*ptr == '\n' || text_col >= text_cols) {
+					text[text_row][text_col] = '\0';
+					text_col = 0;
+					text_row = (text_row + 1) % text_rows;
+					if (text_row == text_top) text_top = (text_top + 1) % text_rows;
+				}
+				if (*ptr != '\n') text[text_row][text_col++] = *ptr;
+			}
+			text[text_row][text_col] = '\0';
+			update_screen_locked();
+		}
+		pthread_mutex_unlock(&gUpdateMutex);
+	}
 }
 
 void ui_printlogtail(int nb_lines) {

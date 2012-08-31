@@ -97,6 +97,8 @@ extern char* MENU_ITEMS[];
 
 extern int TOUCH_CONTROL_DEBUG;
 
+extern int TOUCH_NOSHOW_LOG;
+
 extern int maxX;
 extern int maxY;
 extern int touchY;

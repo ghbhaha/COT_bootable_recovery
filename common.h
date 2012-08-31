@@ -192,4 +192,7 @@ FILE* fopen_path(const char *path, const char *mode);
 int ui_get_selected_item();
 int ui_is_showing_back_button();
 
+extern char** prepend_title(char** headers);
+extern long tmplog_offset;
+
 #endif  // RECOVERY_COMMON_H

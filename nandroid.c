@@ -38,6 +38,7 @@
 
 #include "flashutils/flashutils.h"
 #include <libgen.h>
+#include "eraseandformat.h"
 
 #define LIMITED_SPACE 10000
 

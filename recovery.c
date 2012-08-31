@@ -43,6 +43,7 @@
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
+#include "eraseandformat.h"
 #include "dedupe/dedupe.h"
 #include "settings.h"
 #include "settingshandler.h"
@@ -243,7 +244,7 @@ set_sdcard_update_bootloader_message() {
 }
 
 // How much of the temp log we have copied to the copy in cache.
-static long tmplog_offset = 0;
+long tmplog_offset = 0;
 
 static void
 copy_log_file(const char* destination, int append) {
@@ -268,7 +269,6 @@ copy_log_file(const char* destination, int append) {
         check_and_fclose(log, destination);
     }
 }
-
 
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
@@ -304,22 +304,6 @@ finish_recovery(const char *send_intent) {
     }
 
     sync();  // For good measure.
-}
-
-static int
-erase_volume(const char *volume) {
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
-    ui_show_indeterminate_progress();
-    ui_print("Formatting %s...\n", volume);
-
-    if (strcmp(volume, "/cache") == 0) {
-        // Any part of the log we'd copied to cache is now gone.
-        // Reset the pointer so we copy from the beginning of the temp
-        // log.
-        tmplog_offset = 0;
-    }
-
-    return format_volume(volume);
 }
 
 static char*
@@ -412,8 +396,7 @@ copy_sideloaded_package(const char* original_path) {
   return strdup(copy_path);
 }
 
-static char**
-prepend_title(char** headers) {
+char** prepend_title(char** headers) {
     char* title[] = { EXPAND(RECOVERY_VERSION),
                       "",
                       NULL };
@@ -630,50 +613,6 @@ update_directory(const char* path, const char* unmount_when_done) {
     return result;
 }
 
-static void
-wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title((const char**)headers);
-        }
-
-        char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
-            return;
-        }
-    }
-
-    ui_print("\n-- Wiping data...\n");
-    device_wipe_data();
-    erase_volume("/data");
-    erase_volume("/cache");
-    if (has_datadata()) {
-        erase_volume("/datadata");
-    }
-    erase_volume("/sd-ext");
-    erase_volume("/sdcard/.android_secure");
-    ui_print("Data wipe complete.\n");
-}
-
 int ui_menu_level = 1;
 int ui_root_menu = 0;
 static void
@@ -710,16 +649,8 @@ prompt_and_wait() {
                 break;
                 
             case ITEM_WIPE_ALL:
-			if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
-			{
-				ui_print("\n-- Wiping system, data, cache...\n");
-				erase_volume("/system");
-				erase_volume("/data");
-				erase_volume("/cache");
-				ui_print("\nFull wipe complete!\n");
-				if (!ui_text_visible()) return;
-			}
-			break;
+				wipe_all();
+				break;
 
             case ITEM_APPLY_SDCARD:
                 show_install_update_menu();
