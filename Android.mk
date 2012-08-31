@@ -17,9 +17,12 @@ LOCAL_SRC_FILES := \
     firmware.c \
     edifyscripting.c \
     setprop.c \
-    colorific.c \
+    settingshandler.c \
+    settingshandler_lang.c \
+    settings.c \
     default_recovery_ui.c \
-    verifier.c
+    verifier.c \
+    iniparse/ini.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -30,7 +33,7 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_NAME := Cannibal Open Touch
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v0.0.1-dev
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.9.99-dev
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2

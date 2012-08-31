@@ -39,12 +39,12 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-#include "colorific.h"
 #include "cutils/android_reboot.h"
+#include "settings.h"
+#include "settingshandler.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 
-int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 static const char *SDCARD_UPDATE_FILE = "/sdcard/update.zip";
 
@@ -86,13 +86,6 @@ void write_string_to_file(const char* filename, const char* string) {
     fclose(file);
 }
 
-void
-toggle_signature_check()
-{
-    signature_check_enabled = !signature_check_enabled;
-    ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
-}
-
 void toggle_ui_debugging()
 {
 	switch(UI_COLOR_DEBUG) {
@@ -122,37 +115,35 @@ int install_zip(const char* packagefilepath)
         ui_print("Installation aborted.\n");
         return 1;
     }
-    ui_set_background(BACKGROUND_ICON_NONE);
     ui_print("\nInstall from sdcard complete.\n");
+    ui_init_icons();
     return 0;
 }
 
 #define ITEM_CHOOSE_ZIP       0
 #define ITEM_APPLY_SDCARD     1
-#define ITEM_SIG_CHECK        2
-#define ITEM_CHOOSE_ZIP_INT   3
+#define ITEM_CHOOSE_ZIP_INT   2
 
 void show_install_update_menu()
 {
-    static char* headers[] = {  "Apply update from .zip file on SD card",
+    static char* headers[] = {  "Apply .zip file on SD card",
                                 "",
                                 NULL
     };
     
     char* install_menu_items[] = {  "choose zip from sdcard",
                                     "apply /sdcard/update.zip",
-                                    "toggle signature verification",
                                     NULL,
                                     NULL };
 
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc/";
-        install_menu_items[3] = "choose zip from internal sdcard";
+        install_menu_items[2] = "choose zip from internal sdcard";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd/";
-        install_menu_items[3] = "choose zip from external sdcard";
+        install_menu_items[2] = "choose zip from external sdcard";
     }
     
     for (;;)
@@ -160,9 +151,6 @@ void show_install_update_menu()
         int chosen_item = get_menu_selection(headers, install_menu_items, 0, 0);
         switch (chosen_item)
         {
-            case ITEM_SIG_CHECK:
-                toggle_signature_check();
-                break;
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
@@ -385,6 +373,15 @@ void show_choose_zip_menu(const char *mount_point)
         LOGE ("Can't mount %s\n", mount_point);
         return;
     }
+    
+    static char *INSTALL_OR_BACKUP_ITEMS[] = { "Yes - Backup and install",
+												"No - Install without backup",
+												"Cancel Install",
+												NULL};
+												
+	#define ITEM_BACKUP_AND_INSTALL 0
+	#define ITEM_INSTALL_WOUT_BACKUP 1
+	#define ITEM_CANCEL_INSTALL 2
 
     static char* headers[] = {  "Choose a zip to apply",
                                 "",
@@ -394,11 +391,42 @@ void show_choose_zip_menu(const char *mount_point)
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
-    static char* confirm_install  = "Confirm install?";
-    static char confirm[PATH_MAX];
-    sprintf(confirm, "Yes - Install %s", basename(file));
-    if (confirm_selection(confirm_install, confirm))
-        install_zip(file);
+        
+    if (backupprompt == 0) {
+		static char* confirm_install = "Confirm install?";
+		static char confirm[PATH_MAX];
+		sprintf(confirm, "Yes - Install %s", basename(file));
+		if (confirm_selection(confirm_install, confirm)) {
+			install_zip(file);
+        }
+	} else {
+		for (;;) {
+			int chosen_item = get_menu_selection(headers, INSTALL_OR_BACKUP_ITEMS, 0, 0);
+			switch(chosen_item) {
+				case ITEM_BACKUP_AND_INSTALL: {
+					char backup_path[PATH_MAX];
+					time_t t = time(NULL);
+					struct tm *tmp = localtime(&t);
+					if (tmp == NULL) {
+						struct timeval tp;
+						gettimeofday(&tp, NULL);
+						sprintf(backup_path, "/sdcard/cotrecovery/backup/%d", tp.tv_sec);
+					} else {
+						strftime(backup_path, sizeof(backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
+					}
+					nandroid_backup(backup_path);
+					install_zip(file);
+					return;
+				}
+				case ITEM_INSTALL_WOUT_BACKUP:
+					install_zip(file);
+					return;
+				default:
+					break;
+			}
+			break;
+		}
+    }
 }
 
 void show_nandroid_restore_menu(const char* path)
@@ -414,7 +442,7 @@ void show_nandroid_restore_menu(const char* path)
     };
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/clockworkmod/backup/", path);
+    sprintf(tmp, "%s/cotrecovery/backup/", path);
     char* file = choose_file_menu(tmp, NULL, headers);
     if (file == NULL)
         return;
@@ -436,16 +464,56 @@ void show_nandroid_delete_menu(const char* path)
     };
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/clockworkmod/backup/", path);
+    sprintf(tmp, "%s/cotrecovery/backup/", path);
     char* file = choose_file_menu(tmp, NULL, headers);
     if (file == NULL)
         return;
 
     if (confirm_selection("Confirm delete?", "Yes - Delete")) {
         // nandroid_restore(file, 1, 1, 1, 1, 1, 0);
+        ui_print("Deleting %s\n", basename(file));
         sprintf(tmp, "rm -rf %s", file);
         __system(tmp);
+        ui_print("Backup deleted!\n");
     }
+}
+
+int show_lowspace_menu(int i, const char* backup_path)
+{
+	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
+											"View and delete old backups",
+											"Cancel backup",
+											NULL };
+	#define ITEM_CONTINUE_BACKUP 0
+	#define ITEM_VIEW_DELETE_BACKUPS 1
+	#define ITEM_CANCEL_BACKUP 2
+
+	static char* headers[] = { "Limited space available!",
+								"",
+								"There may not be enough space",
+								"to continue backup.",
+								"",
+								"What would you like to do?",
+								"",
+								NULL
+	};
+
+	for (;;) {
+		int chosen_item = get_menu_selection(headers, LOWSPACE_MENU_ITEMS, 0, 0);
+		switch(chosen_item) {
+			case ITEM_CONTINUE_BACKUP: {
+				static char tmp;
+				ui_print("Proceeding with backup.\n");
+				return 0;
+			}
+			case ITEM_VIEW_DELETE_BACKUPS:
+				show_nandroid_delete_menu("/sdcard");
+				break;
+			default:
+				ui_print("Cancelling backup.\n");
+				return 1;
+		}
+	}
 }
 
 #define MAX_NUM_USB_VOLUMES 3
@@ -609,11 +677,11 @@ void show_mount_usb_storage_menu()
 int confirm_selection(const char* title, const char* confirm)
 {
     struct stat info;
-    if (0 == stat("/sdcard/clockworkmod/.no_confirm", &info))
+    if (0 == stat("/sdcard/cotrecovery/.no_confirm", &info))
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
-    if (0 == stat("/sdcard/clockworkmod/.one_confirm", &info)) {
+    if (0 == stat("/sdcard/cotrecovery/.one_confirm", &info)) {
         char* items[] = { "No",
                         confirm, //" Yes -- wipe partition",   // [1]
                         NULL };
@@ -636,7 +704,27 @@ int confirm_selection(const char* title, const char* confirm)
         int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
         return chosen_item == 7;
     }
-    }
+}
+
+int confirm_nandroid_backup(const char* title, const char* confirm)
+{
+    char* confirm_headers[]  = {  title, "THIS IS RECOMMENDED!", "", NULL };
+    char* items[] = { "No",
+                      "No",
+                      "No",
+                      "No",
+                      "No",
+                      "No",
+                      "No",
+                      confirm, //" Yes -- wipe partition",   // [7
+                      "No",
+                      "No",
+                      "No",
+                      NULL };
+
+    int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
+    return chosen_item == 7;
+}
 
 #define MKE2FS_BIN      "/sbin/mke2fs"
 #define TUNE2FS_BIN     "/sbin/tune2fs"
@@ -956,13 +1044,13 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 "",
                                 "Choose an image to restore",
                                 "first. The next menu will",
-                                "you more options.",
+                                "give you more options.",
                                 "",
                                 NULL
     };
 
     char tmp[PATH_MAX];
-    sprintf(tmp, "%s/clockworkmod/backup/", path);
+    sprintf(tmp, "%s/cotrecovery/backup/", path);
     char* file = choose_file_menu(tmp, NULL, advancedheaders);
     if (file == NULL)
         return;
@@ -1020,11 +1108,11 @@ void show_nandroid_advanced_restore_menu(const char* path)
 
 static void run_dedupe_gc(const char* other_sd) {
     ensure_path_mounted("/sdcard");
-    nandroid_dedupe_gc("/sdcard/clockworkmod/blobs");
+    nandroid_dedupe_gc("/sdcard/cotrecovery/blobs");
     if (other_sd) {
         ensure_path_mounted(other_sd);
         char tmp[PATH_MAX];
-        sprintf(tmp, "%s/clockworkmod/blobs", other_sd);
+        sprintf(tmp, "%s/cotrecovery/blobs", other_sd);
         nandroid_dedupe_gc(tmp);
     }
 }
@@ -1108,11 +1196,11 @@ void show_nandroid_menu()
                     {
                         struct timeval tp;
                         gettimeofday(&tp, NULL);
-                        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+                        sprintf(backup_path, "/sdcard/cotrecovery/backup/%d", tp.tv_sec);
                     }
                     else
                     {
-                        strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+                        strftime(backup_path, sizeof(backup_path), "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
                     }
                     nandroid_backup(backup_path);
                 }
@@ -1142,7 +1230,7 @@ void show_nandroid_menu()
                         struct timeval tp;
                         gettimeofday(&tp, NULL);
                         if (other_sd != NULL) {
-                            sprintf(backup_path, "%s/clockworkmod/backup/%d", other_sd, tp.tv_sec);
+                            sprintf(backup_path, "%s/cotrecovery/backup/%d", other_sd, tp.tv_sec);
                         }
                         else {
                             break;
@@ -1152,9 +1240,9 @@ void show_nandroid_menu()
                     {
                         if (other_sd != NULL) {
                             char tmp[PATH_MAX];
-                            strftime(tmp, sizeof(tmp), "clockworkmod/backup/%F.%H.%M.%S", timeptr);
+                            strftime(tmp, sizeof(tmp), "cotrecovery/backup/%F.%H.%M.%S", timeptr);
                             // this sprintf results in:
-                            // /emmc/clockworkmod/backup/%F.%H.%M.%S (time values are populated too)
+                            // /emmc/cotrecovery/backup/%F.%H.%M.%S (time values are populated too)
                             sprintf(backup_path, "%s/%s", other_sd, tmp);
                         }
                         else {
@@ -1336,7 +1424,7 @@ void show_advanced_menu()
 
     static char* list[] = { "Reboot Recovery",
                             "Wipe Dalvik Cache",
-                            "Set UI Color",
+                            "COT Settings",
                             "Debugging Options",
                             "partition sdcard",
                             "partition external sdcard",
@@ -1379,22 +1467,8 @@ void show_advanced_menu()
                 break;
             case 2:
 			{
-				static char* ui_colors[] = {"Hydro (default)",
-											"Blood Red",
-											"Key Lime Pie",
-											"Citrus Orange",
-											"Dooderbutt Blue",
-											NULL
-				};
-				static char* ui_header[] = {"UI Color", "", NULL};
-				
-				int ui_color = get_menu_selection(ui_header, ui_colors, 0, 0);
-				if(ui_color == GO_BACK) {
-					continue;
-				} else {
-					set_ui_color(ui_color);
-					break;
-				}
+				show_settings_menu();
+				break;
 			}
 			case 3:
 			{
@@ -1511,7 +1585,7 @@ void process_volumes() {
     struct timeval tp;
     gettimeofday(&tp, NULL);
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
-    sprintf(backup_path, "/sdcard/clockworkmod/backup/%s", backup_name);
+    sprintf(backup_path, "/sdcard/cotrecovery/backup/%s", backup_name);
 
     ui_set_show_text(1);
     ui_print("Filesystems need to be converted to ext4.\n");
@@ -1531,9 +1605,9 @@ void handle_failure(int ret)
         return;
     if (0 != ensure_path_mounted("/sdcard"))
         return;
-    mkdir("/sdcard/clockworkmod", S_IRWXU | S_IRWXG | S_IRWXO);
-    __system("cp /tmp/recovery.log /sdcard/clockworkmod/recovery.log");
-    ui_print("/tmp/recovery.log was copied to /sdcard/clockworkmod/recovery.log. Please open ROM Manager to report the issue.\n");
+    mkdir("/sdcard/cotrecovery", S_IRWXU | S_IRWXG | S_IRWXO);
+    __system("cp /tmp/recovery.log /sdcard/cotrecovery/recovery.log");
+    ui_print("/tmp/recovery.log was copied to /sdcard/cotrecovery/recovery.log. Please open ROM Manager to report the issue.\n");
 }
 
 int is_path_mounted(const char* path) {

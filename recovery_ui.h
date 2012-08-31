@@ -77,12 +77,13 @@ int device_wipe_data();
 #define ITEM_APPLY_SDCARD    1  // historical synonym for ITEM_APPLY_EXT
 #define ITEM_WIPE_DATA       2
 #define ITEM_WIPE_CACHE      3
+#define ITEM_WIPE_ALL		 4
 // unused in cwr
-#define ITEM_APPLY_CACHE     4
-#define ITEM_NANDROID        4
-#define ITEM_PARTITION       5
-#define ITEM_ADVANCED        6
-#define ITEM_POWEROFF        7
+#define ITEM_APPLY_CACHE     5
+#define ITEM_NANDROID        5
+#define ITEM_PARTITION       6
+#define ITEM_ADVANCED        7
+#define ITEM_POWEROFF        8
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
@@ -99,6 +100,7 @@ extern int TOUCH_CONTROL_DEBUG;
 
 extern int maxX;
 extern int maxY;
+extern int touchY;
 
 int get_menu_icon_info(int indx1, int indx2);
 

@@ -1,8 +1,4 @@
-extern int signature_check_enabled;
 extern int script_assert_enabled;
-
-void
-toggle_signature_check();
 
 void
 show_choose_zip_menu();
@@ -48,6 +44,8 @@ int has_datadata();
 
 void handle_failure(int ret);
 
+int is_path_mounted(const char* path);
+
 void process_volumes();
 
 int extendedcommand_file_exists();
@@ -56,7 +54,11 @@ void show_install_update_menu();
 
 int confirm_selection(const char* title, const char* confirm);
 
+int confirm_nandroid_backup(const char* title, const char* confirm);
+
 int run_and_remove_extendedcommand();
+
+int show_lowspace_menu(int i, const char* backup_path);
 
 int verify_root_and_recovery();
 

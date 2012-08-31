@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Drew Walton
+ * Copyright (C) 2012 Drew Walton & Nathan Bass
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef _COLORIFIC_H
-#define _COLORIFIC_H
-
-// Throw this in here to easier tell which UI color is which
-#define HYDRO_UI		0
+ 
+#define HYDRO_UI			0
 #define BLOOD_RED_UI		1
 #define KEY_LIME_PIE_UI		2
 #define CITRUS_ORANGE_UI	3
 #define DOODERBUTT_BLUE_UI	4
 
-// Define a location for our configuration file
-extern const char *UI_CONFIG_FILE;
-
 extern int UI_COLOR_DEBUG;
 
-int UICOLOR0, UICOLOR1, UICOLOR2, bg_icon;
+int UICOLOR0, UICOLOR1, UICOLOR2, UITHEME;
 
-extern void set_ui_color(int i);
-
-extern void get_config_settings();
-
+void show_settings_menu();
+void show_ors_reboot_menu();
+void show_ors_nandroid_prompt_menu();
+void show_nandroid_prompt_menu();
 void ui_dyn_background();
-
-void set_bg_icon(int icon);
-#endif

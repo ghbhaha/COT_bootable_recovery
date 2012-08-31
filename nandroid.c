@@ -39,6 +39,8 @@
 #include "flashutils/flashutils.h"
 #include <libgen.h>
 
+#define LIMITED_SPACE 10000
+
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
     time_t t = time(NULL);
@@ -47,11 +49,11 @@ void nandroid_generate_timestamp_path(const char* backup_path)
     {
         struct timeval tp;
         gettimeofday(&tp, NULL);
-        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+        sprintf(backup_path, "/sdcard/cotrecovery/backup/%d", tp.tv_sec);
     }
     else
     {
-        strftime(backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+        strftime(backup_path, PATH_MAX, "/sdcard/cotrecovery/backup/%F.%H.%M.%S", tmp);
     }
 }
 
@@ -251,7 +253,7 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
     char* name = basename(mount_point);
 
     struct stat file_info;
-    int callback = stat("/sdcard/clockworkmod/.hidenandroidprogress", &file_info) != 0;
+    int callback = stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info) != 0;
 
     ui_print("Backing up %s...\n", name);
     if (0 != (ret = ensure_path_mounted(mount_point) != 0)) {
@@ -310,10 +312,25 @@ int nandroid_backup_partition(const char* backup_path, const char* root) {
     return nandroid_backup_partition_extended(backup_path, root, 1);
 }
 
+int recalc_sdcard_space(const char* backup_path)
+{
+	struct statfs s;
+	int ret;
+	Volume* volume = volume_for_path(backup_path);
+	//static char mount_point = "/sdcard/"
+	if (0 != (ret = statfs(volume->mount_point, &s))) {
+		return print_and_error("Can't mount sdcard.\n");
+	}
+	uint64_t bavail = s.f_bavail;
+    uint64_t bsize = s.f_bsize;
+    uint64_t sdcard_free = bavail * bsize;
+    uint64_t sdcard_free_mb = sdcard_free / (uint64_t)(1024 * 1024);
+    return sdcard_free_mb;
+}
+
 int nandroid_backup(const char* backup_path)
 {
     nandroid_backup_bitfield = 0;
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
     refresh_default_backup_handler();
     
     if (ensure_path_mounted(backup_path) != 0) {
@@ -325,19 +342,22 @@ int nandroid_backup(const char* backup_path)
         return print_and_error("Unable to find volume for backup path.\n");
     if (is_data_media_volume_path(volume->mount_point))
         volume = volume_for_path("/data");
+        
     int ret;
     struct statfs s;
     if (NULL != volume) {
         if (0 != (ret = statfs(volume->mount_point, &s)))
             return print_and_error("Unable to stat backup path.\n");
-        uint64_t bavail = s.f_bavail;
-        uint64_t bsize = s.f_bsize;
-        uint64_t sdcard_free = bavail * bsize;
-        uint64_t sdcard_free_mb = sdcard_free / (uint64_t)(1024 * 1024);
-        ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-        if (sdcard_free_mb < 150)
-            ui_print("There may not be enough free space to complete backup... continuing...\n");
-    }
+            
+		uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
+		ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+		if (sdcard_free_mb < LIMITED_SPACE) {
+			if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
+				return 0;
+			}
+		}
+	}
+	ui_set_background(BACKGROUND_ICON_INSTALLING);
     char tmp[PATH_MAX];
     ensure_directory(backup_path);
 
@@ -404,7 +424,7 @@ int nandroid_backup(const char* backup_path)
         return ret;
     }
     
-    sprintf(tmp, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w /sdcard/clockworkmod ; chmod u+x,g+x,o+x /sdcard/clockworkmod/backup ; chmod u+x,g+x,o+x /sdcard/clockworkmod/blobs", backup_path);
+    sprintf(tmp, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w /sdcard/cotrecovery ; chmod u+x,g+x,o+x /sdcard/cotrecovery/backup ; chmod u+x,g+x,o+x /sdcard/cotrecovery/blobs", backup_path);
     __system(tmp);
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
@@ -578,7 +598,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
 
     ensure_directory(mount_point);
 
-    int callback = stat("/sdcard/clockworkmod/.hidenandroidprogress", &file_info) != 0;
+    int callback = stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info) != 0;
 
     ui_print("Restoring %s...\n", name);
     if (backup_filesystem == NULL) {

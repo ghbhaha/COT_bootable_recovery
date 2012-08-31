@@ -44,7 +44,9 @@
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 #include "dedupe/dedupe.h"
-#include "colorific.h"
+#include "settings.h"
+#include "settingshandler.h"
+#include "settingshandler_lang.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
 #define ABS_MT_POSITION_Y 0x36  /* Center Y ellipse position */
@@ -715,6 +717,18 @@ prompt_and_wait() {
                     if (!ui_text_visible()) return;
                 }
                 break;
+                
+            case ITEM_WIPE_ALL:
+			if (confirm_selection("Confirm wipe all?", "Yes - Wipe All"))
+			{
+				ui_print("\n-- Wiping system, data, cache...\n");
+				erase_volume("/system");
+				erase_volume("/data");
+				erase_volume("/cache");
+				ui_print("\nFull wipe complete!\n");
+				if (!ui_text_visible()) return;
+			}
+			break;
 
             case ITEM_APPLY_SDCARD:
                 show_install_update_menu();
@@ -883,8 +897,7 @@ main(int argc, char **argv) {
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         // Append cases as neccessary
-        get_config_settings();
-		ui_dyn_background();
+		parse_settings();
         
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");

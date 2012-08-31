@@ -8,7 +8,8 @@ void nandroid_dedupe_gc(const char* blob_dir);
 void nandroid_force_backup_format(const char* fmt);
 void ensure_directory(const char* dir);
 void nandroid_generate_timestamp_path(const char* backup_path);
+int recalc_sdcard_space();
 
-#define NANDROID_BACKUP_FORMAT_FILE "/sdcard/clockworkmod/.default_backup_format"
+#define NANDROID_BACKUP_FORMAT_FILE "/sdcard/cotrecovery/.default_backup_format"
 
 #endif
