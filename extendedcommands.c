@@ -450,9 +450,7 @@ void show_nandroid_restore_menu(const char* path)
                                 NULL
     };
 
-    char tmp[PATH_MAX];
-    nandroid_get_backup_path(tmp, 0);
-    char* file = choose_file_menu(tmp, NULL, headers);
+    char* file = choose_file_menu(path, NULL, headers);
     if (file == NULL)
         return;
 
@@ -472,14 +470,13 @@ void show_nandroid_delete_menu(const char* path)
                                 NULL
     };
 
-    char tmp[PATH_MAX];
-	nandroid_get_backup_path(tmp, 0);
-    char* file = choose_file_menu(tmp, NULL, headers);
+    char* file = choose_file_menu(path, NULL, headers);
     if (file == NULL)
         return;
 
     if (confirm_selection("Confirm delete?", "Yes - Delete")) {
         // nandroid_restore(file, 1, 1, 1, 1, 1, 0);
+        char tmp[PATH_MAX];
         ui_print("Deleting %s\n", basename(file));
         sprintf(tmp, "rm -rf %s", file);
         __system(tmp);
@@ -511,13 +508,23 @@ int show_lowspace_menu(int i, const char* backup_path)
 		int chosen_item = get_menu_selection(headers, LOWSPACE_MENU_ITEMS, 0, 0);
 		switch(chosen_item) {
 			case ITEM_CONTINUE_BACKUP: {
-				static char tmp;
 				ui_print("Proceeding with backup.\n");
 				return 0;
 			}
-			case ITEM_VIEW_DELETE_BACKUPS:
-				show_nandroid_delete_menu("/sdcard");
+			case ITEM_VIEW_DELETE_BACKUPS: {
+                char *other_sd = NULL;
+                if (volume_for_path("/emmc") != NULL) {
+                    other_sd = "/emmc";
+                } else if (volume_for_path("/external_sd") != NULL) {
+                    other_sd = "/external_sd";
+                }
+                int sd = 0;
+                if (other_sd != NULL) sd = 1;
+                char base_path[PATH_MAX];
+                nandroid_get_root_backup_path(base_path, sd);
+				show_nandroid_delete_menu(base_path);
 				break;
+            }
 			default:
 				ui_print("Cancelling backup.\n");
 				return 1;

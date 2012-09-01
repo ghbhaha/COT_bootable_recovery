@@ -42,18 +42,23 @@
 
 #define LIMITED_SPACE 10000
 
+void nandroid_get_root_backup_path(const char* backup_path, int other_sd)
+{
+	if (other_sd) {
+		if (volume_for_path("/emmc") != NULL)
+			strcpy(backup_path, "/emmc");
+    	else if (volume_for_path("/external_sd") != NULL)
+        	strcpy(backup_path, "/external_sd");
+	} else {
+		strcpy(backup_path, "/sdcard");
+	}
+}
+
 void nandroid_get_base_backup_path(const char* backup_path, int other_sd)
 {
     char base_path[PATH_MAX];
-	if (other_sd) {
-		if (volume_for_path("/emmc") != NULL)
-			strcpy(base_path, "/emmc");
-    	else if (volume_for_path("/external_sd") != NULL)
-        	strcpy(base_path, "/external_sd");
-	} else {
-		strcpy(base_path, "/sdcard");
-	}
-	char tmp[PATH_MAX];
+    nandroid_get_root_backup_path(base_path, other_sd);
+    char tmp[PATH_MAX];
     struct stat st;
     if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
         FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");

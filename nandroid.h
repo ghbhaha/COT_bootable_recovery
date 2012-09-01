@@ -8,7 +8,7 @@ void nandroid_dedupe_gc(const char* blob_dir);
 void nandroid_force_backup_format(const char* fmt);
 void ensure_directory(const char* dir);
 void nandroid_get_base_backup_path(const char* backup_path, int other_sd);
-//static void get_post_backup_cmd(const char* cmd, int other_sd);
+void nandroid_get_root_backup_path(const char* backup_path, int other_sd);
 void nandroid_get_backup_path(const char* backup_path, int other_sd);
 void nandroid_generate_timestamp_path(const char* backup_path, int other_sd);
 int recalc_sdcard_space();
