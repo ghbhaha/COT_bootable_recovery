@@ -29,6 +29,7 @@ extern int backupprompt;
 extern int orswipeprompt;
 extern int orsreboot;
 extern int signature_check_enabled;
+extern int backupfmt;
 extern char* currenttheme;
 extern char* language;
 

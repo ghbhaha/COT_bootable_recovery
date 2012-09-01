@@ -58,6 +58,7 @@
 #include "cutils/android_reboot.h"
 #include "settings.h"
 #include "iniparse/ini.h"
+#include "nandroid.h"
 
 COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
 int fallback_settings = 0;
@@ -66,6 +67,7 @@ int backupprompt = 0;
 int orswipeprompt = 0;
 int orsreboot = 0;
 int signature_check_enabled = 0;
+int backupfmt = 0;
 char* currenttheme;
 char* language;
 
@@ -75,6 +77,7 @@ typedef struct {
     int orswipeprompt;
     int backupprompt;
     int signaturecheckenabled;
+    int backupfmt;
     char* language;
 } settings;
 
@@ -101,6 +104,8 @@ int settings_handler(void* user, const char* section, const char* name,
         pconfig->backupprompt = atoi(value);
     } else if (MATCH("settings", "signaturecheckenabled")) {
 		pconfig->signaturecheckenabled = atoi(value);
+    } else if (MATCH("settings", "backupformat")) {
+		pconfig->backupfmt = atoi(value);
 	} else if (MATCH("settings", "language")) {
         pconfig->language = strdup(value);
     } else {
@@ -149,6 +154,7 @@ void create_default_settings(void) {
     "ORSWipePrompt = 1 ;\n"
     "BackupPrompt = 1 ;\n"
     "SignatureCheckEnabled = 1 ;\n"
+    "BackupFormat = 0 ;\n"
     "Language = en ;\n"
     "\n");
     fclose(ini);
@@ -160,6 +166,7 @@ void load_fallback_settings() {
 	currenttheme = "hydro";
 	language = "en";
 	signature_check_enabled = 1;
+	backupfmt = 0;
 	backupprompt = 1;
 	orswipeprompt = 1;
 	orsreboot = 0;
@@ -168,7 +175,7 @@ void load_fallback_settings() {
 void update_cot_settings(void) {
     FILE    *   ini ;
 	ini = fopen_path(COTSETTINGS, "w");
-	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, language);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nBackupFormat = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, backupfmt, language);
     fclose(ini);
     parse_settings();
 }
@@ -192,6 +199,12 @@ void parse_settings() {
     orswipeprompt = config.orswipeprompt;
     backupprompt = config.backupprompt;
     signature_check_enabled = config.signaturecheckenabled;
+    backupfmt = config.backupfmt;
+    if (backupfmt == 0) {
+		nandroid_switch_backup_handler(0);
+	} else {
+		nandroid_switch_backup_handler(1);
+	}
 	currenttheme = config.theme;
     language = config.language;
 	parse_language();

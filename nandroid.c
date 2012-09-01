@@ -39,8 +39,11 @@
 #include "flashutils/flashutils.h"
 #include <libgen.h>
 #include "eraseandformat.h"
+#include "settingshandler.h"
 
-#define LIMITED_SPACE 10000
+#define LIMITED_SPACE 1500
+
+static char forced_backup_format[5] = "";
 
 /* Backup path starts here...
  * 
@@ -162,7 +165,6 @@ static void compute_directory_stats(const char* directory)
 }
 
 typedef void (*file_event_callback)(const char* filename);
-typedef int (*nandroid_backup_handler)(const char* backup_path, const char* backup_file_image, int callback);
 
 static int mkyaffs2image_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
     char tmp[PATH_MAX];
@@ -250,8 +252,19 @@ static int dedupe_compress_wrapper(const char* backup_path, const char* backup_f
     return __pclose(fp);
 }
 
-static nandroid_backup_handler default_backup_handler = dedupe_compress_wrapper;
-static char forced_backup_format[5] = "";
+typedef int (*nandroid_backup_handler)(const char* backup_path, const char* backup_file_image, int callback);
+nandroid_backup_handler default_backup_handler;
+
+void nandroid_switch_backup_handler(int bfmt) {
+	if (bfmt == 0) {
+		printf("Switching to dedupe!\n");
+		default_backup_handler = dedupe_compress_wrapper;
+	} else {
+		printf("Switching to tar!\n");
+		default_backup_handler = tar_compress_wrapper;
+	}
+} 
+
 void nandroid_force_backup_format(const char* fmt) {
     strcpy(forced_backup_format, fmt);
 }
@@ -260,19 +273,12 @@ static void refresh_default_backup_handler() {
     if (strlen(forced_backup_format) > 0) {
         strcpy(fmt, forced_backup_format);
     }
-    else {
-        ensure_path_mounted("/sdcard");
-        FILE* f = fopen(NANDROID_BACKUP_FORMAT_FILE, "r");
-        if (NULL == f)
-            return;
-        fread(fmt, 1, sizeof(fmt), f);
-        fclose(f);
-    }
     fmt[3] = NULL;
-    if (0 == strcmp(fmt, "tar"))
-        default_backup_handler = tar_compress_wrapper;
-    else
-        default_backup_handler = dedupe_compress_wrapper;
+	if (1 == strcmp(fmt, "tar")) {
+		default_backup_handler = tar_compress_wrapper;
+	} else {
+		default_backup_handler = dedupe_compress_wrapper;
+	}
 }
 
 static nandroid_backup_handler get_backup_handler(const char *backup_path) {
@@ -385,7 +391,12 @@ int recalc_sdcard_space(const char* backup_path)
 int nandroid_backup(const char* backup_path)
 {
     nandroid_backup_bitfield = 0;
-    refresh_default_backup_handler();
+    if (backupfmt == 0) {
+		printf("Default Backup Handler: dedupe\n");
+	} else {
+		printf("Default Backup Handler: tar\n");
+	}
+    //refresh_default_backup_handler();
     
     if (ensure_path_mounted(backup_path) != 0) {
         return print_and_error("Can't mount backup path.\n");

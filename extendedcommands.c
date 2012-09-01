@@ -143,24 +143,24 @@ int install_zip(const char* packagefilepath)
 
 void show_install_update_menu()
 {
-    static char* headers[] = {  "Apply .zip file on SD card",
+    static char* headers[] = {  "ZIP Flashing",
                                 "",
                                 NULL
     };
     
-    char* install_menu_items[] = {  "choose zip from sdcard",
-                                    "apply /sdcard/update.zip",
+    char* install_menu_items[] = {  "Choose ZIP from SD Card",
+                                    "Install /sdcard/update.zip",
                                     NULL,
                                     NULL };
 
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc/";
-        install_menu_items[2] = "choose zip from internal sdcard";
+        install_menu_items[2] = "Choose ZIP from internal SD Card";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd/";
-        install_menu_items[2] = "choose zip from external sdcard";
+        install_menu_items[2] = "Choose ZIP from external SD Card";
     }
     
     for (;;)
@@ -868,32 +868,9 @@ static void run_dedupe_gc(const char* other_sd) {
 	nandroid_dedupe_gc(tmp);
 }
 
-static void choose_backup_format() {
-    static char* cb_headers[] = {  "Backup Format",
-                                "",
-                                NULL
-    };
-
-    char* cb_list[] = { "dup (default)",
-        "tar"
-    };
-
-    int cb_chosen_item = get_menu_selection(cb_headers, cb_list, 0, 0);
-    switch (cb_chosen_item) {
-        case 0:
-            write_string_to_file(NANDROID_BACKUP_FORMAT_FILE, "dup");
-            ui_print("Backup format set to dedupe.\n");
-            break;
-        case 1:
-            write_string_to_file(NANDROID_BACKUP_FORMAT_FILE, "tar");
-            ui_print("Backup format set to tar.\n");
-            break;
-    }
-}
-
 void show_nandroid_menu()
 {
-    static char* headers[] = {  "Backup and Restore",
+    static char* headers[] = {  "Nandroid",
                                 "",
                                 NULL
     };
@@ -903,7 +880,6 @@ void show_nandroid_menu()
                             "Delete old backups",
                             "Advanced Restore",
                             "Free unused backup data",
-                            "Choose backup format",
                             NULL,
                             NULL,
                             NULL,
@@ -916,15 +892,15 @@ void show_nandroid_menu()
     char *other_sd = NULL;
     if(OTHER_SD_CARD != NULL) {
         if(strcasecmp(OTHER_SD_CARD,"/emmc") == 0) {
-            list[6] = "backup to internal sdcard";
-            list[7] = "restore from internal sdcard";
-            list[8] = "advanced restore from internal sdcard";
-            list[9] = "delete from internal sdcard";
+            list[5] = "backup to internal sdcard";
+            list[6] = "restore from internal sdcard";
+            list[7] = "advanced restore from internal sdcard";
+            list[8] = "delete from internal sdcard";
         } else if(strcasecmp(OTHER_SD_CARD,"/external_sd") == 0) {
-            list[6] = "backup to external sdcard";
-            list[7] = "restore from external sdcard";
-            list[8] = "advanced restore from external sdcard";
-            list[9] = "delete from external sdcard";
+            list[5] = "backup to external sdcard";
+            list[6] = "restore from external sdcard";
+            list[7] = "advanced restore from external sdcard";
+            list[8] = "delete from external sdcard";
         }
         strcpy(other_sd, OTHER_SD_CARD);
     }
@@ -967,27 +943,24 @@ void show_nandroid_menu()
                 run_dedupe_gc(other_sd);
                 break;
             case 5:
-                choose_backup_format();
-                break;
-            case 6:
                 {
 					nandroid_get_backup_path(backup_path, 1);
                     nandroid_backup(backup_path);
 					break;
                 }
-            case 7:
+            case 6:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_restore_menu(backup_path);
                 }
                 break;
-            case 8:
+            case 7:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_advanced_restore_menu(backup_path);
                 }
                 break;
-            case 9:
+            case 8:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_delete_menu(backup_path);
