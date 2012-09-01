@@ -21,8 +21,6 @@ LOCAL_SRC_FILES := \
     settingshandler.c \
     settingshandler_lang.c \
     settings.c \
-    power.c \
-    default_recovery_ui.c \
     verifier.c \
     iniparse/ini.c
 
@@ -81,6 +79,18 @@ ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
   LOCAL_SRC_FILES += default_recovery_keys.c
 else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
+endif
+
+ifeq ($(BOARD_CUSTOM_RECOVERY_UI),)
+  LOCAL_SRC_FILES += default_recovery_ui.c
+else
+  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_UI)
+endif
+
+ifeq ($(BOARD_CUSTOM_RECOVERY_POWER_PROFILE),)
+  LOCAL_SRC_FILES += power.c
+else
+  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_POWER_PROFILE)
 endif
 
 LOCAL_STATIC_LIBRARIES += libext4_utils libz

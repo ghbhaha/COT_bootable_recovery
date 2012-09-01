@@ -41,8 +41,6 @@
 #include "eraseandformat.h"
 #include "settingshandler.h"
 
-#define LIMITED_SPACE 1500
-
 static char forced_backup_format[5] = "";
 
 /* Backup path starts here...
@@ -416,7 +414,7 @@ int nandroid_backup(const char* backup_path)
             
 		uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
 		ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-		if (sdcard_free_mb < LIMITED_SPACE) {
+		if (sdcard_free_mb < minimum_storage) {
 			if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
 				return 0;
 			}
@@ -491,6 +489,74 @@ int nandroid_backup(const char* backup_path)
 
 	get_post_backup_cmd(tmp, 0);
     __system(tmp);
+    sync();
+    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_reset_progress();
+    ui_print("\nBackup complete!\n");
+    return 0;
+}
+
+int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, int system, int data, int cache, int sdext)
+{
+    ui_set_background(BACKGROUND_ICON_INSTALLING);
+
+	char tmp[PATH_MAX];
+	if (ensure_path_mounted(backup_path) != 0) {
+		sprintf(tmp, "Can't mount %s\n", backup_path);
+        return print_and_error(tmp);
+	}
+
+    int ret;
+    struct statfs s;
+    Volume* volume = volume_for_path(backup_path);
+    if (0 != (ret = statfs(volume->mount_point, &s)))
+        return print_and_error("Unable to stat backup path.\n");
+
+    uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
+
+    ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+    if (sdcard_free_mb < minimum_storage) {
+        if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
+			return 0;
+		}
+	}
+
+	ensure_directory(backup_path);
+
+    if (boot && 0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+        return ret;
+
+    if (recovery && 0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
+        return ret;
+
+    if (system && 0 != (ret = nandroid_backup_partition(backup_path, "/system")))
+        return ret;
+
+    if (data && 0 != (ret = nandroid_backup_partition(backup_path, "/data")))
+        return ret;
+
+    if (data && has_datadata()) {
+        if (0 != (ret = nandroid_backup_partition(backup_path, "/datadata")))
+            return ret;
+    }
+
+    if (0 != stat("/sdcard/.android_secure", &s)) {
+        ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
+    } else {
+        if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
+            return ret;
+    }
+
+    if (cache && 0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
+        return ret;
+
+    ui_print("Generating md5 sum...\n");
+    sprintf(tmp, "nandroid-md5.sh %s", backup_path);
+    if (0 != (ret = __system(tmp))) {
+        ui_print("Error while generating md5 sum!\n");
+        return ret;
+    }
+
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
     ui_reset_progress();
@@ -711,6 +777,7 @@ int nandroid_restore_partition(const char* backup_path, const char* root) {
             strcmp(vol->fs_type, "bml") == 0 ||
             strcmp(vol->fs_type, "emmc") == 0) {
         int ret;
+        
         const char* name = basename(root);
         ui_print("Erasing %s before restore...\n", name);
         if (0 != (ret = format_volume(root))) {
@@ -745,9 +812,16 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return print_and_error("MD5 mismatch!\n");
     
     int ret;
-
-    if (restore_boot && NULL != volume_for_path("/boot") && 0 != (ret = nandroid_restore_partition(backup_path, "/boot")))
-        return ret;
+	struct stat st;
+	sprintf(tmp, "%s/boot.img", backup_path);
+	
+	if (restore_boot && (stat(tmp, &st) == 0)) {
+		if (NULL != volume_for_path("/boot") && 0 != (ret = nandroid_restore_partition(backup_path, "/boot"))) {
+			return ret;
+		}
+	} else {
+		ui_print("No boot image present, skipping...\n");
+	}
     
     struct stat s;
     Volume *vol = volume_for_path("/wimax");

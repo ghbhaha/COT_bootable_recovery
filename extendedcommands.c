@@ -781,9 +781,74 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
     return chosen_item == 7;
 }
 
-//#define MOUNTABLE_COUNT 5
-//#define DEVICE_COUNT 4
-//#define MMC_COUNT 2
+void show_nandroid_advanced_backup_menu() {
+	static char* advancedheaders[] = { "Choose the partitions to backup.",
+					NULL
+    };
+    
+    int backup_list [7];
+    char* list[7];
+    
+    backup_list[0] = 1;
+    backup_list[1] = 1;
+    backup_list[2] = 1;
+    backup_list[3] = 1;
+    backup_list[4] = 1;
+    backup_list[5] = NULL;
+    
+    list[5] = "Perform Backup";
+    list[6] = NULL;
+    
+    int cont = 1;
+    for (;cont;) {
+		if (backup_list[0] == 1)
+			list[0] = "Backup boot: Yes";
+		else
+			list[0] = "Backup boot: No";
+			
+		if (backup_list[1] == 1)
+	    	list[1] = "Backup recovery: Yes";
+	    else
+	    	list[1] = "Backup recovery: No";
+	    	
+	    if (backup_list[2] == 1)
+    		list[2] = "Backup system: Yes";
+	    else
+	    	list[2] = "Backup system: No";
+
+	    if (backup_list[3] == 1)
+	    	list[3] = "Backup data: Yes";
+	    else
+	    	list[3] = "Backup data: No";
+
+	    if (backup_list[4] == 1)
+	    	list[4] = "Backup cache: Yes";
+	    else
+	    	list[4] = "Backup cache: No";
+	    	
+	    int chosen_item = get_menu_selection (advancedheaders, list, 0, 0);
+	    switch (chosen_item) {
+			case GO_BACK: return;
+			case 0: backup_list[0] = !backup_list[0];
+				break;
+			case 1: backup_list[1] = !backup_list[1];
+				break;
+			case 2: backup_list[2] = !backup_list[2];
+				break;
+			case 3: backup_list[3] = !backup_list[3];
+				break;
+			case 4: backup_list[4] = !backup_list[4];
+				break;	
+		   
+			case 5: cont = 0;
+				break;
+		}
+	}
+	
+	char backup_path[PATH_MAX];
+	nandroid_generate_timestamp_path(backup_path, 0);
+	return nandroid_advanced_backup(backup_path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
+}
 
 void show_nandroid_advanced_restore_menu(const char* path)
 {
@@ -878,6 +943,7 @@ void show_nandroid_menu()
     char* list[] = { "Backup",
                             "Restore",
                             "Delete old backups",
+                            "Advanced Backup",
                             "Advanced Restore",
                             "Free unused backup data",
                             NULL,
@@ -892,15 +958,15 @@ void show_nandroid_menu()
     char *other_sd = NULL;
     if(OTHER_SD_CARD != NULL) {
         if(strcasecmp(OTHER_SD_CARD,"/emmc") == 0) {
-            list[5] = "backup to internal sdcard";
-            list[6] = "restore from internal sdcard";
-            list[7] = "advanced restore from internal sdcard";
-            list[8] = "delete from internal sdcard";
+            list[6] = "backup to internal sdcard";
+            list[7] = "restore from internal sdcard";
+            list[8] = "advanced restore from internal sdcard";
+            list[9] = "delete from internal sdcard";
         } else if(strcasecmp(OTHER_SD_CARD,"/external_sd") == 0) {
-            list[5] = "backup to external sdcard";
-            list[6] = "restore from external sdcard";
-            list[7] = "advanced restore from external sdcard";
-            list[8] = "delete from external sdcard";
+            list[6] = "backup to external sdcard";
+            list[7] = "restore from external sdcard";
+            list[8] = "advanced restore from external sdcard";
+            list[9] = "delete from external sdcard";
         }
         strcpy(other_sd, OTHER_SD_CARD);
     }
@@ -933,34 +999,39 @@ void show_nandroid_menu()
                 	show_nandroid_delete_menu(backup_path);
                 	break;
 				}
-            case 3:
+			case 3:
+				{
+					show_nandroid_advanced_backup_menu();
+					break;
+				}
+            case 4:
 				{
 					nandroid_get_backup_path(backup_path, 0);
                 	show_nandroid_advanced_restore_menu(backup_path);
                 	break;
 				}
-            case 4:
+            case 5:
                 run_dedupe_gc(other_sd);
                 break;
-            case 5:
+            case 6:
                 {
 					nandroid_get_backup_path(backup_path, 1);
                     nandroid_backup(backup_path);
 					break;
                 }
-            case 6:
+            case 7:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_restore_menu(backup_path);
                 }
                 break;
-            case 7:
+            case 8:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_advanced_restore_menu(backup_path);
                 }
                 break;
-            case 8:
+            case 9:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_delete_menu(backup_path);

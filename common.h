@@ -195,6 +195,7 @@ int ui_is_showing_back_button();
 
 extern char** prepend_title(char** headers);
 extern long tmplog_offset;
+extern int minimum_storage;
 
 extern char OTHER_SD_CARD;
 
