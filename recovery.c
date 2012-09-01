@@ -84,6 +84,8 @@ const char *DEFAULT_BACKUP_PATH = "cotrecovery";
 // We should make this check the other_sd as well...
 const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackups";
 
+char OTHER_SD_CARD = NULL;
+
 /*
  * The recovery tool communicates with the main system through /cache files.
  *   /cache/recovery/command - INPUT - command line for tool, one arg per line
@@ -801,7 +803,6 @@ int run_script_file(void) {
 						ret_val = 1;
 					}
 				}
-				
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
@@ -1103,9 +1104,15 @@ main(int argc, char **argv) {
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         // Append cases as neccessary
-		parse_settings();
+        if (volume_for_path("/emmc") != NULL) {
+            OTHER_SD_CARD = "/emmc";
+        } else if (volume_for_path("/external_sd") != NULL) {
+            OTHER_SD_CARD = "/external_sd";
+        }
+
+		    parse_settings();
         
-		if (check_for_script_file()) run_script_file();
+		    if (check_for_script_file()) run_script_file();
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
             int ret;

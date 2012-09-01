@@ -484,6 +484,49 @@ void show_nandroid_delete_menu(const char* path)
     }
 }
 
+/* This will only be called if there is an OTHER_SD_CARD in existance
+ * and the user has chosen to "View and delete old backups" during a
+ * backup. */
+int show_choose_delete_menu()
+{
+    static char *CHOOSE_DELETE_MENU_ITEMS[] = { "View and delete backups on /sdcard",
+                                                NULL,
+                                                NULL };
+
+    #define ITEM_VIEW_BACKUPS_ON_SDCARD 0
+    #define ITEM_VIEW_BACKUPS_ON_OTHERSD 1
+    #define ITEM_CANCEL_BACKUP 2
+
+    static char* headers[] = { "Choose a device to delete",
+                               "backups from.",
+                               "",
+                               NULL
+    };
+
+    if(strcasecmp(OTHER_SD_CARD,"/emmc")) {
+        CHOOSE_DELETE_MENU_ITEMS[1]="View and delete backups on /emmc";
+    } else if(strcasecmp(OTHER_SD_CARD,"/external_sd")) {
+        CHOOSE_DELETE_MENU_ITEMS[1]="View and delete backups on /external_sd";
+    }
+
+    for (;;) {
+        char base_path[PATH_MAX];
+        int chosen_item = get_menu_selection(headers, CHOOSE_DELETE_MENU_ITEMS, 0, 0);
+        switch(chosen_item) {
+            case ITEM_VIEW_BACKUPS_ON_SDCARD:
+                nandroid_get_assigned_backup_path(base_path, 0);
+                break;
+            case ITEM_VIEW_BACKUPS_ON_OTHERSD:
+                nandroid_get_assigned_backup_path(base_path, 1);
+                break;
+            default:
+                ui_print("Cancelling backup.\n");
+                return 1;
+        }
+        show_nandroid_delete_menu(base_path);
+    }
+}
+
 int show_lowspace_menu(int i, const char* backup_path)
 {
 	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
@@ -512,17 +555,13 @@ int show_lowspace_menu(int i, const char* backup_path)
 				return 0;
 			}
 			case ITEM_VIEW_DELETE_BACKUPS: {
-                char *other_sd = NULL;
-                if (volume_for_path("/emmc") != NULL) {
-                    other_sd = "/emmc";
-                } else if (volume_for_path("/external_sd") != NULL) {
-                    other_sd = "/external_sd";
+                if(OTHER_SD_CARD != NULL) {
+                    show_choose_delete_menu();
+                } else {
+                    char base_path[PATH_MAX];
+                    nandroid_get_assigned_backup_path(base_path, 0);
+				    show_nandroid_delete_menu(base_path);
                 }
-                int sd = 0;
-                if (other_sd != NULL) sd = 1;
-                char base_path[PATH_MAX];
-                nandroid_get_root_backup_path(base_path, sd);
-				show_nandroid_delete_menu(base_path);
 				break;
             }
 			default:
@@ -820,10 +859,10 @@ void show_nandroid_advanced_restore_menu(const char* path)
 static void run_dedupe_gc(const char* other_sd) {
     ensure_path_mounted("/sdcard");
 	char path[PATH_MAX], tmp[PATH_MAX];
-	nandroid_get_base_backup_path(path, 0);
+	nandroid_get_root_backup_path(path, 0);
     if (other_sd) {
         ensure_path_mounted(other_sd);
-		nandroid_get_base_backup_path(path, 1);
+		nandroid_get_root_backup_path(path, 1);
     }
 	sprintf(tmp, "%s/blobs", path);
 	nandroid_dedupe_gc(tmp);
@@ -875,19 +914,19 @@ void show_nandroid_menu()
     };
 
     char *other_sd = NULL;
-    if (volume_for_path("/emmc") != NULL) {
-        other_sd = "/emmc";
-        list[6] = "backup to internal sdcard";
-        list[7] = "restore from internal sdcard";
-        list[8] = "advanced restore from internal sdcard";
-        list[9] = "delete from internal sdcard";
-    }
-    else if (volume_for_path("/external_sd") != NULL) {
-        other_sd = "/external_sd";
-        list[6] = "backup to external sdcard";
-        list[7] = "restore from external sdcard";
-        list[8] = "advanced restore from external sdcard";
-        list[9] = "delete from external sdcard";
+    if(OTHER_SD_CARD != NULL) {
+        if(strcasecmp(OTHER_SD_CARD,"/emmc") == 0) {
+            list[6] = "backup to internal sdcard";
+            list[7] = "restore from internal sdcard";
+            list[8] = "advanced restore from internal sdcard";
+            list[9] = "delete from internal sdcard";
+        } else if(strcasecmp(OTHER_SD_CARD,"/external_sd") == 0) {
+            list[6] = "backup to external sdcard";
+            list[7] = "restore from external sdcard";
+            list[8] = "advanced restore from external sdcard";
+            list[9] = "delete from external sdcard";
+        }
+        strcpy(other_sd, OTHER_SD_CARD);
     }
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
     extend_nandroid_menu(list, 10, sizeof(list) / sizeof(char*));
@@ -1129,17 +1168,9 @@ void process_volumes() {
     gettimeofday(&tp, NULL);
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
     struct stat st;
+
 	char base_path[PATH_MAX];
 	nandroid_get_base_backup_path(base_path, 0);
-    char tmp[PATH_MAX];
-	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-		fscanf(file, "%s", &tmp);
-		fclose(file);
-	} else {
-		sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
-	}
-    sprintf(backup_path, "%s/%s%s", base_path, tmp, backup_name);
 
     ui_set_show_text(1);
     ui_print("Filesystems need to be converted to ext4.\n");
@@ -1157,16 +1188,31 @@ void handle_failure(int ret)
 {
     if (ret == 0)
         return;
-    if (0 != ensure_path_mounted("/sdcard"))
-        return;
-	char tmp[PATH_MAX];
-	nandroid_get_base_backup_path(tmp, 0);
-	char cmd[PATH_MAX];
-	sprintf(cmd, "/sdcard/%s", tmp);
-    mkdir(cmd, S_IRWXU | S_IRWXG | S_IRWXO);
-	sprintf(cmd, "cp /tmp/recovery.log /sdcard/%s/recovery.log", tmp);
+
+    // ToDo: add a function to let users force logs to be saved to sdcard...
+    char tmp[PATH_MAX];
+    if(OTHER_SD_CARD != NULL && strcasecmp(OTHER_SD_CARD, "/emmc") == 0) {
+        if(0 != ensure_path_mounted("/emmc")) {
+            ui_print("Can't mount /emmc.\n");
+            return -1;
+        }
+        sprintf(tmp, "%s/cotrecovery", OTHER_SD_CARD);
+    } else {
+        if(0 != ensure_path_mounted("/sdcard")) {
+            ui_print("Can't mount /sdcard.\n");
+            return -1;
+        }
+        strcpy(tmp, "/sdcard/cotrecovery");
+    }
+
+    mkdir(tmp, S_IRWXU | S_IRWXG | S_IRWXO);
+
+    char cmd[PATH_MAX];
+	sprintf(cmd, "cp /tmp/recovery.log %s/recovery.log", tmp);
     __system(cmd);
-    ui_print("A copy of the recovery log has been copied to /sdcard/cotrecovery/recovery.log. Please submit this file with your bug report.\n");
+
+    //sprintf(cmd, "A copy of the recovery log has been copied to %s/recovery.log. Please submit this file with your bug report.\n", tmp);
+    ui_print("WTF?!?!?");
 }
 
 int is_path_mounted(const char* path) {

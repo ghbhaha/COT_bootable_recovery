@@ -42,22 +42,28 @@
 
 #define LIMITED_SPACE 10000
 
+/* Backup path starts here...
+ * 
+ * Set the backup_path to either "/sdcard", "/emmc", or "/external_sd"
+ * based on whether we are trying to use the other_sd and the existance
+ * of OTHER_SD_CARD */
 void nandroid_get_root_backup_path(const char* backup_path, int other_sd)
 {
-	if (other_sd) {
-		if (volume_for_path("/emmc") != NULL)
-			strcpy(backup_path, "/emmc");
-    	else if (volume_for_path("/external_sd") != NULL)
-        	strcpy(backup_path, "/external_sd");
+	if (other_sd && OTHER_SD_CARD != NULL) {
+        strcpy(backup_path, OTHER_SD_CARD);
 	} else {
 		strcpy(backup_path, "/sdcard");
 	}
 }
 
-void nandroid_get_base_backup_path(const char* backup_path, int other_sd)
+/* After getting the root path of "/sdcard" or similar we need to add
+ * a storage folder; default of course will be cotrecovery but this is
+ * where the user_defined backup options come into play.
+ * possible return would be "/sdcard/cotrecovery" */
+void nandroid_get_assigned_backup_path(const char* backup_path, int other_sd)
 {
-    char base_path[PATH_MAX];
-    nandroid_get_root_backup_path(base_path, other_sd);
+    char root_path[PATH_MAX];
+    nandroid_get_root_backup_path(root_path, other_sd);
     char tmp[PATH_MAX];
     struct stat st;
     if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
@@ -67,23 +73,20 @@ void nandroid_get_base_backup_path(const char* backup_path, int other_sd)
     } else {
         sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
     }
-    sprintf(backup_path, "%s/%s", base_path, tmp);
+    sprintf(backup_path, "%s/%s", root_path, tmp);
 }
 
-static void get_post_backup_cmd(const char* cmd, int other_sd)
-{
-	char tmp[PATH_MAX];
-	nandroid_get_base_backup_path(tmp, other_sd);
-	sprintf(cmd, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w %s ; chmod u+x,g+x,o+x %s/backup ; chmod u+x,g+x,o+x %s/blobs", tmp, tmp, tmp);
-}
-
+/* Grab the full path from assigned_backup_path than add /backup/ to
+ * the end. */
 void nandroid_get_backup_path(const char* backup_path, int other_sd)
 {
     char tmp[PATH_MAX];
-	nandroid_get_base_backup_path(tmp, other_sd);
+	nandroid_get_assigned_backup_path(tmp, other_sd);
     sprintf(backup_path, "%s/backup/", tmp);
 }
 
+/* Take our final backup path from get_backup_path and add a timestamp
+ * folder location */
 void nandroid_generate_timestamp_path(const char* backup_path, int other_sd)
 {
 	nandroid_get_backup_path(backup_path, other_sd);
@@ -99,6 +102,14 @@ void nandroid_generate_timestamp_path(const char* backup_path, int other_sd)
         strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
 		strcat(backup_path, tmp);
     }
+}
+
+// Grab the post backup command for dedupe using the assigned backup path
+static void get_post_backup_cmd(const char* cmd, int other_sd)
+{
+    char tmp[PATH_MAX];
+    nandroid_get_assigned_backup_path(tmp, other_sd);
+    sprintf(cmd, "chmod -R 777 %s ; chmod -R u+r,u+w,g+r,g+w,o+r,o+w %s ; chmod u+x,g+x,o+x %s/backup ; chmod u+x,g+x,o+x %s/blobs", tmp, tmp, tmp);
 }
 
 void ensure_directory(const char* dir) {
