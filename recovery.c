@@ -751,6 +751,7 @@ int run_script_file(void) {
 		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
 			cindex = 0;
 			line_len = strlen(script_line);
+			printf("ORS command: %s\n", script_line);
 			//if (line_len > 2)
 				//continue; // there's a blank line at the end of the file, we're done!
 			//ui_print("script line: '%s'\n", script_line);
@@ -775,17 +776,32 @@ int run_script_file(void) {
 				LOGI("value is: '%s'\n", value);
 			} else {
 				strncpy(command, script_line, line_len - remove_nl + 1);
-				ui_print("command is: '%s' and there is no value\n", command);
+				LOGI("command is: '%s' and there is no value\n", command);
 			}
 			if (strcmp(command, "install") == 0) {
 				// Install zip
-				ensure_path_mounted(SDCARD_ROOT);
-				ui_print("Installing zip file '%s'\n", value);
-				ret_val = install_zip(value);
-				if (ret_val != INSTALL_SUCCESS) {
-					LOGE("Error installing zip file '%s'\n", value);
-					ret_val = 1;
+				char full_path[SCRIPT_COMMAND_SIZE];
+				if (value[0] != '/') {
+					// Relative path given
+					sprintf(full_path, "%s/%s", "/sdcard", value);
+					ensure_path_mounted(full_path);
+					ui_print("Installing zip file '%s'\n", full_path);
+					ret_val = install_zip(full_path);
+					if (ret_val != INSTALL_SUCCESS) {
+						LOGE("Error installing zip file '%s'\n", full_path);
+						ret_val = 1;
+					}
+				} else {
+					// Full path given
+					ensure_path_mounted(SDCARD_ROOT);
+					ui_print("Installing zip file '%s'\n", value);
+					ret_val = install_zip(value);
+					if (ret_val != INSTALL_SUCCESS) {
+						LOGE("Error installing zip file '%s'\n", value);
+						ret_val = 1;
+					}
 				}
+				
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
