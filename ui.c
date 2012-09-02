@@ -57,7 +57,11 @@ static int gShowBackButton = 0;
 #endif
 
 #define MAX_COLS 96
-#define MAX_ROWS 22
+#ifdef BOARD_TS_MAX_ROWS
+#define MAX_ROWS BOARD_TS_MAX_ROWS
+#else
+#define MAX_ROWS 30
+#endif
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
