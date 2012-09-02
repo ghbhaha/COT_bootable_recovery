@@ -472,10 +472,12 @@ void show_partition_menu()
         if (chosen_item == (mountable_volumes+formatable_volumes))
         {
             show_mount_usb_storage_menu();
+            break;
         }
         else if (chosen_item == (mountable_volumes+formatable_volumes + 1))
         {
 			erase_dalvik_cache(0);
+			break;
 		}
 		else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1))
 		{
