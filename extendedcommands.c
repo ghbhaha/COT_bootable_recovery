@@ -922,10 +922,10 @@ void show_nandroid_advanced_restore_menu(const char* path)
 static void run_dedupe_gc(const char* other_sd) {
     ensure_path_mounted("/sdcard");
 	char path[PATH_MAX], tmp[PATH_MAX];
-	nandroid_get_root_backup_path(path, 0);
+	nandroid_get_assigned_backup_path_backup_path(path, 0);
     if (other_sd) {
         ensure_path_mounted(other_sd);
-		nandroid_get_root_backup_path(path, 1);
+		nandroid_get_assigned_backup_path_backup_path(path, 1);
     }
 	sprintf(tmp, "%s/blobs", path);
 	nandroid_dedupe_gc(tmp);
@@ -954,22 +954,19 @@ void show_nandroid_menu()
     };
 
     char *other_sd = NULL;
-    switch(OTHER_SD_CARD) {
-		case EMMC: {
-            list[5] = "backup to internal sdcard";
-            list[6] = "restore from internal sdcard";
-            list[7] = "advanced restore from internal sdcard";
-            list[8] = "delete from internal sdcard";
-            other_sd = "/emmc";
-        }
-        case EXTERNALSD: {
-            list[5] = "backup to external sdcard";
-            list[6] = "restore from external sdcard";
-            list[7] = "advanced restore from external sdcard";
-            list[8] = "delete from external sdcard";
-            other_sd = "/external_sd";
-        }
-    }
+    if(OTHER_SD_CARD == EMMC) {
+		list[5] = "backup to internal sdcard";
+		list[6] = "restore from internal sdcard";
+		list[7] = "advanced restore from internal sdcard";
+		list[8] = "delete from internal sdcard";
+		other_sd = "/emmc";
+	} else if (OTHER_SD_CARD == EXTERNALSD) {
+		list[5] = "backup to external sdcard";
+		list[6] = "restore from external sdcard";
+		list[7] = "advanced restore from external sdcard";
+		list[8] = "delete from external sdcard";
+		other_sd = "/external_sd";
+	}
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
     extend_nandroid_menu(list, 10, sizeof(list) / sizeof(char*));
 #endif
