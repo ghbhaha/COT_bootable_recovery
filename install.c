@@ -36,7 +36,9 @@
 #include "firmware.h"
 
 #include "extendedcommands.h"
+#include "settings.h"
 #include "settingshandler.h"
+#include "settingshandler_lang.h"
 
 
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
@@ -335,46 +337,47 @@ exit:
     return NULL;
 }
 
-int check_package_signature(const char *path) {
-	int numKeys;
-	RSAPublicKey* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
-	if (loadedKeys == NULL) {
-		LOGE("Failed to load keys\n");
-		return INSTALL_CORRUPT;
-	}
-	LOGI("%d key(s) loaded from %s\n", numKeys, PUBLIC_KEYS_FILE);
-	
-	// Give verification half the progress bar...
-	ui_print("Verifying update package...\n");
-	ui_show_progress(
-		VERIFICATION_PROGRESS_FRACTION,
-		VERIFICATION_PROGRESS_TIME);
-	
-	int err = verify_file(path, loadedKeys, numKeys);
-	free(loadedKeys);
-	LOGI("verify_file returned %d\n", err);
-	if (err != VERIFY_SUCCESS) {
-		LOGE("signature verification failed\n");
-		return INSTALL_CORRUPT;
-	}
-	return INSTALL_SUCCESS;
-}
-
 static int
-really_install_package(const char *path, int dummy)
+really_install_package(const char *path)
 {
+    ui_set_background(BACKGROUND_ICON_INSTALLING);
+    ui_print("Finding update package...\n");
     ui_show_indeterminate_progress();
     LOGI("Update location: %s\n", path);
 
+    if (ensure_path_mounted(path) != 0) {
+        LOGE("Can't mount %s\n", path);
+        return INSTALL_CORRUPT;
+    }
+
     ui_print("Opening update package...\n");
 
-    int err, ret_val;
+    int err;
 
     if (signature_check_enabled) {
-		ret_val = check_package_signature(path);
-        if(dummy != 1 && ret_val == INSTALL_CORRUPT) {
-			return ret_val;
-		}
+        int numKeys;
+        RSAPublicKey* loadedKeys = load_keys(PUBLIC_KEYS_FILE, &numKeys);
+        if (loadedKeys == NULL) {
+            LOGE("Failed to load keys\n");
+            return INSTALL_CORRUPT;
+        }
+        LOGI("%d key(s) loaded from %s\n", numKeys, PUBLIC_KEYS_FILE);
+
+        // Give verification half the progress bar...
+        ui_print("Verifying update package...\n");
+        ui_show_progress(
+                VERIFICATION_PROGRESS_FRACTION,
+                VERIFICATION_PROGRESS_TIME);
+
+        err = verify_file(path, loadedKeys, numKeys);
+        free(loadedKeys);
+        LOGI("verify_file returned %d\n", err);
+        if (err != VERIFY_SUCCESS) {
+            LOGE("signature verification failed\n");
+            ui_show_text(1);
+            if (!confirm_selection("Install Untrusted Package?", "Yes - Install untrusted zip"))
+                return INSTALL_CORRUPT;
+        }
     }
 
     /* Try to open the package.
@@ -393,7 +396,7 @@ really_install_package(const char *path, int dummy)
 }
 
 int
-install_package(const char* path, int dummy)
+install_package(const char* path)
 {
     FILE* install_log = fopen_path(LAST_INSTALL_FILE, "w");
     if (install_log) {
@@ -402,14 +405,12 @@ install_package(const char* path, int dummy)
     } else {
         LOGE("failed to open last_install: %s\n", strerror(errno));
     }
-    int result = really_install_package(path, dummy);
+    int result = really_install_package(path);
     if (install_log) {
         fputc(result == INSTALL_SUCCESS ? '1' : '0', install_log);
         fputc('\n', install_log);
         fclose(install_log);
         chmod(LAST_INSTALL_FILE, 0644);
     }
-    ui_set_background(BACKGROUND_ICON_INSTALLING);
-    ui_print("Finding update package...\n");
     return result;
 }

@@ -301,7 +301,6 @@ copy_log_file(const char* destination, int append) {
     }
 }
 
-
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
 // record any intent we were asked to communicate back to the system.
@@ -431,7 +430,6 @@ copy_sideloaded_package(const char* original_path) {
 char** prepend_title(char** headers) {
     char* title[] = { EXPAND(RECOVERY_VERSION),
                       "",
-					  "",
                       NULL };
 
     // count the number of lines in our title, plus the
@@ -642,7 +640,7 @@ update_directory(const char* path, const char* unmount_when_done) {
                 ensure_path_unmounted(unmount_when_done);
             }
             if (copy) {
-                result = install_package(copy, 0);
+                result = install_package(copy);
                 free(copy);
             } else {
                 result = INSTALL_ERROR;
@@ -707,7 +705,6 @@ prompt_and_wait() {
 				show_utilities_menu();
 				break;
             case ITEM_POWEROPTIONS:
-                //poweroff=1;
 				show_power_options_menu();
                 break;
         }
@@ -815,34 +812,12 @@ int run_script_file(void) {
 				ui_print("command is: '%s' and there is no value\n", command);
 			}
 			if (strcmp(command, "install") == 0) {
-				// Install zip -- ToDo : Need to clean this shit up, it's redundant and I know it can be written better
 				ensure_path_mounted(SDCARD_ROOT);
 				ui_print("Installing zip file '%s'\n", value);
-				if (signature_check_enabled) {
-					i = check_package_signature(value);
-					if(i == INSTALL_CORRUPT) {
-						if(confirm_selection("Confirm install?","Install - Failed Signature Check!")) {
-							ret_val = install_zip(value, 1);
-							if(ret_val != INSTALL_SUCCESS) {
-								LOGE("Error installing zip file '%s'\n", value);
-								ret_val = 1;
-							}
-						} else {
-							ui_print("Skipping package installation...\n");
-						}
-					} else {
-						ret_val = install_zip(value, 0);
-						if (ret_val != INSTALL_SUCCESS) {
-							LOGE("Error installing zip file '%s'\n", value);
-							ret_val = 1;
-						}
-					}
-				} else {
-					ret_val = install_zip(value, 0);
-					if (ret_val != INSTALL_SUCCESS) {
-						LOGE("Error installing zip file '%s'\n", value);
-						ret_val = 1;
-					}
+				ret_val = install_zip(value);
+				if (ret_val != INSTALL_SUCCESS) {
+					LOGE("Error installing zip file '%s'\n", value);
+					ret_val = 1;
 				}
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
@@ -1136,7 +1111,7 @@ main(int argc, char **argv) {
         }
 	}
     if (update_package != NULL) {
-        status = install_package(update_package, 0);
+        status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (wipe_data) {
         if (device_wipe_data()) status = INSTALL_ERROR;

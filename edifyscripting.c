@@ -239,7 +239,7 @@ Value* InstallZipFn(const char* name, State* state, int argc, Expr* argv[]) {
         return NULL;
     }
     
-    if (0 != install_zip(path, 0))
+    if (0 != install_zip(path))
         return StringValue(strdup(""));
     
     return StringValue(strdup(path));

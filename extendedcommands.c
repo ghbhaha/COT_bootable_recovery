@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2012 Drew Walton & Nathan Bass
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -40,11 +56,9 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-
 #include "settings.h"
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
-
 #include "eraseandformat.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
@@ -74,13 +88,13 @@ void toggle_ui_debugging()
 	}
 }
 
-int install_zip(const char* packagefilepath, int dummy)
+int install_zip(const char* packagefilepath)
 {
     ui_print("\n-- %s: %s\n", installing, packagefilepath);
     if (device_flash_type() == MTD) {
         set_sdcard_update_bootloader_message();
     }
-    int status = install_package(packagefilepath, dummy);
+    int status = install_package(packagefilepath);
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
@@ -135,7 +149,7 @@ void show_install_update_menu()
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection(installconfirm, yesinstallupdate))
-                    install_zip(SDCARD_UPDATE_FILE, 0);
+                    install_zip(SDCARD_UPDATE_FILE);
                 break;
             }
             case ITEM_CHOOSE_ZIP:
@@ -453,7 +467,7 @@ void show_choose_zip_menu(const char *mount_point)
         static char confirm[PATH_MAX];
         sprintf(confirm, "%s %s", yesinstall, basename(file));
         if (confirm_selection(installconfirm, confirm)) {
-            install_zip(file, 0);
+            install_zip(file);
         }
     } else {
 		for (;;) {
@@ -463,11 +477,11 @@ void show_choose_zip_menu(const char *mount_point)
 					char backup_path[PATH_MAX];
 					nandroid_generate_timestamp_path(backup_path);
 					nandroid_backup(backup_path);
-					install_zip(file, 0);
+					install_zip(file);
 					return;
 				}
 				case ITEM_INSTALL_WOUT_BACKUP:
-					install_zip(file, 0);
+					install_zip(file);
 					return;
 				default:
 					break;

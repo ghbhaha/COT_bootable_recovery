@@ -84,7 +84,7 @@ void wipe_data(int confirm) {
         }
 
         char* items[] = { " No",
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
                           " Yes -- delete all user data",   // [1]
 #else
                           " No",
@@ -101,7 +101,7 @@ void wipe_data(int confirm) {
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
         if (chosen_item != 1) {
 #else
         if (chosen_itme != 7) {
@@ -398,8 +398,8 @@ void show_partition_menu()
 	headers[1] = "\n";
 	headers[2] = NULL;
 
-    static MountMenuEntry* mount_menue = NULL;
-    static FormatMenuEntry* format_menue = NULL;
+    static MountMenuEntry* mount_menu = NULL;
+    static FormatMenuEntry* format_menu = NULL;
 
     typedef char* string;
 
@@ -418,28 +418,28 @@ void show_partition_menu()
 		mountable_volumes = 0;
 		formatable_volumes = 0;
 
-		mount_menue = malloc(num_volumes * sizeof(MountMenuEntry));
-		format_menue = malloc(num_volumes * sizeof(FormatMenuEntry));
+		mount_menu = malloc(num_volumes * sizeof(MountMenuEntry));
+		format_menu = malloc(num_volumes * sizeof(FormatMenuEntry));
 
 		for (i = 0; i < num_volumes; ++i) {
   			Volume* v = &device_volumes[i];
   			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
 					if (is_safe_to_mount(v->mount_point)) {
-						sprintf(&mount_menue[mountable_volumes].mount, "Mount %s", v->mount_point);
-						sprintf(&mount_menue[mountable_volumes].unmount, "Unmount %s", v->mount_point);
-						mount_menue[mountable_volumes].v = &device_volumes[i];
+						sprintf(&mount_menu[mountable_volumes].mount, "Mount %s", v->mount_point);
+						sprintf(&mount_menu[mountable_volumes].unmount, "Unmount %s", v->mount_point);
+						mount_menu[mountable_volumes].v = &device_volumes[i];
 						++mountable_volumes;
 					}
     				if (is_safe_to_format(v->mount_point)) {
-      					sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
-      					format_menue[formatable_volumes].v = &device_volumes[i];
+      					sprintf(&format_menu[formatable_volumes].txt, "Erase %s", v->mount_point);
+      					format_menu[formatable_volumes].v = &device_volumes[i];
       					++formatable_volumes;
     				}
   		  }
   		  else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
   		  {
-    				sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
-    				format_menue[formatable_volumes].v = &device_volumes[i];
+    				sprintf(&format_menu[formatable_volumes].txt, "Erase %s", v->mount_point);
+    				format_menu[formatable_volumes].v = &device_volumes[i];
     				++formatable_volumes;
   			}
 		}
@@ -453,7 +453,7 @@ void show_partition_menu()
     {
 		for (i = 0; i < mountable_volumes; i++)
 		{
-			MountMenuEntry* e = &mount_menue[i];
+			MountMenuEntry* e = &mount_menu[i];
 			Volume* v = e->v;
 			if(is_path_mounted(v->mount_point))
 				options[i] = e->unmount;
@@ -463,7 +463,7 @@ void show_partition_menu()
 
 		for (i = 0; i < formatable_volumes; i++)
 		{
-			FormatMenuEntry* e = &format_menue[i];
+			FormatMenuEntry* e = &format_menu[i];
 
 			options[mountable_volumes+i] = e->txt;
 		}
@@ -480,7 +480,7 @@ void show_partition_menu()
         }
         else if (chosen_item < mountable_volumes)
         {
-			MountMenuEntry* e = &mount_menue[chosen_item];
+			MountMenuEntry* e = &mount_menu[chosen_item];
             Volume* v = e->v;
 
             if (is_path_mounted(v->mount_point))
@@ -497,7 +497,7 @@ void show_partition_menu()
         else if (chosen_item < (mountable_volumes + formatable_volumes))
         {
             chosen_item = chosen_item - mountable_volumes;
-            FormatMenuEntry* e = &format_menue[chosen_item];
+            FormatMenuEntry* e = &format_menu[chosen_item];
             Volume* v = e->v;
 
             sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
@@ -511,6 +511,6 @@ void show_partition_menu()
                 ui_print("%s\n", done);
         }
     }
-    free(mount_menue);
-    free(format_menue);
+    free(mount_menu);
+    free(format_menu);
 }

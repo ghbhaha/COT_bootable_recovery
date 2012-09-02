@@ -20,7 +20,6 @@
 #include "common.h"
 
 enum { INSTALL_SUCCESS, INSTALL_ERROR, INSTALL_CORRUPT, INSTALL_UPDATE_SCRIPT_MISSING, INSTALL_UPDATE_BINARY_MISSING };
-int install_package(const char *root_path, int dummy);
-int check_package_signature(const char *path);
+int install_package(const char *root_path);
 
 #endif  // RECOVERY_INSTALL_H_
