@@ -1012,7 +1012,7 @@ void show_nandroid_menu()
                 break;
             case 6:
                 {
-					nandroid_get_backup_path(backup_path, 1);
+					nandroid_generate_timestamp_path(backup_path, 1);
                     nandroid_backup(backup_path);
 					break;
                 }
