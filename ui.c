@@ -119,7 +119,6 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
     { &gProgressBarEmpty,               "progress_empty" },
     { &gProgressBarFill,                "progress_fill" },
-    { &gBackground,                "stitch" },
     { NULL,                             NULL },
 };
 
@@ -144,7 +143,6 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[
     { &gMenuIcon[MENU_SELECT_M],  "icon_selectM_br" },
 	{ &gProgressBarEmpty,               "progress_empty" },
     { &gProgressBarFill,                "progress_fill" },
-    { &gBackground,                "stitch" },
     { NULL,                             NULL },
 };
 
@@ -169,7 +167,6 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_LLOYD[] =
     { &gMenuIcon[MENU_SELECT_M],  "icon_selectM_kl" },
 	{ &gProgressBarEmpty,               "progress_empty" },
     { &gProgressBarFill,                "progress_fill" },
-    { &gBackground,                "stitch" },
     { NULL,                             NULL },
 };
 
@@ -194,7 +191,6 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_ORANGE[] 
     { &gMenuIcon[MENU_SELECT_M],  "icon_selectM_co" },
 	{ &gProgressBarEmpty,               "progress_empty" },
     { &gProgressBarFill,                "progress_fill" },
-    { &gBackground,                "stitch" },
     { NULL,                             NULL },
 };
 
@@ -219,7 +215,6 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUT
     { &gMenuIcon[MENU_SELECT_M],  "icon_selectM_db" },
 	{ &gProgressBarEmpty,               "progress_empty" },
     { &gProgressBarFill,                "progress_fill" },
-    { &gBackground,                "stitch" },
     { NULL,                             NULL },
 };
 
