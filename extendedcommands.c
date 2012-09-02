@@ -955,16 +955,16 @@ void show_nandroid_menu()
 
     char *other_sd = NULL;
     if(OTHER_SD_CARD == EMMC) {
-		list[5] = "backup to internal sdcard";
-		list[6] = "restore from internal sdcard";
-		list[7] = "advanced restore from internal sdcard";
-		list[8] = "delete from internal sdcard";
+		list[6] = "backup to internal sdcard";
+		list[7] = "restore from internal sdcard";
+		list[8] = "advanced restore from internal sdcard";
+		list[9] = "delete from internal sdcard";
 		other_sd = "/emmc";
 	} else if (OTHER_SD_CARD == EXTERNALSD) {
-		list[5] = "backup to external sdcard";
-		list[6] = "restore from external sdcard";
-		list[7] = "advanced restore from external sdcard";
-		list[8] = "delete from external sdcard";
+		list[6] = "backup to external sdcard";
+		list[7] = "restore from external sdcard";
+		list[8] = "advanced restore from external sdcard";
+		list[9] = "delete from external sdcard";
 		other_sd = "/external_sd";
 	}
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
