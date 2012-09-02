@@ -264,7 +264,7 @@ void show_settings_menu() {
 			{
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
-                                                    "Key Lime Pie",
+                                                    "Lloyd Green",
                                                     "Citrus Orange",
                                                     "Dooderbutt Blue",
                                                     NULL
@@ -283,7 +283,7 @@ void show_settings_menu() {
                             currenttheme = "bloodred";
                             break;
                         case 2:
-                            currenttheme = "keylimepie";
+                            currenttheme = "lloyd";
                             break;
                         case 3:
                             currenttheme = "citrusorange";
@@ -417,8 +417,8 @@ void ui_dyn_background()
 		case BLOOD_RED_UI:
 			ui_set_background(BACKGROUND_ICON_BLOODRED);
 			break;
-		case KEY_LIME_PIE_UI:
-			ui_set_background(BACKGROUND_ICON_KEYLIMEPIE);
+		case LLOYD_UI:
+			ui_set_background(BACKGROUND_ICON_LLOYD);
 			break;
 		case CITRUS_ORANGE_UI:
 			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);

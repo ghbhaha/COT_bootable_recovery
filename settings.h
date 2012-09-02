@@ -16,7 +16,7 @@
  
 #define HYDRO_UI			0
 #define BLOOD_RED_UI		1
-#define KEY_LIME_PIE_UI		2
+#define LLOYD_UI			2
 #define CITRUS_ORANGE_UI	3
 #define DOODERBUTT_BLUE_UI	4
 #define EASTEREGG			5

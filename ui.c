@@ -103,7 +103,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     { &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    { &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    { &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     { &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     { &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     { &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -128,7 +128,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     { &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    { &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    { &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     { &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     { &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     { &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -148,12 +148,12 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[
     { NULL,                             NULL },
 };
 
-static const struct { gr_surface* surface; const char *name; } BITMAPS_KEYLIME[] = {
+static const struct { gr_surface* surface; const char *name; } BITMAPS_LLOYD[] = {
 	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     { &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    { &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    { &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     { &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     { &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     { &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -178,7 +178,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_ORANGE[] 
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     { &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    { &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    { &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     { &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     { &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     { &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -203,7 +203,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUT
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     { &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    { &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    { &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     { &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     { &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     { &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -885,9 +885,9 @@ void ui_init_icons(void) {
 				result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);
 			}
 			break;
-		case KEY_LIME_PIE_UI:
-			for (i = 0; BITMAPS_KEYLIME[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS_KEYLIME[i].name, BITMAPS_KEYLIME[i].surface);
+		case LLOYD_UI:
+			for (i = 0; BITMAPS_LLOYD[i].name != NULL; ++i) {
+				result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface);
 			}
 			break;
 		case CITRUS_ORANGE_UI:
