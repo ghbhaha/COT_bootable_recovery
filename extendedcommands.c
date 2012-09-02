@@ -922,10 +922,10 @@ void show_nandroid_advanced_restore_menu(const char* path)
 static void run_dedupe_gc(const char* other_sd) {
     ensure_path_mounted("/sdcard");
 	char path[PATH_MAX], tmp[PATH_MAX];
-	nandroid_get_assigned_backup_path_backup_path(path, 0);
+	nandroid_get_assigned_backup_path(path, 0);
     if (other_sd) {
         ensure_path_mounted(other_sd);
-		nandroid_get_assigned_backup_path_backup_path(path, 1);
+		nandroid_get_assigned_backup_path(path, 1);
     }
 	sprintf(tmp, "%s/blobs", path);
 	nandroid_dedupe_gc(tmp);
