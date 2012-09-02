@@ -89,7 +89,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -130,7 +130,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -166,12 +166,12 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[
     	{ NULL,                             NULL },
 };
 
-static const struct { gr_surface* surface; const char *name; } BITMAPS_KEYLIME[] = {
+static const struct { gr_surface* surface; const char *name; } BITMAPS_LLOYD[] = {
 	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -212,7 +212,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_ORANGE[] 
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -253,7 +253,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUT
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
@@ -910,18 +910,18 @@ void ui_init_icons()
         			}
     			}
 			break;
-		case KEY_LIME_PIE_UI:
-			for (i = 0; BITMAPS_KEYLIME[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_KEYLIME[i].name, BITMAPS_KEYLIME[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_KEYLIME[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_KEYLIME[i].name, result);
-            			}
-            		*BITMAPS_KEYLIME[i].surface = NULL;
-        			}
-    			}
+		case LLOYD_UI:
+			for (i = 0; BITMAPS_LLOYD[i].name != NULL; ++i) {
+				int result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface);
+					if (result < 0) {
+						if (result == -2) {
+							LOGI("Bitmap %s missing header\n", BITMAPS_LLOYD[i].name);
+						} else {
+							LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_LLOYD[i].name, result);
+						}
+					*BITMAPS_LLOYD[i].surface = NULL;
+					}
+				}
 			break;
 		case CITRUS_ORANGE_UI:
 			for (i = 0; BITMAPS_ORANGE[i].name != NULL; ++i) {
