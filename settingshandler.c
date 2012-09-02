@@ -194,13 +194,24 @@ void update_cot_settings(void) {
 }
 
 void parse_settings() {
-    if(ensure_path_mounted("/sdcard") != 0) {
+	settings config;
+
+	/* If we have an internal emmc check for sdcard, if it's not present
+	 * default COTSETTINGS to the emmc otherwise check the sdcard for a
+	 * settings file, if it's not present check the emmc (this sets the
+	 * file to be created to the emmc as well). */
+	if(OTHER_SD_CARD && OTHER_SD_CARD == EMMC) {
+		if(ensure_path_mounted("/sdcard") != 0) {
+			ensure_path_mounted("/emmc");
+			COTSETTINGS = "/emmc/cotrecovery/settings.ini";
+		} else if(ini_parse(COTSETTINGS, settings_handler, &config) < 0)
+			COTSETTINGS = "/emmc/cotrecovery/settings.ini";
+	} else if(ensure_path_mounted("/sdcard") != 0) {
 		load_fallback_settings();
 		parse_language();
 		handle_theme(currenttheme);
 		return;
 	}
-    settings config;
 
     if (ini_parse(COTSETTINGS, settings_handler, &config) < 0) {
         create_default_settings();

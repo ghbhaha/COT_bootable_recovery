@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-extern const char *COTSETTINGS;
+extern char *COTSETTINGS;
 
 void create_default_settings();
 void parse_settings();
