@@ -751,13 +751,17 @@ static void *input_thread(void *cookie)
           } while (got_data==-1);
 
             if (ev.type == EV_SYN) {
-#ifndef BUILD_IN_LANDSCAPE
-                if (touchY > 0 && actPos.y < touchY) {
-                    continue;
-                }
-#endif
                 // end of a touch point
                 if (ev.code == SYN_MT_REPORT) {
+#ifndef BUILD_IN_LANDSCAPE
+				  if (touchY > 0 && actPos.y < touchY) {
+					actPos.num = 0;
+					actPos.x = 0;
+					actPos.y = 0;
+					actPos.pressure = 0;
+					actPos.size = 0;
+				  }
+#endif
                   if (actPos.num>=-1 && actPos.num<MAX_MT_POINTS) {
 					actPos.num = 0;
                     // create a fake keyboard event. We will use BTN_WHEEL, BTN_GEAR_DOWN and BTN_GEAR_UP key events to fake
@@ -813,6 +817,9 @@ static void *input_thread(void *cookie)
                 actPos.x = MT_X(ev.value);
               } else if (ev.code == ABS_MT_POSITION_Y) {
                 actPos.y = MT_Y(ev.value);
+#ifndef BUILD_IN_LANDSCAPE
+				if (touchY > 0 && actPos.y < touchY) { actPos.y = 0; }
+#endif
               } else if (ev.code == ABS_MT_TOUCH_MAJOR) {
                 actPos.pressure = ev.value; // on SGS-i9000 this is 0 for not-pressed and 40 for pressed
               } else if (ev.code == ABS_MT_WIDTH_MAJOR) {
