@@ -608,6 +608,13 @@ static int input_callback(int fd, short revents, void *data)
     if (ev.type == EV_SYN) {
         // end of a multitouch point
         if (ev.code == SYN_MT_REPORT) {
+			if (touchY > 0 && actPos.y < touchY) {
+				actPos.num = 0;
+				actPos.x = 0;
+				actPos.y = 0;
+				actPos.pressure = 0;
+				actPos.size = 0;
+			}
 			if (actPos.num>=0 && actPos.num<MAX_MT_POINTS) {
 				// create a fake keyboard event. We will use BTN_WHEEL, BTN_GEAR_DOWN and BTN_GEAR_UP key events to fake
 				// TOUCH_MOVE, TOUCH_DOWN and TOUCH_UP in this order
@@ -663,6 +670,7 @@ static int input_callback(int fd, short revents, void *data)
 			actPos.x = MT_X(ev.value);
 		} else if (ev.code == ABS_MT_POSITION_Y) {
 			actPos.y = MT_Y(ev.value);
+			if (touchY > 0 && actPos.y < touchY) { actPos.y = 0; }
 		} else if (ev.code == ABS_MT_TOUCH_MAJOR) {
 			actPos.pressure = ev.value; // on SGS-i9000 this is 0 for not-pressed and 40 for pressed
 		} else if (ev.code == ABS_MT_WIDTH_MAJOR) {
