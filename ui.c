@@ -58,7 +58,11 @@ extern int __system(const char *command);
 static int gShowBackButton = 0;
 
 #define MAX_COLS 96
-#define MAX_ROWS 45
+#ifdef BOARD_TS_MAX_ROWS
+#define MAX_ROWS BOARD_TS_MAX_ROWS
+#else
+#define MAX_ROWS 30
+#endif
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
