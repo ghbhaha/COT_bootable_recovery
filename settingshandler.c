@@ -158,6 +158,19 @@ void create_default_settings(void) {
     "Language = en ;\n"
     "\n");
     fclose(ini);
+    show_welcome_text();
+}
+
+void show_welcome_text() {
+	ui_print("Welcome to Cannibal Open Touch v2.1!\n");
+    ui_print("====================================\n");
+    ui_print("\n");
+    ui_print("Cannibal Open Touch was made possible\n");
+    ui_print("by the work of many smart individuals\n");
+    ui_print("working many long hours to bring you\n");
+    ui_print("the best Android recovery experience\n");
+    ui_print("ever!\n");
+    ui_print("\n");
 }
 
 void load_fallback_settings() {
@@ -190,7 +203,6 @@ void parse_settings() {
     settings config;
 
     if (ini_parse(COTSETTINGS, settings_handler, &config) < 0) {
-        ui_print("Can't load COT settings!\nSetting defaults...\n");
         create_default_settings();
         ini_parse(COTSETTINGS, settings_handler, &config);
     }
