@@ -48,8 +48,8 @@ int TOUCH_NOSHOW_LOG = 0;
 	check the values returned by on screen touch output by click on the 
 	touch panel extremeties
 */
-int maxX=1024;		//Set to 0 for debugging (LGE-LS/VM670: 320, LGE-M690: 1808, AmazonOtter: 1024)
-int maxY=600;		//Set to 0 for debugging (LGE-LS/VM670: 480, LGE-M690: 2704, AmazonOtter: 600)
+int maxX=0;		//Set to 0 for debugging (LGE-LS/VM670: 320, LGE-M690: 1808, AmazonOtter: 1024)
+int maxY=0;		//Set to 0 for debugging (LGE-LS/VM670: 480, LGE-M690: 2704, AmazonOtter: 600)
 
 /*
 	the values of following two variables are dependent on specifc device resolution
@@ -83,13 +83,12 @@ int TIME_POS=RIGHT_ALIGN;
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "Boot Android",
-                       "Factory Reset",
-					   "Pre-flash Wipe",
                        "ZIP Flashing",
+					   "Factory Reset",
+                       "Pre-flash Wipe",
                        "Nandroid",
-                       "Partition Management",
+                       "Storage Management",
                        "COT Options",
-					   "Utilities",
                        "Power Options",
                        NULL };
 
@@ -117,51 +116,37 @@ int device_handle_key(int key_code, int visible) {
     if (visible) {
         switch (key_code) {
             case KEY_CAPSLOCK:
-            case KEY_DOWN:
-                return HIGHLIGHT_DOWN;
+	    case KEY_DOWN:
+	    case KEY_VOLUMEDOWN:
+		return HIGHLIGHT_DOWN;
 
-            case KEY_VOLUMEDOWN:
-                return HIGHLIGHT_DOWN;
+	    case KEY_LEFTSHIFT:
+	    case KEY_UP:
+	    case KEY_VOLUMEUP:
+		return HIGHLIGHT_UP;
 
-            case KEY_MENU:
-                return HIGHLIGHT_DOWN;
-
-            case KEY_LEFTSHIFT:
-            case KEY_UP:
-                return HIGHLIGHT_UP;
-
-            case KEY_VOLUMEUP:
-                return HIGHLIGHT_UP;
-
-            case KEY_HOME:
-                return HIGHLIGHT_UP;
-
-            case KEY_POWER:
-                if (ui_get_showing_back_button()) {
-                    return GO_BACK;
-                }
-                if (!get_allow_toggle_display())
-                    return GO_BACK;
-                break;
-            case KEY_LEFTBRACE:
-            case KEY_ENTER:
+	    case KEY_POWER:
+		if (ui_get_showing_back_button()) {
+			return SELECT_ITEM;
+		}
+		if (!get_allow_toggle_display())
+			return GO_BACK;
+		break;
+	    case KEY_LEFTBRACE:
+	    case KEY_ENTER:
             case BTN_MOUSE:
             case KEY_CENTER:
             case KEY_CAMERA:
+            case KEY_MENU:
             case KEY_F21:
             case KEY_SEND:
-                return SELECT_ITEM;
-            
-            case KEY_END:
+		return SELECT_ITEM;
+
+	    case KEY_END:
             case KEY_BACKSPACE:
-            case KEY_SEARCH:
-                if (ui_get_showing_back_button()) {
-                    return SELECT_ITEM;
-                }
-                if (!get_allow_toggle_display())
-                    return GO_BACK;
             case KEY_BACK:
-                return GO_BACK;
+                if (!get_allow_toggle_display())
+			return GO_BACK;
         }
     }
 

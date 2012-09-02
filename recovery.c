@@ -681,7 +681,10 @@ prompt_and_wait() {
             case ITEM_REBOOT:
                 pass_normal_reboot();
                 return;
-
+                
+            case ITEM_INSTALL_ZIP:
+                show_install_update_menu();
+                break;
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
@@ -689,9 +692,6 @@ prompt_and_wait() {
 			case ITEM_WIPE_ALL:
 				wipe_all(0);
 				break;
-            case ITEM_INSTALL_ZIP:
-                show_install_update_menu();
-                break;
             case ITEM_NANDROID:
                 show_nandroid_menu();
                 break;
@@ -701,9 +701,9 @@ prompt_and_wait() {
             case ITEM_COTOPTIONS:
                 show_cot_options_menu();
                 break;
-			case ITEM_UTILITIES:
+			/*case ITEM_UTILITIES:
 				show_utilities_menu();
-				break;
+				break;*/
             case ITEM_POWEROPTIONS:
 				show_power_options_menu();
                 break;
@@ -812,6 +812,7 @@ int run_script_file(void) {
 				ui_print("command is: '%s' and there is no value\n", command);
 			}
 			if (strcmp(command, "install") == 0) {
+				// Install zip
 				ensure_path_mounted(SDCARD_ROOT);
 				ui_print("Installing zip file '%s'\n", value);
 				ret_val = install_zip(value);
@@ -1109,8 +1110,32 @@ main(int argc, char **argv) {
             ui_print("Error: invalid Encrypted FS setting.\n");
             status = INSTALL_ERROR;
         }
-	}
-    if (update_package != NULL) {
+
+        // Recovery strategy: if the data partition is damaged, disable encrypted file systems.
+        // This preventsthe device recycling endlessly in recovery mode.
+        if ((encrypted_fs_data.mode == MODE_ENCRYPTED_FS_ENABLED) &&
+                (read_encrypted_fs_info(&encrypted_fs_data))) {
+            ui_print("Encrypted FS change aborted, resetting to disabled state.\n");
+            encrypted_fs_data.mode = MODE_ENCRYPTED_FS_DISABLED;
+        }
+
+        if (status != INSTALL_ERROR) {
+            if (erase_volume("/data")) {
+                ui_print("Data wipe failed.\n");
+                status = INSTALL_ERROR;
+            } else if (erase_volume("/cache")) {
+                ui_print("Cache wipe failed.\n");
+                status = INSTALL_ERROR;
+            } else if ((encrypted_fs_data.mode == MODE_ENCRYPTED_FS_ENABLED) &&
+                      (restore_encrypted_fs_info(&encrypted_fs_data))) {
+                ui_print("Encrypted FS change aborted.\n");
+                status = INSTALL_ERROR;
+            } else {
+                ui_print("Successfully updated Encrypted FS.\n");
+                status = INSTALL_SUCCESS;
+            }
+        }
+    } else if (update_package != NULL) {
         status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (wipe_data) {
