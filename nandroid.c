@@ -490,7 +490,7 @@ int nandroid_backup(const char* backup_path)
 	get_post_backup_cmd(tmp, 0);
     __system(tmp);
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_dyn_background();
     ui_reset_progress();
     ui_print("\nBackup complete!\n");
     return 0;
@@ -558,7 +558,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     }
 
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_dyn_background();
     ui_reset_progress();
     ui_print("\nBackup complete!\n");
     return 0;
@@ -873,7 +873,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return ret;
 
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_dyn_background();
     ui_reset_progress();
     ui_print("\nRestore complete!\n");
     return 0;

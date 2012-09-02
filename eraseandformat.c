@@ -74,7 +74,7 @@ int erase_volume(const char *volume) {
         // log.
         tmplog_offset = 0;
     }
-
+	ui_dyn_background();
     return format_volume(volume);
 }
 
