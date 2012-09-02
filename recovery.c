@@ -84,7 +84,7 @@ const char *DEFAULT_BACKUP_PATH = "cotrecovery";
 // We should make this check the other_sd as well...
 const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackups";
 
-char OTHER_SD_CARD = NULL;
+int OTHER_SD_CARD = NULL;
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -1105,9 +1105,9 @@ main(int argc, char **argv) {
         ui_set_show_text(1);
         // Append cases as neccessary
         if (volume_for_path("/emmc") != NULL) {
-            OTHER_SD_CARD = "/emmc";
+            OTHER_SD_CARD = EMMC;
         } else if (volume_for_path("/external_sd") != NULL) {
-            OTHER_SD_CARD = "/external_sd";
+            OTHER_SD_CARD = EXTERNALSD;
         }
 
 		    parse_settings();

@@ -495,7 +495,6 @@ int show_choose_delete_menu()
 
     #define ITEM_VIEW_BACKUPS_ON_SDCARD 0
     #define ITEM_VIEW_BACKUPS_ON_OTHERSD 1
-    #define ITEM_CANCEL_BACKUP 2
 
     static char* headers[] = { "Choose a device to delete",
                                "backups from.",
@@ -535,7 +534,6 @@ int show_lowspace_menu(int i, const char* backup_path)
 											NULL };
 	#define ITEM_CONTINUE_BACKUP 0
 	#define ITEM_VIEW_DELETE_BACKUPS 1
-	#define ITEM_CANCEL_BACKUP 2
 
 	static char* headers[] = { "Limited space available!",
 								"",
@@ -555,7 +553,7 @@ int show_lowspace_menu(int i, const char* backup_path)
 				return 0;
 			}
 			case ITEM_VIEW_DELETE_BACKUPS: {
-                if(OTHER_SD_CARD != NULL) {
+                if(OTHER_SD_CARD) {
                     show_choose_delete_menu();
                 } else {
                     char base_path[PATH_MAX];
@@ -956,19 +954,21 @@ void show_nandroid_menu()
     };
 
     char *other_sd = NULL;
-    if(OTHER_SD_CARD != NULL) {
-        if(strcasecmp(OTHER_SD_CARD,"/emmc") == 0) {
-            list[6] = "backup to internal sdcard";
-            list[7] = "restore from internal sdcard";
-            list[8] = "advanced restore from internal sdcard";
-            list[9] = "delete from internal sdcard";
-        } else if(strcasecmp(OTHER_SD_CARD,"/external_sd") == 0) {
-            list[6] = "backup to external sdcard";
-            list[7] = "restore from external sdcard";
-            list[8] = "advanced restore from external sdcard";
-            list[9] = "delete from external sdcard";
+    switch(OTHER_SD_CARD) {
+		case EMMC: {
+            list[5] = "backup to internal sdcard";
+            list[6] = "restore from internal sdcard";
+            list[7] = "advanced restore from internal sdcard";
+            list[8] = "delete from internal sdcard";
+            other_sd = "/emmc";
         }
-        strcpy(other_sd, OTHER_SD_CARD);
+        case EXTERNALSD: {
+            list[5] = "backup to external sdcard";
+            list[6] = "restore from external sdcard";
+            list[7] = "advanced restore from external sdcard";
+            list[8] = "delete from external sdcard";
+            other_sd = "/external_sd";
+        }
     }
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
     extend_nandroid_menu(list, 10, sizeof(list) / sizeof(char*));
@@ -1235,12 +1235,12 @@ void handle_failure(int ret)
 
     // ToDo: add a function to let users force logs to be saved to sdcard...
     char tmp[PATH_MAX];
-    if(OTHER_SD_CARD != NULL && strcasecmp(OTHER_SD_CARD, "/emmc") == 0) {
+    if(OTHER_SD_CARD == EMMC) {
         if(0 != ensure_path_mounted("/emmc")) {
             ui_print("Can't mount /emmc.\n");
             return -1;
         }
-        sprintf(tmp, "%s/cotrecovery", OTHER_SD_CARD);
+        strcpy(tmp, "/emmc/cotrecovery" );
     } else {
         if(0 != ensure_path_mounted("/sdcard")) {
             ui_print("Can't mount /sdcard.\n");

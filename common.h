@@ -197,6 +197,9 @@ extern char** prepend_title(char** headers);
 extern long tmplog_offset;
 extern int minimum_storage;
 
-extern char OTHER_SD_CARD;
+#define EMMC 1
+#define EXTERNALSD 2
+
+extern int OTHER_SD_CARD;
 
 #endif  // RECOVERY_COMMON_H
