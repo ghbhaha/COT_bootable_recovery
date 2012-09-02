@@ -52,8 +52,15 @@ static char forced_backup_format[5] = "";
  * of OTHER_SD_CARD */
 void nandroid_get_root_backup_path(const char* backup_path, int other_sd)
 {
-	if (other_sd && OTHER_SD_CARD != NULL) {
-        strcpy(backup_path, OTHER_SD_CARD);
+	if (other_sd) {
+		switch(OTHER_SD_CARD) {
+			case EMMC: 
+				strcpy(backup_path, "/emmc");
+				break;
+			case EXTERNALSD:
+				strcpy(backup_path, "/external_sd");
+				break;
+		}
 	} else {
 		strcpy(backup_path, "/sdcard");
 	}
