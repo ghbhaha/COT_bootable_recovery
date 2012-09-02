@@ -737,7 +737,10 @@ prompt_and_wait() {
             case ITEM_REBOOT:
                 pass_normal_reboot();
                 return;
-
+                
+            case ITEM_INSTALL_ZIP:
+                show_install_update_menu();
+                break;
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
@@ -745,9 +748,6 @@ prompt_and_wait() {
 			case ITEM_WIPE_ALL:
 				wipe_all(0);
 				break;
-            case ITEM_INSTALL_ZIP:
-                show_install_update_menu();
-                break;
             case ITEM_NANDROID:
                 show_nandroid_menu();
                 break;
@@ -757,9 +757,9 @@ prompt_and_wait() {
             case ITEM_COTOPTIONS:
                 show_cot_options_menu();
                 break;
-			case ITEM_UTILITIES:
+			/*case ITEM_UTILITIES:
 				show_utilities_menu();
-				break;
+				break;*/
             case ITEM_POWEROPTIONS:
                 //poweroff=1;
 				show_power_options_menu();

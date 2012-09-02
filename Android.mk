@@ -28,7 +28,6 @@ LOCAL_SRC_FILES := \
     settingshandler_lang.c \
     settingshandler.c \
     settings.c \
-    utilities.c \
     iniparse/ini.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)

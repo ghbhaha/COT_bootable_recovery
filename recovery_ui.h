@@ -67,14 +67,13 @@ int device_wipe_data();
 #define GO_BACK             -5
 
 #define ITEM_REBOOT          0
-#define ITEM_WIPE_DATA       1
-#define ITEM_WIPE_ALL	     2
-#define ITEM_INSTALL_ZIP     3
+#define ITEM_INSTALL_ZIP     1
+#define ITEM_WIPE_DATA       2
+#define ITEM_WIPE_ALL	     3
 #define ITEM_NANDROID        4
 #define ITEM_PARTITION       5
 #define ITEM_COTOPTIONS      6
-#define ITEM_UTILITIES		 7
-#define ITEM_POWEROPTIONS    8
+#define ITEM_POWEROPTIONS    7
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

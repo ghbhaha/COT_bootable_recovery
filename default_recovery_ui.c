@@ -70,13 +70,12 @@ int minimum_storage=512;
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "Boot Android",
-                       "Factory Reset",
-					   "Pre-flash Wipe",
                        "ZIP Flashing",
+					   "Factory Reset",
+                       "Pre-flash Wipe",
                        "Nandroid",
-                       "Partition Management",
+                       "Storage Management",
                        "COT Options",
-					   "Utilities",
                        "Power Options",
                        NULL };
 
