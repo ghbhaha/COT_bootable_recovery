@@ -114,7 +114,7 @@ void wipe_data(int confirm) {
     if (has_datadata()) {
         erase_volume("/datadata");
     }
-#if TARGET_BOOTLOADER_BOARD_NAME != otter	// ToDo: make this check for the partition rather then the device
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     erase_volume("/sd-ext");
 #endif
     erase_volume("/sdcard/.android_secure");
@@ -148,12 +148,15 @@ void erase_dalvik_cache(int orscallback) {
     if (0 != ensure_path_mounted("/data")) {
 	return;
     }
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     ensure_path_mounted("/sd-ext");
+#endif
     ensure_path_mounted("/cache");
-    
     __system("rm -r /data/dalvik-cache");
     __system("rm -r /cache/dalvik-cache");
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     __system("rm -r /sd-ext/dalvik-cache");
+#endif
     ui_print("Dalvik Cache wiped.\n");
     
     ensure_path_unmounted("/data");
@@ -481,6 +484,9 @@ void show_partition_menu()
 		}
 		else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1))
 		{
+#ifdef DEVICE_DOES_NOT_SUPPORT_SD_EXT
+				ui_print("Disabled for this device!\n");
+#else
 			static char* ext_sizes[] = { "128M",
 											 "256M",
                                              "512M",
@@ -521,6 +527,7 @@ void show_partition_menu()
             } else {
                 ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
 			}
+#endif
             break;
 		}
         else if (chosen_item < mountable_volumes)

@@ -341,7 +341,7 @@ int nandroid_backup(const char* backup_path)
     if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
         return ret;
 
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     Volume *vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -421,6 +421,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     if (cache && 0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
         return ret;
 
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     Volume *vol = volume_for_path("/sd-ext");
     if (sdext && vol == NULL || 0 != stat(vol->device, &s)) {
         ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -430,6 +431,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
             return ret;
     }
+#endif
 
     ui_print("Generating md5 sum...\n");
     sprintf(tmp, "nandroid-md5.sh %s", backup_path);
