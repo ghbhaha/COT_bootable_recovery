@@ -77,6 +77,14 @@ else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_POWER_PROFILE)
 endif
 
+ifdef RECOVERY_DEVICE_DOES_NOT_SUPPORT_SDEXT
+  LOCAL_CFLAGS += -DDEVICE_DOES_NOT_SUPPORT_SD_EXT=true
+endif
+
+ifdef RECOVERY_DEVICE_HAS_NO_VIBRATE
+  LOCAL_CFLAGS += -DDEVICE_HAS_NO_VIBRATE=true
+endif
+
 LOCAL_STATIC_LIBRARIES += librebootrecovery
 LOCAL_STATIC_LIBRARIES += libcannibal_e2fsck libcannibal_tune2fs libcannibal_mke2fs libcannibal_ext2fs libcannibal_ext2_blkid libcannibal_ext2_uuid libcannibal_ext2_profile libcannibal_ext2_com_err libcannibal_ext2_e2p
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt

@@ -98,7 +98,7 @@ int install_zip(const char* packagefilepath)
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifndef DEVICE_HAS_NO_VIBRATE
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
             vibrate(15);
@@ -108,7 +108,7 @@ int install_zip(const char* packagefilepath)
         return 1;
     }
     ui_set_background(BACKGROUND_ICON_NONE);
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifndef DEVICE_HAS_NO_VIBRATE
     vibrate(60);
 #endif
     ui_print("\n%s\n", installcomplete);
