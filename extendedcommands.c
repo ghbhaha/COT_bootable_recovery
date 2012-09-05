@@ -573,11 +573,12 @@ int confirm_selection(const char* title, const char* confirm)
 	confirm_headers[2] = NULL;
 
 #ifdef BUILD_IN_LANDSCAPE
-    static char* items[2];
+    static char* items[3];
 	items[0] = no;
 	items[1] = confirm;
+	items[2] = NULL;
 #else
-    static char* items[11];
+    static char* items[12];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -589,6 +590,7 @@ int confirm_selection(const char* title, const char* confirm)
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
+	items[11] = NULL;
 #endif
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
 #ifdef BUILD_IN_LANDSCAPE
@@ -605,11 +607,12 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	confirm_headers[1] = NULL;
 
 #ifdef BUILD_IN_LANDSCAPE
-    static char* items[2];
+    static char* items[3];
 	items[0] = no;
 	items[1] = confirm;
+	items[2] = NULL;
 #else
-    static char* items[11];
+    static char* items[12];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -621,6 +624,7 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
+	items[11] = NULL;
 #endif
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
