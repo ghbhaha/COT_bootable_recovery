@@ -57,6 +57,20 @@ ifdef RECOVERY_BUILD_IN_LANDSCAPE
   LOCAL_CFLAGS += -DBUILD_IN_LANDSCAPE=true
 endif
 
+ifneq ($(BOARD_HAS_QUICKFIXES),)
+  LOCAL_CFLAGS += -DBOARD_HAS_QUICKFIXES=true
+ifneq ($(BOARD_NEEDS_RECOVERY_FIX),)
+  LOCAL_CFLAGS += -DBOARD_NEEDS_RECOVERY_FIX=true
+endif
+endif
+
+
+ifeq ($(BOARD_USE_CUSTOM_RECOVERY_FONT),)
+  BOARD_USE_CUSTOM_RECOVERY_FONT := \"font_10x18.h\"
+else
+  BOARD_USE_CUSTOM_RECOVERY_FONT := \"roboto_15x24.h\"
+endif
+
 BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_HAS_SMALL_RECOVERY BOARD_LDPI_RECOVERY BOARD_UMS_LUNFILE BOARD_RECOVERY_ALWAYS_WIPES BOARD_RECOVERY_HANDLES_MOUNT
 
 $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
@@ -176,6 +190,7 @@ include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/libcrecovery/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
+include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
