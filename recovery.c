@@ -192,7 +192,7 @@ fopen_root_path(const char *root_path, const char *mode) {
     if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
 
     FILE *fp = fopen(path, mode);
-    if (fp == NULL && root_path != ROOT_COMMAND_FILE) LOGE("Can't open %s\n", path);
+    if (fp == NULL && root_path != ROOT_COMMAND_FILE) printf("Can't open %s\n", path);
     return fp;
 }
 
@@ -209,7 +209,7 @@ fopen_path(const char *path, const char *mode) {
     if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
 
     FILE *fp = fopen(path, mode);
-    if (fp == NULL && path != COMMAND_FILE) LOGE("Can't open %s\n", path);
+    if (fp == NULL && path != COMMAND_FILE) printf("Can't open %s\n", path);
     return fp;
 }
 
