@@ -1274,7 +1274,7 @@ int get_batt_stats(void) {
 	static int level = -1;
 	
 	char value[4];
-	FILE * capacity = fopen("/sys/class/power_supply/battery/capacity","rt");
+	FILE * capacity = fopen(batt_cap,"rt");
 	if (capacity) {
 		fgets(value, 4, capacity);
 		fclose(capacity);
