@@ -98,6 +98,7 @@ extern int TOUCH_NOSHOW_LOG;
 extern int maxX;
 extern int maxY;
 extern int touchY;
+extern char* batt_cap;
 extern int BATT_LINE;
 extern int TIME_LINE;
 extern int BATT_POS;

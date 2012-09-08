@@ -80,6 +80,11 @@ int TIME_LINE=1;
 // define the screen position of the clock
 int TIME_POS=RIGHT_ALIGN;
 
+/* define the battery capacity sys interface file
+ * don't change unless your device needs it!
+ */
+char batt_cap = "/sys/class/power_supply/battery/capacity";
+
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "Boot Android",
