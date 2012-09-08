@@ -76,46 +76,62 @@ void show_cot_options_menu() {
                                 NULL
     };
 
-	#define COT_OPTIONS_ITEM_QUICKFIXES	0
-	#define COT_OPTIONS_ITEM_RECDEBUG	1
-	#define COT_OPTIONS_ITEM_SETTINGS	2
+	#define COT_OPTIONS_ITEM_RECDEBUG	0
+	#define COT_OPTIONS_ITEM_SETTINGS	1
+	#define COT_OPTIONS_ITEM_QUICKFIXES	2
 
+#ifdef BOARD_HAS_QUICKFIXES
 	static char* list[4];
-	list[0] = "Quick Fixes";
-	list[1] = "Recovery Debugging";
-	list[2] = "COT Settings";
+	list[0] = "Recovery Debugging";
+	list[1] = "COT Settings";
+	list[2] = "Quick Fixes";
 	list[3] = NULL;
+#else
+	static char* list[3];
+	list[0] = "Recovery Debugging";
+	list[1] = "COT Settings";
+	list[2] = NULL;
+#endif
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
 		switch (chosen_item) {
 			case GO_BACK:
 				return;
-			case COT_OPTIONS_ITEM_QUICKFIXES:
-			{
-				static char* fixes_headers[3];
-				fixes_headers[0] = "Quick Fixes";
-				fixes_headers[1] = "\n";
-				fixes_headers[2] = NULL;
-				static char* fixes_list[2];
-				fixes_list[0] = "Fix Recovery Boot Loop";
-				fixes_list[1] = NULL;
-				int chosen_fix = get_menu_selection(fixes_headers, fixes_list, 0, 0);
-				switch (chosen_fix) {
-					case GO_BACK:
-						continue;
-					case 0:
-						format_root_device("MISC:");
-						format_root_device("PERSIST:");
-						reboot(RB_AUTOBOOT);
-						break;
-				}
-			}
 			case COT_OPTIONS_ITEM_RECDEBUG:
 				show_recovery_debugging_menu();
 				break;
 			case COT_OPTIONS_ITEM_SETTINGS:
 				show_settings_menu();
 				break;
+			case COT_OPTIONS_ITEM_QUICKFIXES:
+			{
+				static char* fixes_headers[3];
+				fixes_headers[0] = "Quick Fixes";
+				fixes_headers[1] = "\n";
+				fixes_headers[2] = NULL;
+#ifdef BOARD_NEEDS_RECOVERY_FIX
+				static char* fixes_list[2];
+				fixes_list[0] = "Fix Recovery Boot Loop";
+				fixes_list[1] = NULL;
+#else
+				static char* fixes_list[1];
+				fixes_list[0] = NULL;
+#endif
+				int chosen_fix = get_menu_selection(fixes_headers, fixes_list, 0, 0);
+				switch (chosen_fix) {
+					case GO_BACK:
+						continue;
+					case 0:
+#ifdef BOARD_NEEDS_RECOVERY_FIX
+						format_root_device("MISC:");
+						format_root_device("PERSIST:");
+						pass_normal_reboot();
+						break;
+#else
+						break;
+#endif
+				}
+			}
 		}
 	}
 }
@@ -129,7 +145,9 @@ void show_recovery_debugging_menu()
 
 	static char* list[] = { "Fix Permissions",
 							"Report Error",
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 							"Key Test",
+#endif
 							"Show log",
 							"Toggle UI Debugging",
 							NULL
@@ -155,6 +173,7 @@ void show_recovery_debugging_menu()
 				handle_failure(1);
 				break;
 			case 2:
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 			{
 				ui_print("Outputting key codes.\n");
 				ui_print("Go back to end debugging.\n");
@@ -182,9 +201,14 @@ void show_recovery_debugging_menu()
 				break;
 			}
 			case 3:
+#endif
 				ui_printlogtail(12);
 				break;
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+			case 3:
+#else
 			case 4:
+#endif
 				toggle_ui_debugging();
 				break;
 		}
@@ -240,7 +264,7 @@ void show_settings_menu() {
             {
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
-                                                    "Key Lime Pie",
+                                                    "Lloyd Green",
                                                     "Citrus Orange",
                                                     "Dooderbutt Blue",
                                                     NULL
@@ -259,7 +283,7 @@ void show_settings_menu() {
                             currenttheme = "bloodred";
                             break;
                         case 2:
-                            currenttheme = "keylimepie";
+                            currenttheme = "lloyd";
                             break;
                         case 3:
                             currenttheme = "citrusorange";
@@ -368,8 +392,8 @@ void ui_dyn_background()
 		case BLOOD_RED_UI:
 			ui_set_background(BACKGROUND_ICON_BLOODRED);
 			break;
-		case KEY_LIME_PIE_UI:
-			ui_set_background(BACKGROUND_ICON_KEYLIMEPIE);
+		case LLOYD_UI:
+			ui_set_background(BACKGROUND_ICON_LLOYD);
 			break;
 		case CITRUS_ORANGE_UI:
 			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);

@@ -23,6 +23,8 @@ void handle_theme(char * theme_name);
 int settings_handler(void* user, const char* section, const char* name, const char* value);
 int theme_handler(void* user, const char* section, const char* name, const char* value);
 
+extern int fallback_settings;
+
 extern int backupprompt;
 extern int orswipeprompt;
 extern int orsreboot;

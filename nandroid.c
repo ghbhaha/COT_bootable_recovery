@@ -30,9 +30,6 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-#include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
-#include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
-
 #include <sys/vfs.h>
 
 #include "extendedcommands.h"
@@ -43,48 +40,36 @@
 #include <libgen.h>
 #include "eraseandformat.h"
 
-#define LIMITED_SPACE 400
-
 void get_android_version(const char* backup_path)
 {
-	char* ANDROID_VERSION;
-	char* result;
-	FILE * vers = fopen_path("/system/build.prop", "r");
-	if (vers == NULL)
-		return NULL;
-
-	char line[512];
-	while(fgets(line, sizeof(line), vers) != NULL && fgets(line, sizeof(line), vers) != EOF) { // read a line
-		if (strstr(line, "ro.build.display.id") != NULL) {
-			char* strptr = strstr(line, "=") + 1;
-			result = calloc(strlen(strptr) + 1, sizeof(char));
-			strcpy(result, strptr);
-			break;
-		}
-	}
-	fclose(vers);
-	ensure_path_unmounted("/system");
-
-	int LENGTH = strlen(result);
-	int i, k, found;
-	for (i=0; i<LENGTH; i++) {
-		k = i;
-		//Android versions follow this scheme: AAADD, A=A-Z, D=0-9, ICS has an extra digit at the end
-		if (isalpha(result[k]) && isalpha(result[k++]) && isalpha(result[k++]) && isdigit(result[k++]) && isdigit(result[k++])) {
-			found = 1;
-			break;
-		}
-	}
-	if (found) {
-		ANDROID_VERSION = calloc(strlen(result) + 1, sizeof(char)); //allocate the length of result plus 1
-		int n = 0;
-		for(i-=1; i<=k; i++) {
-			ANDROID_VERSION[n] = result[i];
-			n++;
-		}
-		ANDROID_VERSION[n] = NULL;
-		strcat(backup_path, ANDROID_VERSION);
-	}
+    char* result;
+    FILE * vers = fopen_path("/system/build.prop", "r");
+    int which = 0;
+    if (vers == NULL)
+        return;
+        
+    char line[512];
+    char* strptr;
+    while(fgets(line, sizeof(line), vers) != NULL && fgets(line, sizeof(line), vers) != EOF) {
+        if (strstr(line, "ro.goo.rom") != NULL) {
+            strptr = strstr(line, "=") + 1;
+            break;
+        }
+        else if (strstr(line, "ro.build.id") != NULL) {
+            strptr = strstr(line, "=") + 1;
+            break;
+        }
+    }
+    result = calloc(strlen(strptr) + 1, sizeof(char));
+    strcpy(result, strptr);
+    fclose(vers);
+    ensure_path_unmounted("/system");
+    
+    if(result == NULL)
+        return;
+    
+    strcat(result, "-");
+    strcat(backup_path, result);
 }
 
 void nandroid_get_backup_path(const char* backup_path)
@@ -105,6 +90,7 @@ void nandroid_generate_timestamp_path(const char* backup_path)
 {
 	nandroid_get_backup_path(backup_path);
 	//get_android_version(backup_path);
+
     time_t t = time(NULL);
     struct tm *bktime = localtime(&t);
     char tmp[PATH_MAX];
@@ -112,11 +98,9 @@ void nandroid_generate_timestamp_path(const char* backup_path)
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(tmp, "%d", tp.tv_sec);
-        //strcat(backup_path, "-");
         strcat(backup_path, tmp);
 	} else {
 		strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
-		//strcat(backup_path, "-");
 		strcat(backup_path, tmp);
 	}
 }
@@ -126,10 +110,10 @@ static int print_and_error(const char* message) {
     return 1;
 }
 
-static int yaffs_files_total = 0;
-static int yaffs_files_count = 0;
+static int nandroid_files_total = 0;
+static int nandroid_files_count = 0;
 
-static void yaffs_callback(const char* filename)
+static void nandroid_callback(const char* filename)
 {
     if (filename == NULL)
         return;
@@ -140,9 +124,9 @@ static void yaffs_callback(const char* filename)
         tmp[strlen(tmp) - 1] = NULL;
     if (strlen(tmp) < 30)
         ui_print("%s", tmp);
-    yaffs_files_count++;
-    if (yaffs_files_total != 0)
-        ui_set_progress((float)yaffs_files_count / (float)yaffs_files_total);
+    nandroid_files_count++;
+    if (nandroid_files_total != 0)
+        ui_set_progress((float)nandroid_files_count / (float)nandroid_files_total);
     ui_reset_text_col();
 }
 
@@ -155,42 +139,91 @@ static void compute_directory_stats(const char* directory)
     FILE* f = fopen("/tmp/dircount", "r");
     fread(count_text, 1, sizeof(count_text), f);
     fclose(f);
-    yaffs_files_count = 0;
-    yaffs_files_total = atoi(count_text);
+    nandroid_files_count = 0;
+    nandroid_files_total = atoi(count_text);
     ui_reset_progress();
     ui_show_progress(1, 0);
 }
 
-// We use CLI because it doesn't corrupt backups on thunderc varients.
-static int mkyaffs2image_wrapper(const char* name, const char* backup_path) {
-	char tmp[PATH_MAX];
-	if (strcmp(".android_secure",name) == 0) {
-		sprintf(tmp, "/sbin/mkyaffs2image '/sdcard/%s' '%s/%s.img'", name, backup_path, name);
-	} else {
-		sprintf(tmp, "/sbin/mkyaffs2image '/%s' '%s/%s.img'", name, backup_path, name);
-	}
-	return __system(tmp);
+typedef void (*file_event_callback)(const char* filename);
+typedef int (*nandroid_backup_handler)(const char* backup_path, const char* backup_file_image, int callback);
+
+static int mkyaffs2image_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "cd %s ; mkyaffs2image . %s.img ; exit $?", backup_path, backup_file_image);
+
+    FILE *fp = __popen(tmp, "r");
+    if (fp == NULL) {
+        ui_print("Unable to execute mkyaffs2image.\n");
+        return -1;
+    }
+
+    while (fgets(tmp, PATH_MAX, fp) != NULL) {
+        tmp[PATH_MAX - 1] = NULL;
+        if (callback)
+            nandroid_callback(tmp);
+    }
+
+    return __pclose(fp);
 }
 
-static int unyaffs_wrapper(const char* name, const char* backup_path) {
-	char tmp[PATH_MAX];
-	if (strcmp(".android_secure",name) == 0) {
-		sprintf(tmp, "cd '/sdcard/%s' && /sbin/unyaffs '%s/%s.img'", name, backup_path, name);
-	} else {
-		sprintf(tmp, "cd '/%s' && /sbin/unyaffs '%s/%s.img'", name, backup_path, name);
-	}
-	return __system(tmp);
+static int tar_compress_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "cd $(dirname %s) ; touch %s.tar ; (tar cv %s $(basename %s) | split -a 1 -b 1000000000 /proc/self/fd/0 %s.tar.) 2> /proc/self/fd/1 ; exit $?", backup_path, backup_file_image, strcmp(backup_path, "/data") == 0 && is_data_media() ? "--exclude 'media'" : "", backup_path, backup_file_image);
+
+    FILE *fp = __popen(tmp, "r");
+    if (fp == NULL) {
+        ui_print("Unable to execute tar.\n");
+        return -1;
+    }
+
+    while (fgets(tmp, PATH_MAX, fp) != NULL) {
+        tmp[PATH_MAX - 1] = NULL;
+        if (callback)
+            nandroid_callback(tmp);
+    }
+
+    return __pclose(fp);
 }
+
+static nandroid_backup_handler get_backup_handler(const char *backup_path) {
+    Volume *v = volume_for_path(backup_path);
+    if (v == NULL) {
+        ui_print("Unable to find volume.\n");
+        return NULL;
+    }
+    MountedVolume *mv = find_mounted_volume_by_mount_point(v->mount_point);
+    if (mv == NULL) {
+        ui_print("Unable to find mounted volume: %s\n", v->mount_point);
+        return NULL;
+    }
+
+    if (strcmp(backup_path, "/data") == 0 && is_data_media()) {
+        return tar_compress_wrapper;
+    }
+
+    // cwr5, we prefer tar for everything except yaffs2
+    if (strcmp("yaffs2", mv->filesystem) == 0) {
+        return mkyaffs2image_wrapper;
+    }
+
+    char str[255];
+    char* partition;
+    property_get("ro.cwm.prefer_tar", str, "true");
+    if (strcmp("true", str) != 0) {
+        return mkyaffs2image_wrapper;
+    }
+
+    return tar_compress_wrapper;
+}
+
 
 int nandroid_backup_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
     int ret = 0;
     char* name = basename(mount_point);
 
     struct stat file_info;
-    mkyaffs2image_callback callback = NULL;
-    if (0 != stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info)) {
-        callback = yaffs_callback;
-    }
+    int callback = stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info) != 0;
 
     ui_print("Backing up %s...\n", name);
     if (0 != (ret = ensure_path_mounted(mount_point) != 0)) {
@@ -199,20 +232,52 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
     }
     compute_directory_stats(mount_point);
     char tmp[PATH_MAX];
-
-	ret = mkyaffs2image_wrapper(name, backup_path);
-
+	scan_mounted_volumes();
+	Volume *v = volume_for_path(mount_point);
+	MountedVolume *mv = NULL;
+	if(v != NULL)
+		mv = find_mounted_volume_by_mount_point(v->mount_point);
+	if(mv == NULL || mv->filesystem == NULL)
+		sprintf(tmp, "%s/%s.auto", backup_path, name);
+    else
+        sprintf(tmp, "%s/%s.%s", backup_path, name, mv->filesystem);
+    nandroid_backup_handler backup_handler = get_backup_handler(mount_point);
+    if (backup_handler == NULL) {
+        ui_print("Error finding an appropriate backup handler.\n");
+        return -2;
+    }
+    ret = backup_handler(mount_point, tmp, callback);
     if (umount_when_finished) {
         ensure_path_unmounted(mount_point);
     }
     if (0 != ret) {
-        ui_print("Error while making a yaffs2 image of %s!\n", mount_point);
+        ui_print("Error while making a backup image of %s!\n", mount_point);
         return ret;
     }
     return 0;
 }
 
 int nandroid_backup_partition(const char* backup_path, const char* root) {
+    Volume *vol = volume_for_path(root);
+    // make sure the volume exists before attempting anything...
+    if (vol == NULL || vol->fs_type == NULL)
+        return NULL;
+
+    // see if we need a raw backup (mtd)
+    char tmp[PATH_MAX];
+    int ret;
+    if (strcmp(vol->fs_type, "mtd") == 0 ||
+            strcmp(vol->fs_type, "bml") == 0 ||
+            strcmp(vol->fs_type, "emmc") == 0) {
+        const char* name = basename(root);
+        sprintf(tmp, "%s/%s.img", backup_path, name);
+        ui_print("Backing up %s image...\n", name);
+        if (0 != (ret = backup_raw_partition(vol->fs_type, vol->device, tmp))) {
+            ui_print("Error while backing up %s image!", name);
+            return ret;
+        }
+        return 0;
+    }
     return nandroid_backup_partition_extended(backup_path, root, 1);
 }
 
@@ -255,7 +320,7 @@ int nandroid_backup(const char* backup_path)
     uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
 
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-    if (sdcard_free_mb < LIMITED_SPACE) {
+    if (sdcard_free_mb < minimum_storage) {
         if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
 			return 0;
 		}
@@ -263,19 +328,11 @@ int nandroid_backup(const char* backup_path)
 
 	ensure_directory(backup_path);
 
-#ifndef BOARD_RECOVERY_IGNORE_BOOTABLES
-    ui_print("Backing up boot...\n");
-    sprintf(tmp, "%s/%s", backup_path, "boot.img");
-    ret = backup_raw_partition("boot", tmp);
-    if (0 != ret)
-        return print_and_error("Error while dumping boot image!\n");
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+        return ret;
 
-    ui_print("Backing up recovery...\n");
-    sprintf(tmp, "%s/%s", backup_path, "recovery.img");
-    ret = backup_raw_partition("recovery", tmp);
-    if (0 != ret)
-        return print_and_error("Error while dumping recovery image!\n");
-#endif
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
+        return ret;
 
     if (0 != (ret = nandroid_backup_partition(backup_path, "/system")))
         return ret;
@@ -298,6 +355,7 @@ int nandroid_backup(const char* backup_path)
     if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
         return ret;
 
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
     Volume *vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -307,6 +365,7 @@ int nandroid_backup(const char* backup_path)
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
             return ret;
     }
+#endif
 
     ui_print("Generating md5 sum...\n");
     sprintf(tmp, "nandroid-md5.sh %s", backup_path);
@@ -341,7 +400,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     uint64_t sdcard_free_mb = recalc_sdcard_space(backup_path);
 
     ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
-    if (sdcard_free_mb < LIMITED_SPACE) {
+    if (sdcard_free_mb < minimum_storage) {
         if (show_lowspace_menu(sdcard_free_mb, backup_path) == 1) {
 			return 0;
 		}
@@ -349,21 +408,11 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
 
 	ensure_directory(backup_path);
 
-    if (boot) {
-        ui_print("Backing up boot...\n");
-        sprintf(tmp, "%s/%s", backup_path, "boot.img");
-        ret = backup_raw_partition("boot", tmp);
-        if (0 != ret)
-            return print_and_error("Error while dumping boot image!\n");
-    }
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/boot")))
+        return ret;
 
-    if (recovery) {
-        ui_print("Backing up recovery...\n");
-        sprintf(tmp, "%s/%s", backup_path, "recovery.img");
-        ret = backup_raw_partition("recovery", tmp);
-        if (0 != ret)
-            return print_and_error("Error while dumping recovery image!\n");
-    }
+    if (0 != (ret = nandroid_backup_partition(backup_path, "/recovery")))
+        return ret;
 
     if (system && 0 != (ret = nandroid_backup_partition(backup_path, "/system")))
         return ret;
@@ -410,78 +459,196 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     return 0;
 }
 
-typedef int (*format_function)(char* root);
+typedef int (*nandroid_restore_handler)(const char* backup_file_image, const char* backup_path, int callback);
+
+static int unyaffs_wrapper(const char* backup_file_image, const char* backup_path, int callback) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "cd %s ; unyaffs %s ; exit $?", backup_path, backup_file_image);
+    FILE *fp = __popen(tmp, "r");
+    if (fp == NULL) {
+        ui_print("Unable to execute unyaffs.\n");
+        return -1;
+    }
+
+    while (fgets(tmp, PATH_MAX, fp) != NULL) {
+        tmp[PATH_MAX - 1] = NULL;
+        if (callback)
+            nandroid_callback(tmp);
+    }
+
+    return __pclose(fp);
+}
+
+static int tar_extract_wrapper(const char* backup_file_image, const char* backup_path, int callback) {
+    char tmp[PATH_MAX];
+    sprintf(tmp, "cd $(dirname %s) ; cat %s* | tar xv ; exit $?", backup_path, backup_file_image);
+    FILE *fp = __popen(tmp, "r");
+    if (fp == NULL) {
+        ui_print("Unable to execute tar.\n");
+        return -1;
+    }
+
+    while (fgets(tmp, PATH_MAX, fp) != NULL) {
+        tmp[PATH_MAX -1 ] = NULL;
+        if (callback)
+            nandroid_callback(tmp);
+    }
+
+    return __pclose(fp);
+}
+
+static nandroid_restore_handler get_restore_handler(const char *backup_path) {
+    Volume *v = volume_for_path(backup_path);
+    if (v == NULL) {
+        ui_print("Unable to find volume.\n");
+        return NULL;
+    }
+    scan_mounted_volumes();
+    MountedVolume *mv = find_mounted_volume_by_mount_point(v->mount_point);
+    if (mv == NULL) {
+        ui_print("Unable to find mounted volume: %s\n", v->mount_point);
+        return NULL;
+    }
+
+    if (strcmp(backup_path, "/data") == 0 && is_data_media()) {
+        return tar_extract_wrapper;
+    }
+
+    // cwr 5, we prefer tar for everything unless it is yaffs2
+    char str[255];
+    char* partition;
+    property_get("ro.cwm.prefer_tar", str, "false");
+    if (strcmp("true", str) != 0) {
+        return unyaffs_wrapper;
+    }
+
+    if (strcmp("yaffs2", mv->filesystem) == 0) {
+        return unyaffs_wrapper;
+    }
+
+    return tar_extract_wrapper;
+}
 
 int nandroid_restore_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
-	int ret = 0;
-	char* name = basename(mount_point);
+    int ret = 0;
+    char* name = basename(mount_point);
 
-	char tmp[PATH_MAX];
-	bool istarfile = false;
+    nandroid_restore_handler restore_handler = NULL;
+    const char *filesystems[] = { "yaffs2", "ext2", "ext3", "ext4", "vfat", "rfs", NULL };
+    const char* backup_filesystem = NULL;
+    Volume *vol = volume_for_path(mount_point);
+    const char *device = NULL;
+    if (vol != NULL)
+        device = vol->device;
 
-	sprintf(tmp, "%s/%s.img", backup_path, name);
-	struct stat file_info;
-	if (0 != (ret = statfs(tmp, &file_info))) {
-		if (strcmp(".android_secure", name) == 0) {
-			ui_print("%s.img not found.\n", name, mount_point);
-			sprintf(name,"android_secure");
-			sprintf(tmp, "%s/%s.tar", backup_path, name);
-			if (0 == (ret = statfs(tmp, &file_info))) {
-				ui_print("Found old %s.tar!\n", name, mount_point);
-				istarfile = true;
-			} else {
-				ui_print("%s.tar not found either Skipping restore of .%s.\n", name, name);
-				return 0;
-			}
-		} else {
-			ui_print("%s.img not found. Skipping restore of %s\n", name, mount_point);
-			return 0;
-		}
-	}
+    char tmp[PATH_MAX];
+    sprintf(tmp, "%s/%s.img", backup_path, name);
+    struct stat file_info;
+    if (0 != (ret = statfs(tmp, &file_info))) {
+        // can't find the backup, it may be the new backup format?
+        // iterate through the backup types
+        printf("couldn't find default\n");
+        char *filesystem;
+        int i = 0;
+        while ((filesystem = filesystems[i]) != NULL) {
+            sprintf(tmp, "%s/%s.%s.img", backup_path, name, filesystem);
+            if (0 == (ret = statfs(tmp, &file_info))) {
+                backup_filesystem = filesystem;
+                restore_handler = unyaffs_wrapper;
+                break;
+            }
+            sprintf(tmp, "%s/%s.%s.tar", backup_path, name, filesystem);
+            if (0 == (ret = statfs(tmp, &file_info))) {
+                backup_filesystem = filesystem;
+                restore_handler = tar_extract_wrapper;
+                break;
+            }
+            i++;
+        }
+
+        if (backup_filesystem == NULL || restore_handler == NULL) {
+            ui_print("%s.img not found. Skipping restore of %s.\n", name, mount_point);
+            return 0;
+        } else {
+            printf("Found new backup image: %s\n", tmp);
+        }
+
+        // If the fs_type of this volume is "auto", let's revert to using a
+        // rm -rf, rather than trying to do a ext3/ext4/whatever format.
+        // This is because some phones (like DroidX) will freak out if you
+        // reformat the /system or /data partitions, and not boot due to
+        // a locked bootloader.
+        // The "auto" fs type preserves the file system, and does not
+        // trigger that lock.
+        // Or of volume does not exist (.android_secure), just rm -rf.
+        if (vol == NULL || 0 == strcmp(vol->fs_type, "auto"))
+            backup_filesystem = NULL;
+    }
 
     ensure_directory(mount_point);
 
-    unyaffs_callback callback = NULL;
-    if (0 != stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info)) {
-		callback = yaffs_callback;
-	}
+    int callback = stat("/sdcard/cotrecovery/.hidenandroidprogress", &file_info) != 0;
 
-	if (strcmp("android_secure", name) == 0) {
-		ui_print("Restoring .%s...\n", name);
-	} else {
-		ui_print("Restoring %s...\n", name);
-	}
+    ui_print("Restoring %s...\n", name);
+    if (backup_filesystem == NULL) {
+        if (0 != (ret = format_volume(mount_point))) {
+            ui_print("Error while formatting %s!\n", mount_point);
+            return ret;
+        }
+    }
+    else if (0 != (ret = format_device(device, mount_point, backup_filesystem))) {
+        ui_print("Error while formatting %s!\n", mount_point);
+        return ret;
+    }
 
-	if (0 != (ret = format_volume(mount_point))) {
-		ui_print("Error while formatting %s!\n", mount_point);
-		return ret;
-	}
+    if (0 != (ret = ensure_path_mounted(mount_point))) {
+        ui_print("Can't mount %s!\n", mount_point);
+        return ret;
+    }
 
-	if (0 != (ret = ensure_path_mounted(mount_point))) {
-		ui_print("Can't mount %s!\n", mount_point);
-		return ret;
-	}
+    if (restore_handler == NULL)
+        restore_handler = get_restore_handler(mount_point);
+    if (restore_handler == NULL) {
+        ui_print("Error finding an appropriate restore handler.\n");
+        return -2;
+    }
+    if (0 != (ret = restore_handler(tmp, mount_point, callback))) {
+        ui_print("Error while restoring %s!\n", mount_point);
+        return ret;
+    }
 
-	if (istarfile) {
-		sprintf(tmp, "/sbin/busybox tar -xf '%s/%s.tar' -C '/sdcard/'", backup_path, name);
-		if (0 != (ret = __system(tmp))) {
-			ui_print("Error while restoring %s.tar!\n",name);
-			return ret;
-		}
-    } else {
-		ret = unyaffs_wrapper(name, backup_path);
-		if (0 != ret) {
-			ui_print("Error while restoring %s!\n",name);
-			return ret;
-		}
-	}
-	if (umount_when_finished) {
-		ensure_path_unmounted(mount_point);
-	}
-	return 0;
+    if (umount_when_finished) {
+        ensure_path_unmounted(mount_point);
+    }
+    return 0;
 }
 
 int nandroid_restore_partition(const char* backup_path, const char* root) {
+    Volume *vol = volume_for_path(root);
+    // make sure the volume exists...
+    if (vol == NULL || vol->fs_type == NULL)
+        return 0;
+
+    // see if we need a raw restore (mtd)
+    char tmp[PATH_MAX];
+    if (strcmp(vol->fs_type, "mtd") == 0 ||
+            strcmp(vol->fs_type, "bml") == 0 ||
+            strcmp(vol->fs_type, "emmc") == 0) {
+        int ret;
+        const char* name = basename(root);
+        ui_print("Erasing %s before restore...\n", name);
+        if (0 != (ret = format_volume(root))) {
+            ui_print("Error while erasing %s image!", name);
+            return ret;
+        }
+        sprintf(tmp, "%s%s.img", backup_path, root);
+        ui_print("Restoring %s image...\n", name);
+        if (0 != (ret = restore_raw_partition(vol->fs_type, vol->device, tmp))) {
+            ui_print("Error while flashing %s image!", name);
+            return ret;
+        }
+        return 0;
+    }
     return nandroid_restore_partition_extended(backup_path, root, 1);
 }
 
@@ -489,7 +656,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
 {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
-    yaffs_files_total = 0;
+    nandroid_files_total = 0;
 
 	char tmp[PATH_MAX];
 	if (ensure_path_mounted(backup_path) != 0) {
@@ -503,25 +670,9 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return print_and_error("MD5 mismatch!\n");
 
     int ret;
-    struct stat st;
 
-#ifndef BOARD_RECOVERY_IGNORE_BOOTABLES
-	sprintf(tmp, "%s/boot.img", backup_path);
-    if (restore_boot && (stat(tmp, &st) == 0))
-    {
-        ui_print("Erasing boot before restore...\n");
-        if (0 != (ret = format_root_device("BOOT:")))
-            return print_and_error("Error while formatting BOOT:!\n");
-        sprintf(tmp, "%s/boot.img", backup_path);
-        ui_print("Restoring boot image...\n");
-        if (0 != (ret = restore_raw_partition("boot", tmp))) {
-            ui_print("Error while flashing boot image!");
-            return ret;
-        }
-    } else {
-		ui_print("No boot image present, skipping to system...\n");
-	}
-#endif
+    if (restore_boot && NULL != volume_for_path("/boot") && 0 != (ret = nandroid_restore_partition(backup_path, "/boot")))
+        return ret;
 
     if (restore_system && 0 != (ret = nandroid_restore_partition(backup_path, "/system")))
         return ret;

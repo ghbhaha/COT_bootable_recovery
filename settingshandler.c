@@ -59,6 +59,7 @@
 #include "iniparse/ini.h"
 
 COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
+int fallback_settings = 0;
 
 int backupprompt = 0;
 int orswipeprompt = 0;
@@ -150,6 +151,41 @@ void create_default_settings(void) {
     "Language = en ;\n"
     "\n");
     fclose(ini);
+    show_welcome_text();
+}
+
+void show_welcome_text() {
+#ifndef BOARD_HAS_SMALL_SCREEN
+	ui_print("Welcome to Cannibal Open Touch v2.1!\n");
+    ui_print("====================================\n");
+    ui_print("\n");
+    ui_print("Cannibal Open Touch was made possible\n");
+    ui_print("by the work of many smart individuals\n");
+    ui_print("working many long hours to bring you\n");
+    ui_print("the best Android recovery experience\n");
+    ui_print("ever!\n");
+    ui_print("\n");
+#else
+	ui_print("Welcome to COT v2.1!\n");
+	ui_print("===============================\n");
+	ui_print("Cannibal Open Touch was made\n");
+	ui_print("possible by the hard work of\n");
+	ui_print("many folks working long hours\n");
+	ui_print("to bring you the best Android\n");
+	ui_print("Recovery experience ever!\n");
+	ui_print("\n");
+#endif
+}
+
+void load_fallback_settings() {
+	ui_print("Unable to mount sdcard,\nloading failsafe setting...\n\nSettings will not work\nwithout an sdcard...\n");
+	fallback_settings = 1;
+	currenttheme = "hydro";
+	language = "en";
+	signature_check_enabled = 1;
+	backupprompt = 1;
+	orswipeprompt = 1;
+	orsreboot = 0;
 }
 
 void update_cot_settings(void) {
@@ -161,11 +197,15 @@ void update_cot_settings(void) {
 }
 
 void parse_settings() {
-    ensure_path_mounted("/sdcard");
+    if(ensure_path_mounted("/sdcard") != 0) {
+		load_fallback_settings();
+		parse_language();
+		handle_theme(currenttheme);
+		return;
+	}
     settings config;
 
     if (ini_parse(COTSETTINGS, settings_handler, &config) < 0) {
-        ui_print("Can't load COT settings!\nSetting defaults...\n");
         create_default_settings();
         ini_parse(COTSETTINGS, settings_handler, &config);
     }

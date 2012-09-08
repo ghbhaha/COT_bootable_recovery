@@ -275,6 +275,11 @@ int format_device(const char *device, const char *path, const char *fs_type) {
     }
 
     if (strcmp(fs_type, "ext4") == 0) {
+		int length = 0;
+        if (strcmp(v->fs_type, "ext4") == 0) {
+            // Our desired filesystem matches the one in fstab, respect v->length
+            length = v->length;
+        }
         reset_ext4fs_info();
         int result = make_ext4fs(device, NULL, NULL, 0, 0, 0);
         if (result != 0) {
@@ -292,7 +297,7 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     LOGI("Formatting unknown device.\n");
 
     if (fs_type != NULL && get_flash_type(fs_type) != UNSUPPORTED)
-        return erase_raw_partition(device);
+        return erase_raw_partition(fs_type, device);
 
     // if this is SDEXT:, don't worry about it if it does not exist.
     if (0 == strcmp(path, "/sd-ext"))
@@ -456,16 +461,68 @@ void show_partition_menu()
 			options[mountable_volumes+i] = e->txt;
 		}
 
-		options[mountable_volumes+formatable_volumes] = "Erase dalvik-cache";
-		options[mountable_volumes+formatable_volumes + 1] = NULL;
+		options[mountable_volumes+formatable_volumes] = "Mount USB Storage";
+		options[mountable_volumes+formatable_volumes + 1] = "Erase dalvik-cache";
+		options[mountable_volumes+formatable_volumes + 1 + 1] = "Partition SD Card";
+		options[mountable_volumes+formatable_volumes + 1 + 1 + 1] = NULL;
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
         if (chosen_item == (mountable_volumes+formatable_volumes))
         {
-            erase_dalvik_cache(0);
+            show_mount_usb_storage_menu();
+            break;
         }
+        else if (chosen_item == (mountable_volumes+formatable_volumes + 1))
+        {
+			erase_dalvik_cache(0);
+			break;
+		}
+		else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1))
+		{
+			static char* ext_sizes[] = { "128M",
+											 "256M",
+                                             "512M",
+                                             "1024M",
+                                             "2048M",
+                                             "4096M",
+                                             NULL };
+            
+            static char* swap_sizes[] = { "0M",
+                                              "32M",
+                                              "64M",
+                                              "128M",
+                                              "256M",
+                                              NULL };
+                                              
+			static char* ext_headers[] = { "Ext Size", "", NULL };
+			static char* swap_headers[] = { "Swap Size", "", NULL };
+			int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
+			if (ext_size == GO_BACK)
+				continue;
+				
+			int swap_size = get_menu_selection(swap_headers, swap_sizes, 0, 0);
+			if (swap_size == GO_BACK)
+				continue;
+				
+			char sddevice[256];
+            Volume *vol = volume_for_path("/sdcard");
+            strcpy(sddevice, vol->device);
+            // we only want the mmcblk, not the partition
+            sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+            char cmd[PATH_MAX];
+            setenv("SDPATH", sddevice, 1);
+            sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
+            ui_print("Partitioning SD Card... please wait...\n");
+            if (0 == __system(cmd)) {
+                ui_print("Done!\n");
+				break;
+            } else {
+                ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
+			}
+            break;
+		}
         else if (chosen_item < mountable_volumes)
         {
 			MountMenuEntry* e = &mount_menue[chosen_item];

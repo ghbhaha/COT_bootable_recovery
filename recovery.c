@@ -64,10 +64,16 @@ static const struct option OPTIONS[] = {
   { NULL, 0, NULL, 0 },
 };
 
-static const char *COMMAND_FILE = "CACHE:recovery/command";
-static const char *INTENT_FILE = "CACHE:recovery/intent";
-static const char *LOG_FILE = "CACHE:recovery/log";
-static const char *LAST_LOG_FILE = "CACHE:recovery/last_log";
+static const char *ROOT_COMMAND_FILE = "CACHE:recovery/command";
+static const char *ROOT_INTENT_FILE = "CACHE:recovery/intent";
+static const char *ROOT_LOG_FILE = "CACHE:reCovery/log";
+static const char *ROOT_LAST_LOG_FILE = "CACHE:recovery/last_log";
+
+static const char *COMMAND_FILE = "/cache/recovery/command";
+static const char *INTENT_FILE = "/cache/recovery/intent";
+static const char *LOG_FILE = "/cache/recovery/log";
+static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
+
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 1;
 static int poweroff = 0;
@@ -186,7 +192,7 @@ fopen_root_path(const char *root_path, const char *mode) {
     if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
 
     FILE *fp = fopen(path, mode);
-    if (fp == NULL && root_path != COMMAND_FILE) LOGE("Can't open %s\n", path);
+    if (fp == NULL && root_path != ROOT_COMMAND_FILE) printf("Can't open %s\n", path);
     return fp;
 }
 
@@ -203,7 +209,7 @@ fopen_path(const char *path, const char *mode) {
     if (strchr("wa", mode[0])) dirCreateHierarchy(path, 0777, NULL, 1);
 
     FILE *fp = fopen(path, mode);
-    if (fp == NULL && path != COMMAND_FILE) LOGE("Can't open %s\n", path);
+    if (fp == NULL && path != COMMAND_FILE) printf("Can't open %s\n", path);
     return fp;
 }
 
@@ -256,7 +262,7 @@ get_args(int *argc, char ***argv) {
 
     // --- if that doesn't work, try the command file
     if (*argc <= 1) {
-        FILE *fp = fopen_root_path(COMMAND_FILE, "r");
+        FILE *fp = fopen_path(COMMAND_FILE, "r");
         if (fp != NULL) {
             char *argv0 = (*argv)[0];
             *argv = (char **) malloc(sizeof(char *) * MAX_ARGS);
@@ -332,7 +338,7 @@ static void
 finish_recovery(const char *send_intent) {
     // By this point, we're ready to return to the main system...
     if (send_intent != NULL) {
-        FILE *fp = fopen_root_path(INTENT_FILE, "w");
+        FILE *fp = fopen_path(INTENT_FILE, "w");
         if (fp == NULL) {
             LOGE("Can't open %s\n", INTENT_FILE);
         } else {
@@ -342,7 +348,7 @@ finish_recovery(const char *send_intent) {
     }
 
     // Copy logs to cache so the system can find out what happened.
-    FILE *log = fopen_root_path(LOG_FILE, "a");
+    FILE *log = fopen_path(LOG_FILE, "a");
     if (log == NULL) {
         LOGE("Can't open %s\n", LOG_FILE);
     } else {
@@ -369,9 +375,8 @@ finish_recovery(const char *send_intent) {
 
     // Remove the command file, so recovery won't repeat indefinitely.
     char path[PATH_MAX] = "";
-    if (ensure_root_path_mounted(COMMAND_FILE) != 0 ||
-        translate_root_path(COMMAND_FILE, path, sizeof(path)) == NULL ||
-        (unlink(path) && errno != ENOENT)) {
+    if (ensure_path_mounted(COMMAND_FILE) != 0 ||
+        (unlink(COMMAND_FILE) && errno != ENOENT)) {
         LOGW("Can't unlink %s\n", COMMAND_FILE);
     }
 
@@ -468,52 +473,9 @@ copy_sideloaded_package(const char* original_path) {
   return strdup(copy_path);
 }
 
-int get_battery_level(void)
-{
-	static int lastVal = -1;
-	static time_t nextSecCheck = 0;
-
-	struct timeval curTime;
-	gettimeofday(&curTime, NULL);
-	if (curTime.tv_sec > nextSecCheck)
-	{
-		char cap_s[4];
-		FILE * cap = fopen("/sys/class/power_supply/battery/capacity","rt");
-		if (cap)
-		{
-			fgets(cap_s, 4, cap);
-			fclose(cap);
-			lastVal = atoi(cap_s);
-			if (lastVal > 100)  lastVal = 100;
-			if (lastVal < 0)    lastVal = 0;
-		}
-		nextSecCheck = curTime.tv_sec + 60;
-	}
-	return lastVal;
-}
-
-char* print_batt_cap() {
-	char* full_cap_s = (char*)malloc(30);
-	char full_cap_a[30];
-
-	int cap_i = get_battery_level();
-
-	// Get a usable time
-	struct tm *current;
-	time_t now;
-	now = time(0);
-	current = localtime(&now);
-
-	sprintf(full_cap_a, "Battery Level: %i%% @ %02D:%02D", cap_i, current->tm_hour, current->tm_min);
-	strcpy(full_cap_s, full_cap_a);
-
-	return full_cap_s;
-}
-
 char** prepend_title(char** headers) {
     char* title[] = { EXPAND(RECOVERY_VERSION),
                       "",
-		      print_batt_cap(),
 		      "",
                       NULL };
 
@@ -773,9 +735,12 @@ prompt_and_wait() {
 
         switch (chosen_item) {
             case ITEM_REBOOT:
-                poweroff=0;
+                pass_normal_reboot();
                 return;
-
+                
+            case ITEM_INSTALL_ZIP:
+                show_install_update_menu();
+                break;
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
@@ -783,9 +748,6 @@ prompt_and_wait() {
 			case ITEM_WIPE_ALL:
 				wipe_all(0);
 				break;
-            case ITEM_INSTALL_ZIP:
-                show_install_update_menu();
-                break;
             case ITEM_NANDROID:
                 show_nandroid_menu();
                 break;
@@ -795,9 +757,9 @@ prompt_and_wait() {
             case ITEM_COTOPTIONS:
                 show_cot_options_menu();
                 break;
-			case ITEM_UTILITIES:
+			/*case ITEM_UTILITIES:
 				show_utilities_menu();
-				break;
+				break;*/
             case ITEM_POWEROPTIONS:
                 //poweroff=1;
 				show_power_options_menu();
@@ -880,6 +842,7 @@ int run_script_file(void) {
 		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
 			cindex = 0;
 			line_len = strlen(script_line);
+			printf("ORS command: %s\n", script_line);
 			//if (line_len > 2)
 				//continue; // there's a blank line at the end of the file, we're done!
 			//ui_print("script line: '%s'\n", script_line);
@@ -904,17 +867,32 @@ int run_script_file(void) {
 				LOGI("value is: '%s'\n", value);
 			} else {
 				strncpy(command, script_line, line_len - remove_nl + 1);
-				ui_print("command is: '%s' and there is no value\n", command);
+				LOGI("command is: '%s' and there is no value\n", command);
 			}
 			if (strcmp(command, "install") == 0) {
 				// Install zip
-				ensure_path_mounted(SDCARD_ROOT);
-				ui_print("Installing zip file '%s'\n", value);
-				ret_val = install_zip(value);
-				if (ret_val != INSTALL_SUCCESS) {
-					LOGE("Error installing zip file '%s'\n", value);
-					ret_val = 1;
+				char full_path[SCRIPT_COMMAND_SIZE];
+				if (value[0] != '/') {
+					// Relative path given
+					sprintf(full_path, "%s/%s", "/sdcard", value);
+					ensure_path_mounted(full_path);
+					ui_print("Installing zip file '%s'\n", full_path);
+					ret_val = install_zip(full_path);
+					if (ret_val != INSTALL_SUCCESS) {
+						LOGE("Error installing zip file '%s'\n", full_path);
+						ret_val = 1;
+					}
+				} else {
+					// Full path given
+					ensure_path_mounted(SDCARD_ROOT);
+					ui_print("Installing zip file '%s'\n", value);
+					ret_val = install_zip(value);
+					if (ret_val != INSTALL_SUCCESS) {
+						LOGE("Error installing zip file '%s'\n", value);
+						ret_val = 1;
+					}
 				}
+				
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
@@ -1089,12 +1067,6 @@ main(int argc, char **argv) {
 	        return dump_image_main(argc, argv);
 	    if (strstr(argv[0], "erase_image") != NULL)
 	        return erase_image_main(argc, argv);
-        if (strstr(argv[0], "e2fsck") != NULL)
-            return cannibal_e2fsck_main(argc, argv);
-        if (strstr(argv[0], "mke2fs") != NULL)
-            return cannibal_mke2fs_main(argc, argv);
-        if (strstr(argv[0], "tune2fs") != NULL)
-            return cannibal_tune2fs_main(argc, argv);
 	    if (strstr(argv[0], "mkyaffs2image") != NULL)
 	        return mkyaffs2image_main(argc, argv);
 	    if (strstr(argv[0], "unyaffs") != NULL)

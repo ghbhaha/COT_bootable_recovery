@@ -43,8 +43,9 @@ int TOUCH_NOSHOW_LOG = 0;
 	check the values returned by on screen touch output by click on the 
 	touch panel extremeties
 */
-int maxX=320;		//Set to 0 for debugging (Optimus S/V: 320, M: 1808)
-int maxY=480;		//Set to 0 for debugging (Optimus S/V: 480, M: 2704)
+
+int maxX=0;	// Set to 0 for debugging
+int maxY=0;	// Set to 0 for debugging
 
 /*
 	the values of following two variables are dependent on specifc device resolution
@@ -60,16 +61,36 @@ int resY=480;		//Value obtained from function 'gr_fb_height()'
  */
 int touchY=400;
 
+/*
+	define a storage limit for backup requirements, we recommend setting
+	this to something appropriate to your device
+ */
+int minimum_storage=512;
+
+// define what line to draw the battery indicator on
+int BATT_LINE=0;
+// define the screen position of the battery indicator
+int BATT_POS=RIGHT_ALIGN;
+// define what line to draw the clock on
+int TIME_LINE=1;
+// define the screen position of the clock
+int TIME_POS=RIGHT_ALIGN;
+
+/* define the battery capacity sys interface file
+ * don't change unless your device needs it!
+ */
+char batt_cap = "/sys/class/power_supply/battery/capacity";
+
+
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "Boot Android",
-                       "Factory Reset",
-					   "Pre-flash Wipe",
                        "ZIP Flashing",
+					   "Factory Reset",
+                       "Pre-flash Wipe",
                        "Nandroid",
-                       "Partition Management",
+                       "Storage Management",
                        "COT Options",
-					   "Utilities",
                        "Power Options",
                        NULL };
 
@@ -200,15 +221,22 @@ return 0;
 int MT_X(int x)
 {
 	int out;
-	out = maxX ? (x*gr_fb_width()/maxX) : x;		
-
+#ifndef BUILD_IN_LANDSCAPE
+	out = maxX ? (x*resX/maxX) : x;
+#else
+	out = x/4;
+#endif
 	return out;
 }
 
 int MT_Y(int y)
 {
 	int out;
-	out = maxY ? (y*gr_fb_height()/maxY) : y;		
-
+#ifndef BUILD_IN_LANDSCAPE
+	out = maxY ? (y*resY/maxY) : y;
+#else
+	out = y/4;
+#endif
 	return out;
 }
+

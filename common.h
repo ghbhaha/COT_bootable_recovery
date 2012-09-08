@@ -23,6 +23,8 @@ extern const char *DEFAULT_BACKUP_PATH;
 extern const char *USER_DEFINED_BACKUP_MARKER;
 extern char** prepend_title(char** headers);
 extern long tmplog_offset;
+extern int minimum_storage;
+extern int batt_level;
 
 // Initialize the graphics system.
 void ui_init();
@@ -67,7 +69,7 @@ enum {
   BACKGROUND_ICON_ERROR,
   BACKGROUND_ICON_CLOCKWORK,
   BACKGROUND_ICON_BLOODRED,
-  BACKGROUND_ICON_KEYLIMEPIE,
+  BACKGROUND_ICON_LLOYD,
   BACKGROUND_ICON_CITRUSORANGE,
   BACKGROUND_ICON_DOODERBUTT,
   BACKGROUND_ICON_EASTER,
