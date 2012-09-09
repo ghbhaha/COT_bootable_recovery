@@ -8,5 +8,6 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
 int recalc_sdcard_space();
 void nandroid_get_backup_path(const char* backup_path);
 void nandroid_generate_timestamp_path(const char* backup_path);
+void nandroid_get_assigned_backup_path(const char* backup_path);
 
 #endif
