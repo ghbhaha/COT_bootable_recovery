@@ -934,13 +934,8 @@ void process_volumes() {
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
     struct stat st;
     char tmp[PATH_MAX];
-	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-		fscanf(file, "%s", &tmp);
-		fclose(file);
-	} else {
-		sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
-	}
+    nandroid_get_assigned_backup_path(tmp);
+
     sprintf(backup_path, "%s%s", tmp, backup_name);
 
     ui_set_show_text(1);

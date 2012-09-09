@@ -77,9 +77,10 @@ static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
-/* Leave directory separating forward slashes out of the default path
- * they will be added when the path is determined in nandroid.c */
-const char *DEFAULT_BACKUP_PATH = "sdcard/cotrecovery/backup";
+/* specify a main directory only, the root of sdcard or other_sd will be added as
+ * well as the suffix for backup or blobs */
+const char *DEFAULT_BACKUP_PATH = "cotrecovery";
+// We should make this check the other_sd as well...
 const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackups";
 
 /*
