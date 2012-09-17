@@ -104,7 +104,7 @@ void wipe_data(int confirm) {
 #ifdef BUILD_IN_LANDSCAPE
         if (chosen_item != 1) {
 #else
-        if (chosen_itme != 7) {
+        if (chosen_item != 7) {
 #endif
             return;
         }
