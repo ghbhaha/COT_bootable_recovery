@@ -154,15 +154,21 @@ return 0;
 int MT_X(int x)
 {
 	int out;
-	out = maxX ? (x*gr_fb_width()/maxX) : x;		
-
+#ifndef BUILD_IN_LANDSCAPE
+	out = maxX ? (x*resX/maxX) : x;
+#else
+	out = x/4;
+#endif
 	return out;
 }
 
 int MT_Y(int y)
 {
 	int out;
-	out = maxY ? (y*gr_fb_height()/maxY) : y;		
-
+#ifndef BUILD_IN_LANDSCAPE
+	out = maxY ? (y*resY/maxY) : y;
+#else
+	out = y/4;
+#endif
 	return out;
 }
