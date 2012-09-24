@@ -430,10 +430,6 @@ static void draw_progress_locked()
     }
 }
 
-#define LEFT_ALIGN 0
-#define CENTER_ALIGN 1
-#define RIGHT_ALIGN 2
-
 static void draw_text_line(int row, const char* t, int align) {
 	int col = 0; 
 	if (t[0] != '\0') {
@@ -457,6 +453,8 @@ static void draw_text_line(int row, const char* t, int align) {
 //#define MENU_TEXT_COLOR 255, 0, 0, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
+
+int BATT_LINE, TIME_LINE, BATT_POS, TIME_POS;
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
@@ -515,14 +513,10 @@ static void draw_screen_locked(void)
 				current = localtime(&now);
 				sprintf(batt_text, "[%d%%]", batt_level);
 				sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
-#ifdef BUILD_IN_LANDSCAPE
-            			draw_text_line(29, batt_text, LEFT_ALIGN);
-            			draw_text_line(30, time_gmt, LEFT_ALIGN);
-#else	
-            			draw_text_line(0, batt_text, RIGHT_ALIGN);
-            			draw_text_line(1, time_gmt, RIGHT_ALIGN);
-#endif
-			
+
+       			draw_text_line(29, batt_text, BATT_POS);
+       			draw_text_line(30, time_gmt, TIME_POS);
+
 				gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             		gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
