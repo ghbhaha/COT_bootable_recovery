@@ -1097,7 +1097,20 @@ int can_partition(const char* volume) {
         return 0;
     }
 
+    /* Forbid partitioning anything that can't be formatted (the Kindle
+     * Fire as mentioned below isn't handled properly; since we shouldn't
+     * really be formatting it either, we can go ahead and block both
+     * functions using the system.prop) */
+    if (!is_safe_to_format(volume)) {
+		LOGI("Can't partition, format forbidden on: %s\n", volume);
+		return 0;
+	}
+
     int vol_len = strlen(vol->device);
+
+    /* This does not work properly with the Kindle Fire (otter); instead of
+     * removing the option it shows up in fubard text. Device ends in p12 */
+
     // do not allow partitioning of a device that isn't mmcblkX or mmcblkXp1
     if (vol->device[vol_len - 2] == 'p' && vol->device[vol_len - 2] != '1') {
         LOGI("Can't partition unsafe device: %s\n", vol->device);
