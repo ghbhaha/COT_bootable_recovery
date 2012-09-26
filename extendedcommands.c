@@ -513,10 +513,10 @@ int show_choose_delete_menu()
         int chosen_item = get_menu_selection(headers, CHOOSE_DELETE_MENU_ITEMS, 0, 0);
         switch(chosen_item) {
             case ITEM_VIEW_BACKUPS_ON_SDCARD:
-                nandroid_get_assigned_backup_path(base_path, 0);
+                nandroid_get_backup_path(base_path, 0);
                 break;
             case ITEM_VIEW_BACKUPS_ON_OTHERSD:
-                nandroid_get_assigned_backup_path(base_path, 1);
+                nandroid_get_backup_path(base_path, 1);
                 break;
             default:
                 ui_print("Cancelling backup.\n");
@@ -557,7 +557,7 @@ int show_lowspace_menu(int i, const char* backup_path)
                     show_choose_delete_menu();
                 } else {
                     char base_path[PATH_MAX];
-                    nandroid_get_assigned_backup_path(base_path, 0);
+                    nandroid_get_backup_path(base_path, 0);
 				    show_nandroid_delete_menu(base_path);
                 }
 				break;
