@@ -841,10 +841,10 @@ int run_script_file(void) {
 						remove_nl = 0;
 					strncpy(value2, tok, line_len - remove_nl);
 					ui_print("Backup folder set to '%s'\n", value2);
-					nandroid_get_backup_path(backup_path);
+					nandroid_get_backup_path(backup_path, OTHER_SD_CARD);
 					strcat(backup_path, value2);
 				} else {
-					nandroid_generate_timestamp_path(backup_path);
+					nandroid_generate_timestamp_path(backup_path, OTHER_SD_CARD);
 				}
 				//ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
 				nandroid_backup(backup_path);
