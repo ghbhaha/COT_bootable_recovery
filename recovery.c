@@ -1158,11 +1158,13 @@ main(int argc, char **argv) {
             strlcat(modified_path, update_package+6, len);
             printf("(replacing path \"%s\" with \"%s\")\n",
                    update_package, modified_path);
-	    if (update_package = "CACHE:") {
-		update_package = NULL;
-	    } else {
-		update_package = modified_path;
-	    }
+			update_package = modified_path;
+			/* Single quotes for comparing characters rather than strings,
+			 * instead of worrying about if else just set it and only
+			 * reassign it if it's cache otherwise don't touch it again */
+			if (update_package == 'CACHE:') {
+				update_package = NULL;
+			}
         }
     }
     printf("\n");
