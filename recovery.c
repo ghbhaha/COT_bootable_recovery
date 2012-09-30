@@ -1162,7 +1162,7 @@ main(int argc, char **argv) {
 			/* Single quotes for comparing characters rather than strings,
 			 * instead of worrying about if else just set it and only
 			 * reassign it if it's cache otherwise don't touch it again */
-			if (update_package == 'CACHE:') {
+			if (update_package == '/cache/') {
 				update_package = NULL;
 			}
         }
