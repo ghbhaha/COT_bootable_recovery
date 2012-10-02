@@ -481,6 +481,8 @@ void show_nandroid_delete_menu(const char* path)
         sprintf(tmp, "rm -rf %s", file);
         __system(tmp);
         ui_print("Backup deleted!\n");
+        uint64_t sdcard_free_mb = recalc_sdcard_space(path);
+		ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
     }
 }
 
