@@ -528,14 +528,39 @@ int show_choose_delete_menu()
     }
 }
 
+static void run_dedupe_gc(const char* other_sd) {
+    ensure_path_mounted("/sdcard");
+	char path[PATH_MAX], tmp[PATH_MAX];
+	nandroid_get_assigned_backup_path(path, 0);
+    if (other_sd) {
+        ensure_path_mounted(other_sd);
+		nandroid_get_assigned_backup_path(path, 1);
+    }
+	sprintf(tmp, "%s/blobs", path);
+	nandroid_dedupe_gc(tmp);
+    uint64_t sdcard_free_mb = recalc_sdcard_space(path);
+    ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+}
+
 int show_lowspace_menu(int i, const char* backup_path)
 {
-	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
+	static char *LOWSPACE_MENU_ITEMS[5] = { "Continue with backup",
 											"View and delete old backups",
-											"Cancel backup",
+                                            NULL,
+                                            NULL,
 											NULL };
+
 	#define ITEM_CONTINUE_BACKUP 0
 	#define ITEM_VIEW_DELETE_BACKUPS 1
+    #define ITEM_FREE_UNUSED_DATA 2
+
+    if(!backupfmt) {
+        LOWSPACE_MENU_ITEMS[2] = "Free unused backup data";
+        LOWSPACE_MENU_ITEMS[3] = "Cancel backup";
+    } else {
+        LOWSPACE_MENU_ITEMS[2] = "Cancel backup";
+        LOWSPACE_MENU_ITEMS[3] = NULL;
+    }
 
 	static char* headers[] = { "Limited space available!",
 								"",
@@ -563,6 +588,21 @@ int show_lowspace_menu(int i, const char* backup_path)
 				    show_nandroid_delete_menu(base_path);
                 }
 				break;
+            }
+            case ITEM_FREE_UNUSED_DATA: {
+                char *other_sd = NULL;
+                if(OTHER_SD_CARD) {
+                    switch(OTHER_SD_CARD) {
+                        case EMMC:
+                            other_sd = "/emmc";
+                            break;
+                        case EXTERNALSD:
+                            other_sd = "/external_sd";
+                            break;
+                    }
+                }
+                run_dedupe_gc(other_sd);
+                break;
             }
 			default:
 				ui_print("Cancelling backup.\n");
@@ -921,18 +961,6 @@ void show_nandroid_advanced_restore_menu(const char* path)
     }
 }
 
-static void run_dedupe_gc(const char* other_sd) {
-    ensure_path_mounted("/sdcard");
-	char path[PATH_MAX], tmp[PATH_MAX];
-	nandroid_get_assigned_backup_path(path, 0);
-    if (other_sd) {
-        ensure_path_mounted(other_sd);
-		nandroid_get_assigned_backup_path(path, 1);
-    }
-	sprintf(tmp, "%s/blobs", path);
-	nandroid_dedupe_gc(tmp);
-}
-
 void show_nandroid_menu()
 {
     static char* headers[] = {  "Nandroid",
@@ -945,7 +973,7 @@ void show_nandroid_menu()
                             "Delete old backups",
                             "Advanced Backup",
                             "Advanced Restore",
-                            "Free unused backup data",
+                            NULL,
                             NULL,
                             NULL,
                             NULL,
@@ -954,6 +982,8 @@ void show_nandroid_menu()
                             NULL,
                             NULL
     };
+    
+    if(!backupfmt) list[5] = "Free unused backup data";
 
     char *other_sd = NULL;
     if(OTHER_SD_CARD == EMMC) {
