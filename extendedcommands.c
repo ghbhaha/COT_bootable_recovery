@@ -552,7 +552,7 @@ int show_lowspace_menu(int i, const char* backup_path)
 
 	#define ITEM_CONTINUE_BACKUP 0
 	#define ITEM_VIEW_DELETE_BACKUPS 1
-    #define ITEM_FREE_UNUSED_DATA 2
+    #define ITEM_FREE_DATA_OR_CANCEL 2
 
     if(!backupfmt) {
         LOWSPACE_MENU_ITEMS[2] = "Free unused backup data";
@@ -589,7 +589,11 @@ int show_lowspace_menu(int i, const char* backup_path)
                 }
 				break;
             }
-            case ITEM_FREE_UNUSED_DATA: {
+            case ITEM_FREE_DATA_OR_CANCEL: {
+                if(backupfmt) {
+                    ui_print("Cancelling backup.\n");
+                    return 1;
+                }
                 char *other_sd = NULL;
                 if(OTHER_SD_CARD) {
                     switch(OTHER_SD_CARD) {
