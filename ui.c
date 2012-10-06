@@ -963,27 +963,27 @@ void ui_init_icons(void) {
     switch(UITHEME) {
 		case BLOOD_RED_UI:
 			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);
+				result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface, 0, NULL);
 			}
 			break;
 		case LLOYD_UI:
 			for (i = 0; BITMAPS_LLOYD[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface);
+				result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface, 0, NULL);
 			}
 			break;
 		case CITRUS_ORANGE_UI:
 			for (i = 0; BITMAPS_ORANGE[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface);
+				result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface, 0, NULL);
 			}
 			break;
 		case DOODERBUTT_BLUE_UI:
 			for (i = 0; BITMAPS_DOODERBUTT[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface);
+				result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface, 0, NULL);
 			}
 			break;
 		default:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
+				result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, NULL);
 			}
 			break;
     }
@@ -1017,7 +1017,7 @@ void ui_init(void)
         char filename[40];
         // "indeterminate01.png", "indeterminate02.png", ...
         sprintf(filename, "indeterminate%02d", i+1);
-        int result = res_create_surface(filename, gProgressBarIndeterminate+i);
+        int result = res_create_surface(filename, gProgressBarIndeterminate+i, 0, NULL);
         if (result < 0) {
             LOGE("Missing bitmap %s\n(Code %d)\n", filename, result);
         }
@@ -1031,7 +1031,7 @@ void ui_init(void)
             // "icon_installing_overlay01.png",
             // "icon_installing_overlay02.png", ...
             sprintf(filename, "icon_installing_overlay%02d", i+1);
-            int result = res_create_surface(filename, gInstallationOverlay+i);
+            int result = res_create_surface(filename, gInstallationOverlay+i, 0, NULL);
             if (result < 0) {
                 LOGE("Missing bitmap %s\n(Code %d)\n", filename, result);
             }
