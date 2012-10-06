@@ -514,8 +514,8 @@ static void draw_screen_locked(void)
 				sprintf(batt_text, "[%d%%]", batt_level);
 				sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
 
-       			draw_text_line(29, batt_text, BATT_POS);
-       			draw_text_line(30, time_gmt, TIME_POS);
+       			draw_text_line(BATT_LINE, batt_text, BATT_POS);
+       			draw_text_line(TIME_LINE, time_gmt, TIME_POS);
 
 				gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
