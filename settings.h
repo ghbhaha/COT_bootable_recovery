@@ -19,6 +19,7 @@
 #define CITRUS_ORANGE_UI	3
 #define DOODERBUTT_BLUE_UI	4
 #define EASTEREGG			5
+#define CUSTOM_UI			6
 
 extern int UI_COLOR_DEBUG;
 

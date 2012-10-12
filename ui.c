@@ -292,6 +292,32 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUT
     	{ NULL,                             NULL },
 };
 
+static const struct { gr_surface* surface; const char *name; } BITMAPS_CUSTOM[] = {
+	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_background" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
+		{ &gMenuIcon[MENU_BACK],      "icon_back" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down" },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select" },
+    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
+    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
+    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
+    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
+    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
+    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
+    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
+    	{ &gProgressBarEmpty,               "progress_empty" },
+    	{ &gProgressBarFill,                "progress_fill" },
+    	{ NULL,                             NULL },
+};
+
+
 static gr_surface gCurrentIcon = NULL;
 
 static enum ProgressBarType {
@@ -443,7 +469,7 @@ int BATT_LINE, TIME_LINE, BATT_POS, TIME_POS;
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
-static void draw_screen_locked(void)
+void draw_screen_locked(void)
 {
 	if (!ui_has_initialized) return;
 #ifdef BUILD_IN_LANDSCAPE
@@ -553,7 +579,7 @@ static void draw_screen_locked(void)
 
 // Redraw everything on the screen and flip the screen (make it visible).
 // Should only be called with gUpdateMutex locked.
-static void update_screen_locked(void)
+void update_screen_locked(void)
 {
     if (!ui_has_initialized) return;
     draw_screen_locked();
@@ -894,7 +920,7 @@ void ui_init_icons()
 	switch(UITHEME) {
 		case BLOOD_RED_UI:
 			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);
+        		int result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface, 0, NULL);
         			if (result < 0) {
             			if (result == -2) {
                 			LOGI("Bitmap %s missing header\n", BITMAPS_BLOODRED[i].name);
@@ -907,7 +933,7 @@ void ui_init_icons()
 			break;
 		case LLOYD_UI:
 			for (i = 0; BITMAPS_LLOYD[i].name != NULL; ++i) {
-				int result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface);
+				int result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface, 0, NULL);
 					if (result < 0) {
 						if (result == -2) {
 							LOGI("Bitmap %s missing header\n", BITMAPS_LLOYD[i].name);
@@ -920,7 +946,7 @@ void ui_init_icons()
 			break;
 		case CITRUS_ORANGE_UI:
 			for (i = 0; BITMAPS_ORANGE[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface);
+        		int result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface, 0, NULL);
         			if (result < 0) {
             			if (result == -2) {
                 			LOGI("Bitmap %s missing header\n", BITMAPS_ORANGE[i].name);
@@ -933,7 +959,7 @@ void ui_init_icons()
 			break;
 		case DOODERBUTT_BLUE_UI:
 			for (i = 0; BITMAPS_DOODERBUTT[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface);
+        		int result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface, 0, NULL);
         			if (result < 0) {
             			if (result == -2) {
                 			LOGI("Bitmap %s missing header\n", BITMAPS_DOODERBUTT[i].name);
@@ -944,9 +970,22 @@ void ui_init_icons()
         			}
     			}
 			break;
+		case CUSTOM_UI:
+			for (i = 0; BITMAPS_CUSTOM[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS_CUSTOM[i].name, BITMAPS_CUSTOM[i].surface, 1, NULL);
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS_CUSTOM[i].name);
+            			} else {
+                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_CUSTOM[i].name, result);
+            			}
+            		*BITMAPS_CUSTOM[i].surface = NULL;
+        			}
+    			}
+			break;
 		default:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
+        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, NULL);
         			if (result < 0) {
             			if (result == -2) {
                 			LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
