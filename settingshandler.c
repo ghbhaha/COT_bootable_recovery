@@ -20,8 +20,6 @@
 #include <getopt.h>
 #include <limits.h>
 #include <linux/input.h>
-#include <pthread.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +28,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
 
 #include <sys/wait.h>
 #include <sys/limits.h>
@@ -87,12 +84,6 @@ typedef struct {
     int bgicon;
 } theme;
 
-typedef struct {
-	int uicolor0;
-    int uicolor1;
-    int uicolor2;
-} customtheme;
-
 int settings_handler(void* user, const char* section, const char* name,
                    const char* value)
 {
@@ -120,8 +111,8 @@ int settings_handler(void* user, const char* section, const char* name,
 int theme_handler(void* user, const char* section, const char* name,
                    const char* value)
 {
-	theme* pconfig = (theme*)user;
-		
+    theme* pconfig = (theme*)user;
+
     #define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
     if (MATCH("theme", "uicolor0")) {
         pconfig->uicolor0 = atoi(value);
@@ -135,24 +126,6 @@ int theme_handler(void* user, const char* section, const char* name,
         return 0;
     }
     return 1;
-}
-
-int customtheme_handler(void* user, const char* section, const char* name,
-                   const char* value)
-{
-	customtheme* pconfig = (customtheme*)user;
-    
-    #define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
-    if (MATCH("theme", "uicolor0")) {
-		pconfig->uicolor0 = atoi(value);
-	} else if (MATCH("theme", "uicolor1")) {
-        pconfig->uicolor1 = atoi(value);
-    } else if (MATCH("theme", "uicolor2")) {
-        pconfig->uicolor2 = atoi(value);
-	} else {
-		return 0;
-	}
-	return 1;
 }
 
 void create_default_settings(void) {
@@ -248,50 +221,29 @@ void parse_settings() {
 }
 
 void handle_theme(char * theme_name) {
-	if (strcasecmp(theme_name, "custom") == 0) {
-		char full_theme_file[1000];
-		char * custom_theme_ini;
-		custom_theme_ini = "/sdcard/cotrecovery/custom_theme/theme.ini";
-		strcpy(full_theme_file, custom_theme_ini);
-		customtheme themeconfig;
-		
-		if (ini_parse(full_theme_file, customtheme_handler, &themeconfig) < 0) {
-			LOGI("Can't load custom theme!\n");
-			return 1;
-		}
-		LOGI("Custom theme loaded!\n");
-		
-		UICOLOR0 = themeconfig.uicolor0;
-		UICOLOR1 = themeconfig.uicolor1;
-		UICOLOR2 = themeconfig.uicolor2;
-		UITHEME = 6;
-		ui_dyn_background();
-		ui_reset_icons();
-	} else {	
-		char full_theme_file[1000];
-		char * theme_base;
-		char * theme_end;
+    char full_theme_file[1000];
+    char * theme_base;
+    char * theme_end;
 
-		theme_base = "/res/theme/theme_";
-		theme_end = ".ini";
-		strcpy(full_theme_file, theme_base);
-		strcat(full_theme_file, theme_name);
-		strcat(full_theme_file, theme_end);
-		theme themeconfig;
+    theme_base = "/res/theme/theme_";
+    theme_end = ".ini";
+    strcpy(full_theme_file, theme_base);
+    strcat(full_theme_file, theme_name);
+    strcat(full_theme_file, theme_end);
+    theme themeconfig;
 
-		if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
-			LOGI("Can't load theme!\n");
-			return 1;
-		}
-		LOGI("Theme loaded!\n");
+    if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
+        LOGI("Can't load theme!\n");
+        return 1;
+    }
+    LOGI("Theme loaded!\n");
 
-		UICOLOR0 = themeconfig.uicolor0;
-		UICOLOR1 = themeconfig.uicolor1;
-		UICOLOR2 = themeconfig.uicolor2;
-		if (UITHEME != EASTEREGG)
-			UITHEME = themeconfig.bgicon;
+    UICOLOR0 = themeconfig.uicolor0;
+    UICOLOR1 = themeconfig.uicolor1;
+    UICOLOR2 = themeconfig.uicolor2;
+	if (UITHEME != EASTEREGG)
+		UITHEME = themeconfig.bgicon;
 
-		ui_dyn_background();
-		ui_reset_icons();
-	}
+    ui_dyn_background();
+    ui_reset_icons();
 }

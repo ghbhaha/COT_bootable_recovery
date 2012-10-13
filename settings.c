@@ -145,7 +145,9 @@ void show_recovery_debugging_menu()
 
 	static char* list[] = { "Fix Permissions",
 							"Report Error",
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 							"Key Test",
+#endif
 							"Show log",
 							"Toggle UI Debugging",
 							NULL
@@ -171,6 +173,7 @@ void show_recovery_debugging_menu()
 				handle_failure(1);
 				break;
 			case 2:
+#if TARGET_BOOTLOADER_BOARD_NAME != otter
 			{
 				ui_print("Outputting key codes.\n");
 				ui_print("Go back to end debugging.\n");
@@ -198,9 +201,14 @@ void show_recovery_debugging_menu()
 				break;
 			}
 			case 3:
+#endif
 				ui_printlogtail(12);
 				break;
+#if TARGET_BOOTLOADER_BOARD_NAME == otter
+			case 3:
+#else
 			case 4:
+#endif
 				toggle_ui_debugging();
 				break;
 		}
@@ -259,7 +267,6 @@ void show_settings_menu() {
                                                     "Lloyd Green",
                                                     "Citrus Orange",
                                                     "Dooderbutt Blue",
-                                                    "Custom Theme (sdcard)",
                                                     NULL
                 };
                 static char* ui_header[] = {"COT Theme", "", NULL};
@@ -284,9 +291,6 @@ void show_settings_menu() {
                         case 4:
                             currenttheme = "dooderbuttblue";
                             break;
-                        case 5:
-							currenttheme = "custom";
-							break;
                     }
                     break;
                 }

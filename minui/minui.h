@@ -48,7 +48,7 @@ int ev_get(struct input_event *ev, unsigned dont_wait);
 // Resources
 
 // Returns 0 if no error, else negative.
-int res_create_surface(const char* name, gr_surface* pSurface, int sd, const char* theme_name);
+int res_create_surface(const char* name, gr_surface* pSurface);
 void res_free_surface(gr_surface surface);
 
 #endif
