@@ -66,7 +66,6 @@ int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
 int UITHEME = 0;
-int easter = 0;
 
 int UI_COLOR_DEBUG = 0;
 
@@ -145,9 +144,7 @@ void show_recovery_debugging_menu()
 
 	static char* list[] = { "Fix Permissions",
 							"Report Error",
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
 							"Key Test",
-#endif
 							"Show log",
 							"Toggle UI Debugging",
 							NULL
@@ -173,7 +170,6 @@ void show_recovery_debugging_menu()
 				handle_failure(1);
 				break;
 			case 2:
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
 			{
 				ui_print("Outputting key codes.\n");
 				ui_print("Go back to end debugging.\n");
@@ -201,14 +197,9 @@ void show_recovery_debugging_menu()
 				break;
 			}
 			case 3:
-#endif
 				ui_printlogtail(12);
 				break;
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-			case 3:
-#else
 			case 4:
-#endif
 				toggle_ui_debugging();
 				break;
 		}
@@ -264,9 +255,7 @@ void show_settings_menu() {
             {
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
-                                                    "Lloyd Green",
-                                                    "Citrus Orange",
-                                                    "Dooderbutt Blue",
+                                                    "Custom Theme (sdcard)",
                                                     NULL
                 };
                 static char* ui_header[] = {"COT Theme", "", NULL};
@@ -278,19 +267,16 @@ void show_settings_menu() {
                     switch(ui_color) {
                         case 0:
                             currenttheme = "hydro";
+                            is_sd_theme = 0;
                             break;
                         case 1:
                             currenttheme = "bloodred";
+							is_sd_theme = 0;
                             break;
                         case 2:
-                            currenttheme = "lloyd";
-                            break;
-                        case 3:
-                            currenttheme = "citrusorange";
-                            break;
-                        case 4:
-                            currenttheme = "dooderbuttblue";
-                            break;
+							currenttheme = "custom";
+							is_sd_theme = 1;
+							break;
                     }
                     break;
                 }
@@ -336,12 +322,6 @@ void show_settings_menu() {
             }
             case SETTINGS_ITEM_SIGCHECK:
             {
-				easter++;
-				if (easter == EASTEREGG) {
-					UITHEME = EASTEREGG;
-					ui_dyn_background();
-					easter = 0;
-				}
 				if (signature_check_enabled == 1) {
 					ui_print("Disabling md5 signature check.\n");
 					list[5] = "Enable md5 signature check";
@@ -381,32 +361,4 @@ void show_settings_menu() {
         }
         update_cot_settings();
     }
-}
-
-void ui_dyn_background()
-{
-	if(UI_COLOR_DEBUG) {
-		LOGI("%s %i\n", "DYN_BG:", UITHEME);
-	}
-	switch(UITHEME) {
-		case BLOOD_RED_UI:
-			ui_set_background(BACKGROUND_ICON_BLOODRED);
-			break;
-		case LLOYD_UI:
-			ui_set_background(BACKGROUND_ICON_LLOYD);
-			break;
-		case CITRUS_ORANGE_UI:
-			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);
-			break;
-		case DOODERBUTT_BLUE_UI:
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-			break;
-		case EASTEREGG:
-			ui_set_background(BACKGROUND_ICON_EASTER);
-			break;
-		// Anything else is the clockwork icon
-		default:
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-	}
 }
