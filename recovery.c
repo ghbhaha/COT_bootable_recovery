@@ -1103,6 +1103,7 @@ main(int argc, char **argv) {
     printf("Starting recovery on %s", ctime(&start));
 	load_volume_table();
     process_volumes();
+    parse_settings();
     ui_init();
     //ui_print(EXPAND(RECOVERY_VERSION)"\n");
 
@@ -1238,6 +1239,11 @@ main(int argc, char **argv) {
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         parse_settings();
+        // Is the first_boot flag set?
+        if (first_boot == 1) {
+			// Yes it is, display welcome message
+			show_welcome_text();
+		}
 
         if (check_for_script_file()) run_script_file();
         if (extendedcommand_file_exists()) {

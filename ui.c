@@ -90,197 +90,17 @@ static int selMenuIcon = 0;
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
 	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_background" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-#ifdef BUILD_IN_LANDSCAPE
-		{ &gMenuIcon[MENU_BACK],      "icon_back-landscape" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down-landscape" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up-landscape" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select-landscape" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM-landscape" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM-landscape" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM-landscape" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM-landscape" },
-#else
 		{ &gMenuIcon[MENU_BACK],      "icon_back" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select" },
 		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
+    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down" },
     	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
+    	{ &gMenuIcon[MENU_UP], 		  "icon_up" },
     	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
+    	{ &gMenuIcon[MENU_SELECT],    "icon_select" },
     	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
-#endif
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-#ifdef BUILD_IN_LANDSCAPE
-		{ &gMenuIcon[MENU_BACK],      "icon_back_br-landscape" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_br-landscape" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_br-landscape" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_br-landscape" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM-landscape" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM-landscape" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM-landscape" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM-landscape" },
-#else
-		{ &gMenuIcon[MENU_BACK],      "icon_back_br" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_br" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_br" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_br" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_br" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_br" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_br" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_br" },
-#endif
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_LLOYD[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-#ifdef BUILD_IN_LANDSCAPE
-		{ &gMenuIcon[MENU_BACK],      "icon_back_kl-landscape" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_kl-landscape" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_kl-landscape" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_kl-landscape" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM-landscape" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM-landscape" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM-landscape" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM-landscape" },
-#else
-		{ &gMenuIcon[MENU_BACK],      "icon_back_kl" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_kl" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_kl" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_kl" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_kl" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_kl" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_kl" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_kl" },
-#endif
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_ORANGE[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-#ifdef BUILD_IN_LANDSCAPE
-		{ &gMenuIcon[MENU_BACK],      "icon_back_co-landscape" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_co-landscape" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_co-landscape" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_co-landscape" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM-landscape" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM-landscape" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM-landscape" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM-landscape" },
-#else
-		{ &gMenuIcon[MENU_BACK],      "icon_back_co" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_co" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_co" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_co" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_co" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_co" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_co" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_co" },
-#endif
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUTT[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_LLOYD],  "icon_lloyd" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-#ifdef BUILD_IN_LANDSCAPE
-		{ &gMenuIcon[MENU_BACK],      "icon_back_db-landscape" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_db-landscape" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_db-landscape" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_db-landscape" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM-landscape" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM-landscape" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM-landscape" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM-landscape" },
-#else
-		{ &gMenuIcon[MENU_BACK],      "icon_back_db" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_db" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_db" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_db" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM_db" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM_db" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM_db" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM_db" },
-#endif
     	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
     	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
     	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
@@ -443,7 +263,7 @@ int BATT_LINE, TIME_LINE, BATT_POS, TIME_POS;
 
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
-static void draw_screen_locked(void)
+void draw_screen_locked(void)
 {
 	if (!ui_has_initialized) return;
 #ifdef BUILD_IN_LANDSCAPE
@@ -553,7 +373,7 @@ static void draw_screen_locked(void)
 
 // Redraw everything on the screen and flip the screen (make it visible).
 // Should only be called with gUpdateMutex locked.
-static void update_screen_locked(void)
+void update_screen_locked(void)
 {
     if (!ui_has_initialized) return;
     draw_screen_locked();
@@ -891,67 +711,41 @@ static void *input_thread(void *cookie)
 void ui_init_icons()
 {
 	int i;
-	switch(UITHEME) {
-		case BLOOD_RED_UI:
-			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_BLOODRED[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_BLOODRED[i].name, result);
-            			}
-            		*BITMAPS_BLOODRED[i].surface = NULL;
-        			}
-    			}
-			break;
-		case LLOYD_UI:
-			for (i = 0; BITMAPS_LLOYD[i].name != NULL; ++i) {
-				int result = res_create_surface(BITMAPS_LLOYD[i].name, BITMAPS_LLOYD[i].surface);
-					if (result < 0) {
-						if (result == -2) {
-							LOGI("Bitmap %s missing header\n", BITMAPS_LLOYD[i].name);
-						} else {
-							LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_LLOYD[i].name, result);
-						}
-					*BITMAPS_LLOYD[i].surface = NULL;
-					}
-				}
-			break;
-		case CITRUS_ORANGE_UI:
-			for (i = 0; BITMAPS_ORANGE[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_ORANGE[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_ORANGE[i].name, result);
-            			}
-            		*BITMAPS_ORANGE[i].surface = NULL;
-        			}
-    			}
-			break;
-		case DOODERBUTT_BLUE_UI:
-			for (i = 0; BITMAPS_DOODERBUTT[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_DOODERBUTT[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_DOODERBUTT[i].name, result);
-            			}
-            		*BITMAPS_DOODERBUTT[i].surface = NULL;
-        			}
-    			}
-			break;
-		default:
+	switch(is_sd_theme) {
+		case 0:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
+        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, themename);
         			if (result < 0) {
             			if (result == -2) {
                 			LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
             			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+                			LOGE("Missing internal bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+            			}
+            		*BITMAPS[i].surface = NULL;
+        			}
+    			}
+			break;
+		case 1:
+			for (i = 0; BITMAPS[i].name != NULL; ++i) {
+				int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 1, themename);
+					if (result < 0) {
+						if (result == -2) {
+							LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
+						} else {
+							LOGE("Missing sdcard bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+						}
+					*BITMAPS[i].surface = NULL;
+					}
+				}
+			break;
+		default:
+			for (i = 0; BITMAPS[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, "hydro");
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
+            			} else {
+                			LOGE("Missing internal bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
             			}
             		*BITMAPS[i].surface = NULL;
         			}
