@@ -139,7 +139,8 @@ int install_zip(const char* packagefilepath)
 
 #define ITEM_CHOOSE_ZIP       0
 #define ITEM_APPLY_SDCARD     1
-#define ITEM_CHOOSE_ZIP_INT   2
+#define ITEM_APPLY_SIDELOAD   2
+#define ITEM_CHOOSE_ZIP_INT   3
 
 void show_install_update_menu()
 {
@@ -149,6 +150,7 @@ void show_install_update_menu()
     };
     
     char* install_menu_items[] = {  "Choose ZIP from SD Card",
+                                    "Update via sideload",
                                     "Install /sdcard/update.zip",
                                     NULL,
                                     NULL };
@@ -176,6 +178,9 @@ void show_install_update_menu()
             }
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
+                break;
+            case ITEM_APPLY_SIDELOAD:
+                apply_from_adb();
                 break;
             case ITEM_CHOOSE_ZIP_INT:
                 if (other_sd != NULL)

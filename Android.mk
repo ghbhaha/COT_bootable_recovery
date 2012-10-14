@@ -22,7 +22,8 @@ LOCAL_SRC_FILES := \
     settingshandler_lang.c \
     settings.c \
     verifier.c \
-    iniparse/ini.c
+    iniparse/ini.c \
+    adb_install.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -108,7 +109,7 @@ endif
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
-LOCAL_STATIC_LIBRARIES += libminizip libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
+LOCAL_STATIC_LIBRARIES += libminizip libminadbd libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
 LOCAL_STATIC_LIBRARIES += libdedupe libcrypto_static libcrecovery libflashutils libmtdutils libmmcutils libbmlutils
 
@@ -187,6 +188,7 @@ include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
+include $(commands_recovery_local_path)/minadbd/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk
