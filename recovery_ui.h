@@ -123,6 +123,9 @@ get_menu_selection(char** headers, char** items, int menu_only, int initial_sele
 void
 set_sdcard_update_bootloader_message();
 
+void draw_screen_locked(void);
+void update_screen_locked(void);
+
 extern int ui_handle_key(int key, int visible);
 
 extern const char *DEFAULT_BACKUP_PATH;

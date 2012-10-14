@@ -412,6 +412,6 @@ install_package(const char* path)
         fclose(install_log);
         chmod(LAST_INSTALL_FILE, 0644);
     }
-    ui_dyn_background();
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     return result;
 }

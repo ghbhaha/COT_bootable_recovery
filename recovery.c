@@ -278,6 +278,7 @@ copy_log_file(const char* destination, int append) {
     }
 }
 
+
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
 // record any intent we were asked to communicate back to the system.
@@ -803,6 +804,7 @@ int run_script_file(void) {
 						ret_val = 1;
 					}
 				}
+				
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
@@ -1022,6 +1024,7 @@ main(int argc, char **argv) {
     device_ui_init(&ui_parameters);
     load_volume_table();
     process_volumes();
+    parse_settings();
     ui_init();
 
     LOGI("Processing arguments.\n");
@@ -1109,10 +1112,14 @@ main(int argc, char **argv) {
         } else if (volume_for_path("/external_sd") != NULL) {
             OTHER_SD_CARD = EXTERNALSD;
         }
+		parse_settings();
+        // Is the first_boot flag set?
+        if (first_boot == 1) {
+			// Yes it is, display welcome message
+			show_welcome_text();
+		}
 
-		    parse_settings();
-        
-		    if (check_for_script_file()) run_script_file();
+        if (check_for_script_file()) run_script_file();
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
             int ret;
@@ -1130,7 +1137,7 @@ main(int argc, char **argv) {
 
     if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) {
         ui_set_show_text(1);
-        ui_dyn_background();
+        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     }
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         prompt_and_wait();
