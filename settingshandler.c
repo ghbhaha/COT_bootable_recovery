@@ -20,6 +20,8 @@
 #include <getopt.h>
 #include <limits.h>
 #include <linux/input.h>
+#include <pthread.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +29,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
 
 #include <sys/wait.h>
 #include <sys/limits.h>
@@ -71,9 +74,12 @@ int backupfmt = 0;
 char* currenttheme;
 char* language;
 char* themename;
+int first_boot = 0;
+int is_sd_theme = 0;
 
 typedef struct {
     const char* theme;
+    int is_sd_theme;
     int orsreboot;
     int orswipeprompt;
     int backupprompt;
@@ -83,15 +89,11 @@ typedef struct {
 } settings;
 
 typedef struct {
+	char* name;
     int uicolor0;
     int uicolor1;
     int uicolor2;
-    int bgicon;
 } theme;
-
-typedef struct {
-	const char* themename;
-} theme_name;
 
 int settings_handler(void* user, const char* section, const char* name,
                    const char* value)
@@ -101,6 +103,8 @@ int settings_handler(void* user, const char* section, const char* name,
     #define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
     if (MATCH("settings", "theme")) {
         pconfig->theme = strdup(value);
+	} else if (MATCH("settings", "sdtheme")) {
+		pconfig->is_sd_theme = atoi(value);
     } else if (MATCH("settings", "orsreboot")) {
         pconfig->orsreboot = atoi(value);
     } else if (MATCH("settings", "orswipeprompt")) {
@@ -122,31 +126,17 @@ int settings_handler(void* user, const char* section, const char* name,
 int theme_handler(void* user, const char* section, const char* name,
                    const char* value)
 {
-    theme* pconfig = (theme*)user;
-
+	theme* pconfig = (theme*)user;
+    
     #define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
-    if (MATCH("theme", "uicolor0")) {
-        pconfig->uicolor0 = atoi(value);
-    } else if (MATCH("theme", "uicolor1")) {
+	if (MATCH("theme", "name")) {
+		pconfig->name = strdup(value);
+    } else if (MATCH("theme", "uicolor0")) {
+		pconfig->uicolor0 = atoi(value);
+	} else if (MATCH("theme", "uicolor1")) {
         pconfig->uicolor1 = atoi(value);
     } else if (MATCH("theme", "uicolor2")) {
         pconfig->uicolor2 = atoi(value);
-    } else if (MATCH("theme", "bgicon")) {
-        pconfig->bgicon = atoi(value);
-    } else {
-        return 0;
-    }
-    return 1;
-}
-
-int themename_handler(void* user, const char* section, const char* name,
-                   const char* value)
-{
-	theme_name* pconfig = (theme_name*)user;
-	
-	#define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
-	if (MATCH("theme", "themename")) {
-		pconfig->themename = strdup(value);
 	} else {
 		return 0;
 	}
@@ -169,6 +159,7 @@ void create_default_settings(void) {
     "\n"
     "[Settings]\n"
     "Theme = hydro ;\n"
+    "SDTheme = 0;\n"
     "ORSReboot = 0 ;\n"
     "ORSWipePrompt = 1 ;\n"
     "BackupPrompt = 1 ;\n"
@@ -177,7 +168,11 @@ void create_default_settings(void) {
     "Language = en ;\n"
     "\n");
     fclose(ini);
-    show_welcome_text();
+    // is the first_boot flag already set?
+    if (first_boot == 0) {
+		// if not, set it!
+		first_boot = 1;
+	}
 }
 
 void show_welcome_text() {
@@ -196,6 +191,7 @@ void load_fallback_settings() {
 	ui_print("Unable to mount sdcard,\nloading failsafe setting...\n\nSettings will not work\nwithout an sdcard...\n");
 	fallback_settings = 1;
 	currenttheme = "hydro";
+	is_sd_theme = 0;
 	language = "en";
 	signature_check_enabled = 1;
 	backupfmt = 0;
@@ -207,17 +203,9 @@ void load_fallback_settings() {
 void update_cot_settings(void) {
     FILE    *   ini ;
 	ini = fopen_path(COTSETTINGS, "w");
-	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nBackupFormat = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, backupfmt, language);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nSDTheme = %i;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nBackupFormat = %i ;\nLanguage = %s ;\n\n", currenttheme, is_sd_theme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, backupfmt, language);
     fclose(ini);
     parse_settings();
-}
-
-char parse_themename(char inifile) {
-	theme_name config;
-	
-	ini_parse(inifile, themename_handler, &config);
-	themename = config.themename;
-	return themename;
 }
 
 void parse_settings() {
@@ -256,37 +244,48 @@ void parse_settings() {
 		nandroid_switch_backup_handler(1);
 	}
 	currenttheme = config.theme;
+	is_sd_theme = config.is_sd_theme;
     language = config.language;
 	parse_language();
     handle_theme(config.theme);
 }
 
 void handle_theme(char * theme_name) {
-    char full_theme_file[1000];
-    char * theme_base;
-    char * theme_end;
+	char full_theme_file[1000];
+	char * theme_base;
+	char * theme_end;
 
-    theme_base = "/res/theme/theme_";
-    theme_end = ".ini";
-    strcpy(full_theme_file, theme_base);
-    strcat(full_theme_file, theme_name);
-    strcat(full_theme_file, theme_end);
-    theme themeconfig;
+	switch(is_sd_theme) {
+		case 0:
+			theme_base = "/res/theme/";
+			theme_end = "/theme.ini";
+			break;
+		case 1:
+			theme_base = "/sdcard/cotrecovery/theme/";
+			theme_end = "/theme.ini";
+			break;
+		default:
+			theme_base = "/res/theme/";
+			theme_end = "/theme.ini";
+			break;
+	}
+	strcpy(full_theme_file, theme_base);
+	strcat(full_theme_file, theme_name);
+	strcat(full_theme_file, theme_end);
+	theme themeconfig;
 
-    if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
-        LOGI("Can't load theme!\n");
-        return 1;
-    }
-    LOGI("Theme %s loaded!\n", theme_name);
+	if (ini_parse(full_theme_file, theme_handler, &themeconfig) < 0) {
+		LOGI("Can't load theme!\n");
+		return 1;
+	}
+	LOGI("Theme loaded!\n");
 
-    UICOLOR0 = themeconfig.uicolor0;
-    UICOLOR1 = themeconfig.uicolor1;
-    UICOLOR2 = themeconfig.uicolor2;
-	if (UITHEME == EASTEREGG) {
-	} else {
-		UITHEME = themeconfig.bgicon;
-    }
+	UICOLOR0 = themeconfig.uicolor0;
+	UICOLOR1 = themeconfig.uicolor1;
+	UICOLOR2 = themeconfig.uicolor2;
+	themename = themeconfig.name;
+	printf("I:Loading %s resources...\n", themename);
 
-    ui_dyn_background();
-    ui_reset_icons();
+	ui_reset_icons();
+	ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 }

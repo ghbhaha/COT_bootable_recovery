@@ -54,7 +54,7 @@ int res_create_surface(const char* name, gr_surface* pSurface, int sd, const cha
     if (sd == 1) {
 		snprintf(resPath, sizeof(resPath)-1, "/sdcard/cotrecovery/theme/%s/%s.png", theme_name, name);
 	} else {
-		snprintf(resPath, sizeof(resPath)-1, "/res/images/%s.png", name);
+		snprintf(resPath, sizeof(resPath)-1, "/res/theme/%s/%s.png", theme_name, name);
 	}
     resPath[sizeof(resPath)-1] = '\0';
     FILE* fp = fopen(resPath, "rb");

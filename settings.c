@@ -68,7 +68,6 @@ int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
 int UITHEME = 0;
-int easter = 0;
 
 int UI_COLOR_DEBUG = 0;
 
@@ -261,12 +260,10 @@ void show_settings_menu() {
             case GO_BACK:
                 return;
             case SETTINGS_ITEM_THEME:
-			{
+            {
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
-                                                    "Lloyd Green",
-                                                    "Citrus Orange",
-                                                    "Dooderbutt Blue",
+                                                    "Custom Theme (sdcard)",
                                                     NULL
                 };
                 static char* ui_header[] = {"COT Theme", "", NULL};
@@ -278,22 +275,19 @@ void show_settings_menu() {
                     switch(ui_color) {
                         case 0:
                             currenttheme = "hydro";
+                            is_sd_theme = 0;
                             break;
                         case 1:
                             currenttheme = "bloodred";
+							is_sd_theme = 0;
                             break;
                         case 2:
-                            currenttheme = "lloyd";
-                            break;
-                        case 3:
-                            currenttheme = "citrusorange";
-                            break;
-                        case 4:
-                            currenttheme = "dooderbuttblue";
-                            break;
-					}
-					break;
-				}
+							currenttheme = "custom";
+							is_sd_theme = 1;
+							break;
+                    }
+                    break;
+                }
             }
             case SETTINGS_CHOOSE_BACKUP_FMT:
             {
@@ -336,8 +330,8 @@ void show_settings_menu() {
                 break;
             }
             case SETTINGS_ITEM_ORS_WIPE:
-			{
-                if (orswipeprompt == 1) {
+            {
+				if (orswipeprompt == 1) {
 					ui_print("Disabling wipe prompt.\n");
 					list[4] = "Enable wipe prompt";
 					orswipeprompt = 0;
@@ -346,11 +340,11 @@ void show_settings_menu() {
 					list[4] = "Disable wipe prompt";
 					orswipeprompt = 1;
 				}
-                break;
+				break;
             }
             case SETTINGS_ITEM_NAND_PROMPT:
-			{
-                if (backupprompt == 1) {
+            {
+				if (backupprompt == 1) {
 					ui_print("Disabling zip flash nandroid prompt.\n");
 					list[5] = "Enable zip flash nandroid prompt";
 					backupprompt = 0;
@@ -359,16 +353,10 @@ void show_settings_menu() {
 					list[5] = "Disable zip flash nandroid prompt";
 					backupprompt = 1;
 				}
-                break;
+				break;
             }
             case SETTINGS_ITEM_SIGCHECK:
             {
-				easter++;
-				if (easter == EASTEREGG) {
-					UITHEME = EASTEREGG;
-					ui_dyn_background();
-					easter = 0;
-				}
 				if (signature_check_enabled == 1) {
 					ui_print("Disabling md5 signature check.\n");
 					list[6] = "Enable md5 signature check";
@@ -406,32 +394,4 @@ void show_settings_menu() {
         }
         update_cot_settings();
     }
-}
-
-void ui_dyn_background()
-{
-	if(UI_COLOR_DEBUG) {
-		LOGI("%s %i\n", "DYN_BG:", UITHEME);
-	}
-	switch(UITHEME) {
-		case BLOOD_RED_UI:
-			ui_set_background(BACKGROUND_ICON_BLOODRED);
-			break;
-		case LLOYD_UI:
-			ui_set_background(BACKGROUND_ICON_LLOYD);
-			break;
-		case CITRUS_ORANGE_UI:
-			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);
-			break;
-		case DOODERBUTT_BLUE_UI:
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-			break;
-		case EASTEREGG:
-			ui_set_background(BACKGROUND_ICON_EASTER);
-			break;
-		// Anything else is the clockwork icon
-		default:
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-	}
 }
