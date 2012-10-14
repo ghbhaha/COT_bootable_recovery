@@ -70,6 +70,7 @@ int signature_check_enabled = 0;
 int backupfmt = 0;
 char* currenttheme;
 char* language;
+char* themename;
 
 typedef struct {
     const char* theme;
@@ -87,6 +88,10 @@ typedef struct {
     int uicolor2;
     int bgicon;
 } theme;
+
+typedef struct {
+	const char* themename;
+} theme_name;
 
 int settings_handler(void* user, const char* section, const char* name,
                    const char* value)
@@ -132,6 +137,20 @@ int theme_handler(void* user, const char* section, const char* name,
         return 0;
     }
     return 1;
+}
+
+int themename_handler(void* user, const char* section, const char* name,
+                   const char* value)
+{
+	theme_name* pconfig = (theme_name*)user;
+	
+	#define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
+	if (MATCH("theme", "themename")) {
+		pconfig->themename = strdup(value);
+	} else {
+		return 0;
+	}
+	return 1;
 }
 
 void create_default_settings(void) {
@@ -191,6 +210,14 @@ void update_cot_settings(void) {
 	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nBackupFormat = %i ;\nLanguage = %s ;\n\n", currenttheme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, backupfmt, language);
     fclose(ini);
     parse_settings();
+}
+
+char parse_themename(char inifile) {
+	theme_name config;
+	
+	ini_parse(inifile, themename_handler, &config);
+	themename = config.themename;
+	return themename;
 }
 
 void parse_settings() {
