@@ -130,6 +130,10 @@ endif
 LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
+LOCAL_STATIC_LIBRARIES += libselinux
+
+LOCAL_C_INCLUDES += system/extras/ext4_utils
+
 include $(BUILD_EXECUTABLE)
 
 RECOVERY_LINKS := edify busybox flash_image dump_image mkyaffs2image unyaffs erase_image nandroid reboot volume setprop dedupe minizip
