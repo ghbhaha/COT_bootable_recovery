@@ -119,10 +119,10 @@ void show_install_update_menu()
 	headers[1] = "\n";
     headers[2] = NULL;
 
-    if(fallback_settings) {
-		ui_print("Menu not available...\nInsert an sdcard and reboot.\n");
-		return;
-	}
+    if (0 != ensure_path_mounted("/sdcard")) {
+	show_fallback_prompt();
+        return;
+    }
 
     for (;;)
     {
@@ -777,10 +777,10 @@ void show_nandroid_menu()
                             NULL
     };
 
-    if(fallback_settings) {
-		ui_print("Menu not available...\nInsert an sdcard and reboot.\n");
-		return;
-	}
+    if (0 != ensure_path_mounted("/sdcard")) {
+	show_fallback_prompt();
+	return;
+    }
 
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);

@@ -62,7 +62,6 @@
 #include "iniparse/ini.h"
 
 COTSETTINGS = "/sdcard/cotrecovery/settings.ini";
-int fallback_settings = 0;
 
 int backupprompt = 0;
 int orswipeprompt = 0;
@@ -190,9 +189,12 @@ void show_welcome_text() {
 #endif
 }
 
+void show_fallback_prompt() {
+    ui_print("Menu not available...\nInsert or format your sdcard.\n");
+}
+
 void load_fallback_settings() {
 	ui_print("Unable to mount sdcard,\nloading failsafe setting...\n\nSettings will not work\nwithout an sdcard...\n");
-	fallback_settings = 1;
 	currenttheme = "hydro";
 	language = "en";
 	signature_check_enabled = 1;
