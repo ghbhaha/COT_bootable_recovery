@@ -138,8 +138,8 @@ int install_zip(const char* packagefilepath)
 }
 
 #define ITEM_CHOOSE_ZIP       0
-#define ITEM_APPLY_SDCARD     1
-#define ITEM_APPLY_SIDELOAD   2
+#define ITEM_APPLY_SIDELOAD   1
+#define ITEM_APPLY_SDCARD     2
 #define ITEM_CHOOSE_ZIP_INT   3
 
 void show_install_update_menu()
