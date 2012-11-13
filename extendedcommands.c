@@ -107,12 +107,13 @@ void show_install_update_menu()
 {
 	#define ITEM_CHOOSE_ZIP       0
 	#define ITEM_APPLY_SDCARD     1
-	#define ITEM_ASSERTS          2
+	#define ITEM_APPLY_SIDELOAD	  2
 
-	static char* INSTALL_MENU_ITEMS[3];
+	static char* INSTALL_MENU_ITEMS[4];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
 	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
-	INSTALL_MENU_ITEMS[2] = NULL;
+	INSTALL_MENU_ITEMS[2] = "Update via sideload";
+	INSTALL_MENU_ITEMS[3] = NULL;
 
     static char* headers[2];
 	headers[0] = zipinstallheader;
@@ -129,11 +130,6 @@ void show_install_update_menu()
         int chosen_item = get_menu_selection(headers, INSTALL_MENU_ITEMS, 0, 0);
         switch (chosen_item)
         {
-            /*
-			case ITEM_ASSERTS:
-                toggle_script_asserts();
-                break;
-			*/
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection(installconfirm, yesinstallupdate))
@@ -143,6 +139,9 @@ void show_install_update_menu()
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
                 break;
+            case ITEM_APPLY_SIDELOAD:
+				apply_from_adb();
+				break;
             default:
                 return;
         }
