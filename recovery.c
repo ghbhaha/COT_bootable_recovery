@@ -45,8 +45,11 @@
 #include "settingshandler_lang.h"
 #include "power.h"
 #include "utilities.h"
-
 #include "eraseandformat.h"
+
+#include "adb_install.h"
+#include "minadbd/adb.h"
+
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 
@@ -999,6 +1002,10 @@ int run_script_file(void) {
 
 int
 main(int argc, char **argv) {
+	if (argc == 2 && strcmp(argv[1], "adbd") == 0) {
+		adb_main();
+		return 0;
+	}
 	if (strcmp(basename(argv[0]), "recovery") != 0)
 	{
 	    if (strstr(argv[0], "flash_image") != NULL)

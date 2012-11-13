@@ -24,7 +24,8 @@ LOCAL_SRC_FILES := \
     settingshandler.c \
     settings.c \
 	utilities.c \
-    iniparse/ini.c
+    iniparse/ini.c \
+    adb_install.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -98,7 +99,7 @@ LOCAL_STATIC_LIBRARIES += librebootrecovery
 LOCAL_STATIC_LIBRARIES += libcannibal_e2fsck libcannibal_tune2fs libcannibal_mke2fs libcannibal_ext2fs libcannibal_ext2_blkid libcannibal_ext2_uuid libcannibal_ext2_profile libcannibal_ext2_com_err libcannibal_ext2_e2p
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
-LOCAL_STATIC_LIBRARIES += libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
+LOCAL_STATIC_LIBRARIES += libminadbd libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
 LOCAL_STATIC_LIBRARIES += libcrecovery libflashutils libmtdutils libmmcutils libbmlutils 
 
@@ -178,6 +179,7 @@ include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/dedupe/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/libcrecovery/Android.mk
+include $(commands_recovery_local_path)/minadbd/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/gui/Android.mk
