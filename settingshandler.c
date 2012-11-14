@@ -97,7 +97,6 @@ typedef struct {
     int uicolor1;
     int uicolor2;
 } theme;
-	
 
 int settings_handler(void* user, const char* section, const char* name,
                    const char* value)

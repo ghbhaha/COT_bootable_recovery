@@ -76,9 +76,6 @@ static int gShowBackButton = 0;
 #define UI_KEY_REPEAT_INTERVAL 80
 #define UI_KEY_WAIT_REPEAT 400
 
-int real_x = 0;
-int real_y = 0;
-
 UIParameters ui_parameters = {
     6,       // indeterminate progress bar frames
     20,      // fps
@@ -740,7 +737,6 @@ if(TOUCH_CONTROL_DEBUG)
 	ui_print("Touch gr_fb_width:\t%d,\tgr_fb_height:\t%d\n",gr_fb_width(),gr_fb_height());
 	ui_print("Touch X:\t%d,\tY:\t%d\n",curPos[1],curPos[2]);
 }
-	
 
   if (show_menu) {
     if (curPos[0] > 0) {
