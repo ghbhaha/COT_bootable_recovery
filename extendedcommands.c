@@ -138,8 +138,8 @@ int install_zip(const char* packagefilepath)
 }
 
 #define ITEM_CHOOSE_ZIP       0
-#define ITEM_APPLY_SDCARD     1
-#define ITEM_APPLY_SIDELOAD   2
+#define ITEM_APPLY_SIDELOAD   1
+#define ITEM_APPLY_SDCARD     2
 #define ITEM_CHOOSE_ZIP_INT   3
 
 void show_install_update_menu()
@@ -158,11 +158,11 @@ void show_install_update_menu()
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc/";
-        install_menu_items[2] = "Choose ZIP from internal SD Card";
+        install_menu_items[3] = "Choose ZIP from internal SD Card";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd/";
-        install_menu_items[2] = "Choose ZIP from external SD Card";
+        install_menu_items[3] = "Choose ZIP from external SD Card";
     }
     
     for (;;)

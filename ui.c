@@ -76,6 +76,9 @@ static int gShowBackButton = 0;
 #define UI_KEY_REPEAT_INTERVAL 80
 #define UI_KEY_WAIT_REPEAT 400
 
+int real_x = 0;
+int real_y = 0;
+
 UIParameters ui_parameters = {
     6,       // indeterminate progress bar frames
     20,      // fps
@@ -102,6 +105,7 @@ static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
     { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_background" },
+    { &gBackgroundIcon[BACKGROUND_ICON_TSCAL],	"tscal_step" },
     { &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
     { &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
     { &gMenuIcon[MENU_BACK],      "icon_back" },
@@ -736,6 +740,7 @@ if(TOUCH_CONTROL_DEBUG)
 	ui_print("Touch gr_fb_width:\t%d,\tgr_fb_height:\t%d\n",gr_fb_width(),gr_fb_height());
 	ui_print("Touch X:\t%d,\tY:\t%d\n",curPos[1],curPos[2]);
 }
+	
 
   if (show_menu) {
     if (curPos[0] > 0) {

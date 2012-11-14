@@ -85,6 +85,9 @@ typedef struct {
     int backupprompt;
     int signaturecheckenabled;
     int backupfmt;
+    int ts_x;
+    int ts_y;
+    int ts_touchY;
     char* language;
 } settings;
 
@@ -94,6 +97,7 @@ typedef struct {
     int uicolor1;
     int uicolor2;
 } theme;
+	
 
 int settings_handler(void* user, const char* section, const char* name,
                    const char* value)
@@ -115,6 +119,12 @@ int settings_handler(void* user, const char* section, const char* name,
 		pconfig->signaturecheckenabled = atoi(value);
     } else if (MATCH("settings", "backupformat")) {
 		pconfig->backupfmt = atoi(value);
+	} else if (MATCH("settings", "maxX")) {
+		pconfig->ts_x = atoi(value);
+	} else if (MATCH("settings", "maxY")) {
+		pconfig->ts_y = atoi(value);
+	} else if (MATCH("settings", "touchY")) {
+		pconfig->ts_touchY = atoi(value);
 	} else if (MATCH("settings", "language")) {
         pconfig->language = strdup(value);
     } else {
@@ -165,6 +175,9 @@ void create_default_settings(void) {
     "BackupPrompt = 1 ;\n"
     "SignatureCheckEnabled = 1 ;\n"
     "BackupFormat = 0 ;\n"
+    "maxX = 0 ;\n"
+    "maxY = 0 ;\n"
+    "touchY = 0 ;\n"
     "Language = en ;\n"
     "\n");
     fclose(ini);
@@ -203,7 +216,7 @@ void load_fallback_settings() {
 void update_cot_settings(void) {
     FILE    *   ini ;
 	ini = fopen_path(COTSETTINGS, "w");
-	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nSDTheme = %i;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nBackupFormat = %i ;\nLanguage = %s ;\n\n", currenttheme, is_sd_theme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, backupfmt, language);
+	fprintf(ini, ";\n; COT Settings INI\n;\n\n[Settings]\nTheme = %s ;\nSDTheme = %i;\nORSReboot = %i ;\nORSWipePrompt = %i ;\nBackupPrompt = %i ;\nSignatureCheckEnabled = %i ;\nBackupFormat = %i ;\nmaxX = %i ;\nmaxY = %i ;\ntouchY = %i ;\nLanguage = %s ;\n\n", currenttheme, is_sd_theme, orsreboot, orswipeprompt, backupprompt, signature_check_enabled, backupfmt, maxX, maxY, touchY, language);
     fclose(ini);
     parse_settings();
 }
@@ -245,6 +258,9 @@ void parse_settings() {
 	}
 	currenttheme = config.theme;
 	is_sd_theme = config.is_sd_theme;
+	maxX = config.ts_x;
+	maxY = config.ts_y;
+	touchY = config.ts_touchY;
     language = config.language;
 	parse_language();
     handle_theme(config.theme);
