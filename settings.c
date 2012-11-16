@@ -452,7 +452,14 @@ void ts_calibrate() {
         final_y = final_y*2;
         maxX = final_x;
         maxY = final_y;
-        touchY = prev_touch_y;
+#ifndef BOARD_TS_NO_BOUNDARY
+		int y_calc;
+		y_calc = maxY/6;
+		y_calc = maxY-y_calc;
+		touchY = y_calc;
+#else
+		touchY = 0;
+#endif
         ui_print("Calibration complete!\n");
         ui_set_background(BACKGROUND_ICON_CLOCKWORK);
         return;
