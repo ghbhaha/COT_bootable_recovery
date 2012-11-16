@@ -53,8 +53,13 @@ apply_from_adb() {
 
     stop_adbd();
 
+#ifndef BOARD_HAS_SMALL_SCREEN
     ui_print("\n\nSideload started ...\nNow send the package you want to apply\n"
               "to the device with \"adb sideload <filename>\"...\n\n");
+#else
+	ui_print("\n\nSideload started ...\nSend the package you want to\n"
+			 "apply to the device with\n\"adb sideload <filename>\"...\n\n");
+#endif
 
     pid_t child;
     if ((child = fork()) == 0) {
