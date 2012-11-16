@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Are any of these still in use???
 #define HYDRO_UI			0
 #define BLOOD_RED_UI		1
 #define LLOYD_UI			2
@@ -30,3 +32,5 @@ void show_settings_menu();
 void show_ors_reboot_menu();
 void show_ors_nandroid_prompt_menu();
 void show_nandroid_prompt_menu();
+void ts_calibrate();
+void clear_screen();
