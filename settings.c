@@ -358,6 +358,7 @@ void show_settings_menu() {
                 break;
             }
             case SETTINGS_ITEM_TS_CAL:
+				clear_screen();
 				ts_calibrate();
 				break;
             default:
