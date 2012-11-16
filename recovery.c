@@ -1248,7 +1248,12 @@ main(int argc, char **argv) {
         parse_settings();
         // Is the first_boot flag set?
         if (first_boot == 1) {
-			// Yes it is, display welcome message
+			// Run the touchscreen calibration routine
+			ts_calibrate();
+			update_cot_settings();
+			// Clear the screen
+			clear_screen();
+			// Show the welcom text
 			show_welcome_text();
 		}
 
