@@ -369,8 +369,13 @@ void show_settings_menu() {
 
 void ts_calibrate() {
         ui_set_background(BACKGROUND_ICON_TSCAL);
-        ui_print("Beginning touchscreen calibration.\n");
-        ui_print("Tap the red dot. 3 taps remaining.\n");
+#ifndef BOARD_HAS_SMALL_SCREEN
+        ui_print("Beginning touchscreen calibration.\n"
+				 "Tap the red dot. 3 taps remaining.\n");
+#else
+		ui_print("Beginning screen calibrations.\n"
+				 "Tap the red dot. 3 taps left.\n");
+#endif
         struct keyStruct{
                 int code;
                 int x;
@@ -397,7 +402,11 @@ void ts_calibrate() {
                                         ts_x_1 = key->x;
                                         ts_y_1 = key->y;
                                         step = 2;
+#ifndef BOARD_HAS_SMALL_SCREEN
                                         ui_print("Tap the red dot. 2 taps remaining.\n");
+#else
+										ui_print("Tap the red dot. 2 taps left.\n");
+#endif
                                         break;
                                 }
                         }
@@ -407,7 +416,11 @@ void ts_calibrate() {
                                         ts_x_2 = key->x;
                                         ts_y_2 = key->y;
                                         step = 3;
+#ifndef BOARD_HAS_SMALL_SCREEN
                                         ui_print("Tap the red dot. 1 tap remaining.\n");
+#else
+										ui_print("Tap the red dot. 1 tap left.\n");
+#endif
                                         break;
                                 }
                         }
@@ -417,7 +430,11 @@ void ts_calibrate() {
                                         ts_x_3 = key->x;
                                         ts_y_3 = key->y;
                                         step = 4;
+#ifndef BOARD_HAS_SMALL_SCREEN
                                         ui_print("Now calculating calibration data...\n");
+#else
+										ui_print("Calculating calibration data...\n");
+#endif
                                         break;
                                 }
                         }
