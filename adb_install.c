@@ -33,33 +33,8 @@
 #include "minadbd/adb.h"
 
 static void
-set_usb_driver(int enabled) {
-    int fd = open("/sys/class/android_usb/android0/enable", O_WRONLY);
-    if (fd < 0) {
-        ui_print("failed to open driver control: %s\n", strerror(errno));
-        return;
-    }
-
-    int status;
-    if (enabled > 0) {
-        status = write(fd, "1", 1);
-    } else {
-        status = write(fd, "0", 1);
-    }
-
-    if (status < 0) {
-        ui_print("failed to set driver control: %s\n", strerror(errno));
-    }
-
-    if (close(fd) < 0) {
-        ui_print("failed to close driver control: %s\n", strerror(errno));
-    }
-}
-
-static void
 stop_adbd() {
     property_set("ctl.stop", "adbd");
-    set_usb_driver(0);
 }
 
 
@@ -69,7 +44,6 @@ maybe_restart_adbd() {
     int len = property_get("ro.debuggable", value, NULL);
     if (len == 1 && value[0] == '1') {
         ui_print("Restarting adbd...\n");
-        set_usb_driver(1);
         property_set("ctl.start", "adbd");
     }
 }
@@ -78,7 +52,6 @@ int
 apply_from_adb() {
 
     stop_adbd();
-    set_usb_driver(1);
 
     ui_print("\n\nSideload started ...\nNow send the package you want to apply\n"
               "to the device with \"adb sideload <filename>\"...\n\n");
@@ -99,7 +72,6 @@ apply_from_adb() {
         ui_print("status %d\n", WEXITSTATUS(status));
     }
 
-    set_usb_driver(0);
     maybe_restart_adbd();
 
     struct stat st;
