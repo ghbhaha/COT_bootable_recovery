@@ -13,7 +13,7 @@
 	* Sideloadable (sdcard) theme support.
 	* ADB Sideload.
 
-Please note the following in regards to this branch.
+<pre> Please note the following in regards to this branch.
 ====================================================
 
 <ul>
