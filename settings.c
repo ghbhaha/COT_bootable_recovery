@@ -467,5 +467,6 @@ void ts_calibrate() {
 }
 
 void clear_screen() {
-        ui_print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    gr_color(0, 0, 0, 255);
+    gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 }
