@@ -8,7 +8,7 @@
 <li>Such features include but are not limited to:</li>
 </ul>
 	* User defined backup locations.
-	* Support for [Open Recovery Scripts](http://www.teamw.in/OpenRecoveryScript).
+	* Support for Open Recovery Scripts (http://www.teamw.in/OpenRecoveryScript).
 	* Persistent settings.
 
 <pre> Please note the following in regards to this branch.
