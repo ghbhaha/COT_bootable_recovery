@@ -18,6 +18,7 @@
 
 <ul>
 <li>If you are building for the Kindle Fire (first edition) you may also checkout https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/hybrid for stable builds instead.</li>
+<li>If you are looking for one of our Legacy Devices please checkout https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/gingerbread instead.</li>
 <li>This is the current developer branch which means bugs are expected.</li>
 <li>The following repos are required for all current builds: https://github.com/ProjectOpenCannibal/android_bootable_recovery_res and https://github.com/ProjectOpenCannibal/android_bootable_recovery_gui/tree/jellybean.</li>
 </ul>
