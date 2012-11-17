@@ -12,13 +12,13 @@
 	* Persistent settings.
 	* Sideloadable (sdcard) theme support.
 	* ADB Sideload.
+
+<pre> Please note the following in regards to this branch.
+=========================================================
+
 <ul>
-<li>Please note the following in regards to this branch.</li>
-<ul>
-	* Inclosed is a hybridized gingerbread recovery with backported ext4 and 'Retouch Binaries' for 3.0 boot image compatibility on the Kindle Fire (first edition).
-	* The reboot wrappers and orientation are setup specfically for the Kindle Fire (first edition).
-	* Building this branch requires the system/extras repo from Jellybean, specfically 'system/extras/ext4_utils' in order to work.
-	* If you are building for the Kindle Fire (first edition) please checkout either our [Hybrid](https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/hybrid)(stable) or [Jellybean](https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/jellybean)(experimental) branches instead.
-	* Otherwise consider checking out a specific tag (not the ones labeled landscape).
-	* This is the current developer branch which means bugs are expected.
-	* The following repos are required for all current builds: [Resources](https://github.com/ProjectOpenCannibal/android_bootable_recovery_res) and [Graphics](https://github.com/ProjectOpenCannibal/android_bootable_recovery_gui/tree/gingerbread).
+<li>If you are building for the Kindle Fire (first edition) please checkout either https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/hybrid (stable) or https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/jellybean (experimental) branches instead.</li>
+<li>Otherwise consider checking out a specific tag (not the ones labeled landscape).</li>
+<li>This is the current developer branch which means bugs are expected.</li>
+<li>The following repos are required for all current builds: https://github.com/ProjectOpenCannibal/android_bootable_recovery_res and https://github.com/ProjectOpenCannibal/android_bootable_recovery_gui/tree/gingerbread.</li>
+</ul>
