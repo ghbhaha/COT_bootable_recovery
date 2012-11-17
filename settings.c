@@ -471,9 +471,12 @@ void ts_calibrate() {
 	maxY = final_y;
 #ifndef BOARD_TS_NO_BOUNDARY
 	int y_calc;
-	y_calc = maxY/6;
-	y_calc = maxY-y_calc;
-	touchY = y_calc;
+	int fb_height;
+	int fb_limit;
+	fb_height = gr_fb_height();
+	y_calc = fb_height/6;
+	fb_limit = fb_height-y_calc;
+	touchY = fb_limit;
 #else
 	touchY = 0;
 #endif
