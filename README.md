@@ -18,7 +18,7 @@
 	* Inclosed is a hybridized gingerbread recovery with backported ext4 and 'Retouch Binaries' for 3.0 boot image compatibility on the Kindle Fire (first edition).
 	* The reboot wrappers and orientation are setup specfically for the Kindle Fire (first edition).
 	* Building this branch requires the system/extras repo from Jellybean, specfically 'system/extras/ext4_utils' in order to work.
-	* If you are building for any device other than the Kindle Fire (first edition) please see the Gingerbread or Jellybean branches instead.
+	* If you are building for any device other than the Kindle Fire (first edition) please checkout either our [Gingerbread](https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/gingerbread)(legacy devices) or [Jellybean](https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/jellybean)(newer devices, experimental) branches instead.
 	* If you are building for the Kindle Fire (first edition) consider checking out a specific tag, they will be the ones labeled landscape.
 	* This is the current developer branch which means bugs are expected.
 	* The following repos are required for all current builds: [Resources](https://github.com/ProjectOpenCannibal/android_bootable_recovery_res) and [Graphics](https://github.com/ProjectOpenCannibal/android_bootable_recovery_gui/tree/gingerbread).
