@@ -95,7 +95,7 @@ int install_zip(const char* packagefilepath)
         ui_print("%s\n", installabort);
         return 1;
     }
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 #ifndef DEVICE_HAS_NO_VIBRATE
     vibrate(60);
 #endif
