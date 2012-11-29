@@ -111,7 +111,6 @@ apply_from_adb() {
             ui_print("Error reading package:\n  %s\n", strerror(errno));
             ui_set_background(BACKGROUND_ICON_ERROR);
         }
-        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
         return INSTALL_ERROR;
     }
 
@@ -122,6 +121,5 @@ apply_from_adb() {
         ui_set_background(BACKGROUND_ICON_ERROR);
         ui_print("Installation aborted.\n");
     }
-    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     return install_status;
 }
