@@ -407,5 +407,6 @@ install_package(const char *path)
      */
     int status = handle_update_package(path, &zip);
     mzCloseZipArchive(&zip);
+	ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     return status;
 }

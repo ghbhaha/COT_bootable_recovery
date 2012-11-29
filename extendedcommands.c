@@ -85,7 +85,7 @@ int install_zip(const char* packagefilepath)
     int status = install_package(packagefilepath);
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
-        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+        ui_set_background(BACKGROUND_ICON_ERROR);
 #ifndef DEVICE_HAS_NO_VIBRATE
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
@@ -106,13 +106,13 @@ int install_zip(const char* packagefilepath)
 void show_install_update_menu()
 {
 	#define ITEM_CHOOSE_ZIP       0
-	#define ITEM_APPLY_SDCARD     1
-	#define ITEM_APPLY_SIDELOAD	  2
+	#define ITEM_APPLY_SIDELOAD	  1
+	#define ITEM_APPLY_SDCARD     2
 
 	static char* INSTALL_MENU_ITEMS[4];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
-	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
-	INSTALL_MENU_ITEMS[2] = "Update via sideload";
+	INSTALL_MENU_ITEMS[1] = "Update via sideload";
+	INSTALL_MENU_ITEMS[2] = zipapplyupdatezip;
 	INSTALL_MENU_ITEMS[3] = NULL;
 
     static char* headers[2];
