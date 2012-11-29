@@ -104,13 +104,12 @@ apply_from_adb() {
 
     struct stat st;
     if (stat(ADB_SIDELOAD_FILENAME, &st) != 0) {
-        if (errno == ENOENT) {
+        if (errno == ENOENT)
             ui_print("No package received.\n");
-            ui_set_background(BACKGROUND_ICON_ERROR);
-        } else {
+        else
             ui_print("Error reading package:\n  %s\n", strerror(errno));
-            ui_set_background(BACKGROUND_ICON_ERROR);
-        }
+
+        ui_set_background(BACKGROUND_ICON_ERROR);
         return INSTALL_ERROR;
     }
 
