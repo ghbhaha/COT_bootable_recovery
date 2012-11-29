@@ -450,8 +450,13 @@ void ts_calibrate() {
         final_y = sum_y/3;
         final_x = final_x*2;
         final_y = final_y*2;
-        maxX = final_x;
-        maxY = final_y;
+#ifndef BOARD_TS_XY_REVERSED
+		maxX = final_x;
+		maxY = final_y;
+#else
+		maxY = final_x;
+		maxX = final_y;
+#endif
 #ifndef BOARD_TS_NO_BOUNDARY
 		int y_calc;
 		y_calc = maxY/6;
