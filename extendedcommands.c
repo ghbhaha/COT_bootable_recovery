@@ -85,7 +85,7 @@ int install_zip(const char* packagefilepath)
     int status = install_package(packagefilepath);
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
-        ui_set_background(BACKGROUND_ICON_ERROR);
+        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
 #ifndef DEVICE_HAS_NO_VIBRATE
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
