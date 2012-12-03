@@ -21,11 +21,15 @@ LOCAL_SRC_FILES := $(updater_src_files)
 
 ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
 LOCAL_CFLAGS += -DUSE_EXT4
-# Use a local copy of the ICS ext4_utils for use by the retouch binaries
-LOCAL_C_INCLUDES += bootable/recovery/utilities/ext4_utils
-#LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_C_INCLUDES += system/extras/ext4_utils
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 endif
+
+ifeq ($(HAVE_SELINUX), true)
+LOCAL_C_INCLUDES += external/libselinux/include
+LOCAL_STATIC_LIBRARIES += libselinux
+LOCAL_CFLAGS += -DHAVE_SELINUX
+endif # HAVE_SELINUX
 
 LOCAL_STATIC_LIBRARIES += libflashutils libmtdutils libmmcutils libbmlutils
 
@@ -64,9 +68,9 @@ $(inc) : libs := $(TARGET_RECOVERY_UPDATER_LIBS)
 $(inc) : $(inc).list
 	$(hide) mkdir -p $(dir $@)
 	$(hide) echo "" > $@
-	$(hide) $(foreach lib,$(libs),echo "extern void Register_$(lib)(void);" >> $@)
+	$(hide) $(foreach lib,$(libs),echo "extern void Register_$(lib)(void);" >> $@;)
 	$(hide) echo "void RegisterDeviceExtensions() {" >> $@
-	$(hide) $(foreach lib,$(libs),echo "  Register_$(lib)();" >> $@)
+	$(hide) $(foreach lib,$(libs),echo "  Register_$(lib)();" >> $@;)
 	$(hide) echo "}" >> $@
 
 $(call intermediates-dir-for,EXECUTABLES,updater)/updater.o : $(inc)

@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Are any of these still in use???
 #define HYDRO_UI			0
 #define BLOOD_RED_UI		1
-#define KEY_LIME_PIE_UI		2
+#define LLOYD_UI			2
 #define CITRUS_ORANGE_UI	3
 #define DOODERBUTT_BLUE_UI	4
 #define EASTEREGG			5
+#define CUSTOM_UI			6
 
 extern int UI_COLOR_DEBUG;
 
@@ -29,4 +32,5 @@ void show_settings_menu();
 void show_ors_reboot_menu();
 void show_ors_nandroid_prompt_menu();
 void show_nandroid_prompt_menu();
-void ui_dyn_background();
+void ts_calibrate();
+void clear_screen();

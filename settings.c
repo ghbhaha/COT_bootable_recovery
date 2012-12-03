@@ -60,11 +60,12 @@
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
 
+#define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
+
 int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
 int UITHEME = 0;
-int easter = 0;
 
 int UI_COLOR_DEBUG = 0;
 
@@ -74,63 +75,62 @@ void show_cot_options_menu() {
                                 NULL
     };
 
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
-	#define COT_OPTIONS_ITEM_QUICKFIXES	0
-	#define COT_OPTIONS_ITEM_RECDEBUG	1
-	#define COT_OPTIONS_ITEM_SETTINGS	2
-#else
 	#define COT_OPTIONS_ITEM_RECDEBUG	0
 	#define COT_OPTIONS_ITEM_SETTINGS	1
-#endif
+	#define COT_OPTIONS_ITEM_QUICKFIXES	2
 
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifdef BOARD_HAS_QUICKFIXES
 	static char* list[4];
-
-	list[0] = "Quick Fixes";
-	list[1] = "Recovery Debugging";
-	list[2] = "COT Settings";
+	list[0] = "Recovery Debugging";
+	list[1] = "COT Settings";
+	list[2] = "Quick Fixes";
 	list[3] = NULL;
 #else
 	static char* list[3];
-
 	list[0] = "Recovery Debugging";
-	list[1] = "Cot Settings";
+	list[1] = "COT Settings";
 	list[2] = NULL;
 #endif
-
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
 		switch (chosen_item) {
 			case GO_BACK:
 				return;
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
-			case COT_OPTIONS_ITEM_QUICKFIXES:
-			{
-				static char* fixes_headers[3];
-				fixes_headers[0] = "Quick Fixes";
-				fixes_headers[1] = "\n";
-				fixes_headers[2] = NULL;
-				static char* fixes_list[2];
-				fixes_list[0] = "Fix Recovery Boot Loop";
-				fixes_list[1] = NULL;
-				int chosen_fix = get_menu_selection(fixes_headers, fixes_list, 0, 0);
-				switch (chosen_fix) {
-					case GO_BACK:
-						continue;
-					case 0:
-						format_root_device("MISC:");
-						format_root_device("PERSIST:");
-						reboot(RB_AUTOBOOT);
-						break;
-				}
-			}
-#endif
 			case COT_OPTIONS_ITEM_RECDEBUG:
 				show_recovery_debugging_menu();
 				break;
 			case COT_OPTIONS_ITEM_SETTINGS:
 				show_settings_menu();
 				break;
+			case COT_OPTIONS_ITEM_QUICKFIXES:
+			{
+				static char* fixes_headers[3];
+				fixes_headers[0] = "Quick Fixes";
+				fixes_headers[1] = "\n";
+				fixes_headers[2] = NULL;
+#ifdef BOARD_NEEDS_RECOVERY_FIX
+				static char* fixes_list[2];
+				fixes_list[0] = "Fix Recovery Boot Loop";
+				fixes_list[1] = NULL;
+#else
+				static char* fixes_list[1];
+				fixes_list[0] = NULL;
+#endif
+				int chosen_fix = get_menu_selection(fixes_headers, fixes_list, 0, 0);
+				switch (chosen_fix) {
+					case GO_BACK:
+						continue;
+					case 0:
+#ifdef BOARD_NEEDS_RECOVERY_FIX
+						format_root_device("MISC:");
+						format_root_device("PERSIST:");
+						reboot(RB_AUTOBOOT);
+						break;
+#else
+						break;
+#endif
+				}
+			}
 		}
 	}
 }
@@ -144,6 +144,7 @@ void show_recovery_debugging_menu()
 
 	static char* list[] = { "Fix Permissions",
 							"Report Error",
+							"Key Test",
 							"Show log",
 							"Toggle UI Debugging",
 							NULL
@@ -168,7 +169,6 @@ void show_recovery_debugging_menu()
 			case 1:
 				handle_failure(1);
 				break;
-/*	Leave this out for now, this version of the recovery doesn't have everything for it and keytest isn't needed on the kindle
 			case 2:
 			{
 				ui_print("Outputting key codes.\n");
@@ -196,11 +196,10 @@ void show_recovery_debugging_menu()
 				while (action != GO_BACK);
 				break;
 			}
-*/
-			case 2:
+			case 3:
 				ui_printlogtail(12);
 				break;
-			case 3:
+			case 4:
 				toggle_ui_debugging();
 				break;
 		}
@@ -219,9 +218,9 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_ORS_WIPE      3
     #define SETTINGS_ITEM_NAND_PROMPT   4
     #define SETTINGS_ITEM_SIGCHECK      5
-//    #define SETTINGS_ITEM_DEV_OPTIONS   6
+    #define SETTINGS_ITEM_TS_CAL		6
 
-    static char* list[7];
+    static char* list[8];
 
     list[0] = "Language";
     list[1] = "Theme";
@@ -245,7 +244,8 @@ void show_settings_menu() {
 	} else {
 		list[5] = "Enable md5 signature check";
 	}
-    list[6] = NULL;
+	list[6] = "Calibrate Touchscreen";
+    list[7] = NULL;
 
     for (;;) {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -256,9 +256,7 @@ void show_settings_menu() {
             {
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
-                                                    "Key Lime Pie",
-                                                    "Citrus Orange",
-                                                    "Dooderbutt Blue",
+                                                    "Custom Theme (sdcard)",
                                                     NULL
                 };
                 static char* ui_header[] = {"COT Theme", "", NULL};
@@ -270,19 +268,16 @@ void show_settings_menu() {
                     switch(ui_color) {
                         case 0:
                             currenttheme = "hydro";
+                            is_sd_theme = 0;
                             break;
                         case 1:
                             currenttheme = "bloodred";
+							is_sd_theme = 0;
                             break;
                         case 2:
-                            currenttheme = "keylimepie";
-                            break;
-                        case 3:
-                            currenttheme = "citrusorange";
-                            break;
-                        case 4:
-                            currenttheme = "dooderbuttblue";
-                            break;
+							currenttheme = "custom";
+							is_sd_theme = 1;
+							break;
                     }
                     break;
                 }
@@ -328,12 +323,6 @@ void show_settings_menu() {
             }
             case SETTINGS_ITEM_SIGCHECK:
             {
-				easter++;
-				if (easter == EASTEREGG) {
-					UITHEME = EASTEREGG;
-					ui_dyn_background();
-					easter = 0;
-				}
 				if (signature_check_enabled == 1) {
 					ui_print("Disabling md5 signature check.\n");
 					list[5] = "Enable md5 signature check";
@@ -368,6 +357,9 @@ void show_settings_menu() {
 
                 break;
             }
+            case SETTINGS_ITEM_TS_CAL:
+				ts_calibrate();
+				break;
             default:
                 return;
         }
@@ -375,30 +367,109 @@ void show_settings_menu() {
     }
 }
 
-void ui_dyn_background()
-{
-	if(UI_COLOR_DEBUG) {
-		LOGI("%s %i\n", "DYN_BG:", UITHEME);
-	}
-	switch(UITHEME) {
-		case BLOOD_RED_UI:
-			ui_set_background(BACKGROUND_ICON_BLOODRED);
-			break;
-		case KEY_LIME_PIE_UI:
-			ui_set_background(BACKGROUND_ICON_KEYLIMEPIE);
-			break;
-		case CITRUS_ORANGE_UI:
-			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);
-			break;
-		case DOODERBUTT_BLUE_UI:
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-			break;
-		case EASTEREGG:
-			ui_set_background(BACKGROUND_ICON_EASTER);
-			break;
-		// Anything else is the clockwork icon
-		default:
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-	}
+void ts_calibrate() {
+        ui_set_background(BACKGROUND_ICON_TSCAL);
+#ifndef BOARD_HAS_SMALL_SCREEN
+        ui_print("Beginning touchscreen calibration.\n"
+				 "Tap the red dot. 3 taps remaining.\n");
+#else
+		ui_print("Beginning screen calibrations.\n"
+				 "Tap the red dot. 3 taps left.\n");
+#endif
+        struct keyStruct{
+                int code;
+                int x;
+                int y;
+        }*key;
+        int step = 1;
+        int prev_touch_y, prev_max_x, prev_max_y;
+        int sum_x, sum_y;
+        int final_x, final_y;
+        int ts_x_1, ts_x_2, ts_x_3;
+        int ts_y_1, ts_y_2, ts_y_3;
+        prev_touch_y = touchY;
+        prev_max_x = maxX;
+        prev_max_y = maxY;
+        maxX = 0;
+        maxY = 0;
+        touchY = 0;
+        do {
+                key = ui_wait_key();
+                switch(step) {
+                        case 1:
+                        {
+                                if(key->code == ABS_MT_POSITION_X) {
+                                        ts_x_1 = key->x;
+                                        ts_y_1 = key->y;
+                                        step = 2;
+#ifndef BOARD_HAS_SMALL_SCREEN
+                                        ui_print("Tap the red dot. 2 taps remaining.\n");
+#else
+										ui_print("Tap the red dot. 2 taps left.\n");
+#endif
+                                        break;
+                                }
+                        }
+                        case 2:
+                        {
+                                if(key->code == ABS_MT_POSITION_X) {
+                                        ts_x_2 = key->x;
+                                        ts_y_2 = key->y;
+                                        step = 3;
+#ifndef BOARD_HAS_SMALL_SCREEN
+                                        ui_print("Tap the red dot. 1 tap remaining.\n");
+#else
+										ui_print("Tap the red dot. 1 tap left.\n");
+#endif
+                                        break;
+                                }
+                        }
+                        case 3:
+                        {
+                                if(key->code == ABS_MT_POSITION_X) {
+                                        ts_x_3 = key->x;
+                                        ts_y_3 = key->y;
+                                        step = 4;
+#ifndef BOARD_HAS_SMALL_SCREEN
+                                        ui_print("Now calculating calibration data...\n");
+#else
+										ui_print("Calculating calibration data...\n");
+#endif
+                                        break;
+                                }
+                        }
+                        default:
+                        {
+                                break;
+                        }
+                }
+        } while (step != 4);
+        sum_x = ts_x_1+ts_x_2+ts_x_3;
+        sum_y = ts_y_1+ts_y_2+ts_y_3;
+        final_x = sum_x/3;
+        final_y = sum_y/3;
+        final_x = final_x*2;
+        final_y = final_y*2;
+#ifndef BOARD_TS_XY_REVERSED
+		maxX = final_x;
+		maxY = final_y;
+#else
+		maxY = final_x;
+		maxX = final_y;
+#endif
+#ifndef BOARD_TS_NO_BOUNDARY
+		int y_calc;
+		y_calc = maxY/6;
+		y_calc = maxY-y_calc;
+		touchY = y_calc;
+#else
+		touchY = 0;
+#endif
+        ui_print("Calibration complete!\n");
+        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+        return;
+}
+
+void clear_screen() {
+        ui_print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 }

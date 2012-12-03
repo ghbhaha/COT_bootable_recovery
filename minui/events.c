@@ -188,7 +188,6 @@ int ev_init(void)
     dir = opendir("/dev/input");
     if(dir != 0) {
         while((de = readdir(dir))) {
-//            fprintf(stderr,"/dev/input/%s\n", de->d_name);
             if(strncmp(de->d_name,"event",5)) continue;
             fd = openat(dirfd(dir), de->d_name, O_RDONLY);
             if(fd < 0) continue;

@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2012 Drew Walton & Nathan Bass
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -26,14 +42,11 @@
 #include "cutils/properties.h"
 #include "firmware.h"
 #include "install.h"
-#include "utilities/ext4_utils/make_ext4fs.h"
+#include "make_ext4fs.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
-
-#include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
-#include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
 
 #include "extendedcommands.h"
 #include "nandroid.h"
@@ -43,11 +56,9 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-
 #include "settings.h"
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
-
 #include "eraseandformat.h"
 
 #define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
@@ -77,18 +88,17 @@ void toggle_ui_debugging()
 	}
 }
 
-int install_zip(const char* packagefilepath, int dummy)
+int install_zip(const char* packagefilepath)
 {
     ui_print("\n-- %s: %s\n", installing, packagefilepath);
     if (device_flash_type() == MTD) {
         set_sdcard_update_bootloader_message();
     }
-    int status = install_package(packagefilepath, dummy);
+    int status = install_package(packagefilepath);
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
-// This should really be done by another means; not everything has a vibrate function
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifndef DEVICE_HAS_NO_VIBRATE
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
             vibrate(15);
@@ -97,8 +107,8 @@ int install_zip(const char* packagefilepath, int dummy)
         ui_print("%s\n", installabort);
         return 1;
     }
-    ui_set_background(BACKGROUND_ICON_NONE);
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+#ifndef DEVICE_HAS_NO_VIBRATE
     vibrate(60);
 #endif
     ui_print("\n%s\n", installcomplete);
@@ -108,38 +118,42 @@ int install_zip(const char* packagefilepath, int dummy)
 void show_install_update_menu()
 {
 	#define ITEM_CHOOSE_ZIP       0
-	#define ITEM_APPLY_SDCARD     1
-	#define ITEM_ASSERTS          2
+	#define ITEM_APPLY_SIDELOAD	  1
+	#define ITEM_APPLY_SDCARD     2
 
-	static char* INSTALL_MENU_ITEMS[3];
+	static char* INSTALL_MENU_ITEMS[4];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
-	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
-	INSTALL_MENU_ITEMS[2] = NULL;
+	INSTALL_MENU_ITEMS[1] = "Update via sideload";
+	INSTALL_MENU_ITEMS[2] = zipapplyupdatezip;
+	INSTALL_MENU_ITEMS[3] = NULL;
 
     static char* headers[2];
 	headers[0] = zipinstallheader;
 	headers[1] = "\n";
     headers[2] = NULL;
 
+    if (0 != ensure_path_mounted("/sdcard")) {
+	show_fallback_prompt();
+        return;
+    }
+
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, INSTALL_MENU_ITEMS, 0, 0);
         switch (chosen_item)
         {
-            /*
-			case ITEM_ASSERTS:
-                toggle_script_asserts();
-                break;
-			*/
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection(installconfirm, yesinstallupdate))
-                    install_zip(SDCARD_UPDATE_FILE, 0);
+                    install_zip(SDCARD_UPDATE_FILE);
                 break;
             }
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
                 break;
+            case ITEM_APPLY_SIDELOAD:
+				apply_from_adb();
+				break;
             default:
                 return;
         }
@@ -452,7 +466,7 @@ void show_choose_zip_menu(const char *mount_point)
         static char confirm[PATH_MAX];
         sprintf(confirm, "%s %s", yesinstall, basename(file));
         if (confirm_selection(installconfirm, confirm)) {
-            install_zip(file, 0);
+            install_zip(file);
         }
     } else {
 		for (;;) {
@@ -462,11 +476,11 @@ void show_choose_zip_menu(const char *mount_point)
 					char backup_path[PATH_MAX];
 					nandroid_generate_timestamp_path(backup_path);
 					nandroid_backup(backup_path);
-					install_zip(file, 0);
+					install_zip(file);
 					return;
 				}
 				case ITEM_INSTALL_WOUT_BACKUP:
-					install_zip(file, 0);
+					install_zip(file);
 					return;
 				default:
 					break;
@@ -557,13 +571,13 @@ int confirm_selection(const char* title, const char* confirm)
 	confirm_headers[1] = wipedataheader2;
 	confirm_headers[2] = NULL;
 
-// This should probably be done for all landscape devices
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-    static char* items[2];
+#ifdef BUILD_IN_LANDSCAPE
+    static char* items[3];
 	items[0] = no;
 	items[1] = confirm;
+	items[2] = NULL;
 #else
-    static char* items[11];
+    static char* items[12];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -575,10 +589,10 @@ int confirm_selection(const char* title, const char* confirm)
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
+	items[11] = NULL;
 #endif
-
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
     return chosen_item == 1;
 #else
 	return chosen_item == 7;
@@ -591,12 +605,13 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	confirm_headers[0] = recommended;
 	confirm_headers[1] = NULL;
 
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-    static char* items[2];
+#ifdef BUILD_IN_LANDSCAPE
+    static char* items[3];
 	items[0] = no;
 	items[1] = confirm;
+	items[2] = NULL;
 #else
-    static char* items[11];
+    static char* items[12];
 	items[0] = no;
 	items[1] = no;
 	items[2] = no;
@@ -608,14 +623,94 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
 	items[8] = no;
 	items[9] = no;
 	items[10] = no;
+	items[11] = NULL;
 #endif
 
     int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
+#ifdef BUILD_IN_LANDSCAPE
     return chosen_item == 1;
 #else
 	return chosen_item == 7;
 #endif
+}
+
+void show_nandroid_advanced_backup_menu(){
+    static char* advancedheaders[3];
+	advancedheaders[0] = advbackupheader;
+	advancedheaders[1] = "\n";
+	advancedheaders[2] = NULL;
+
+    int backup_list [7];
+    char* list[7];
+
+    backup_list[0] = 1;
+    backup_list[1] = 1;
+    backup_list[2] = 1;
+    backup_list[3] = 1;
+    backup_list[4] = 1;
+    backup_list[5] = 1;
+    backup_list[6] = NULL;
+
+    list[6] = performbackup;
+    list[7] = NULL;
+
+    int cont = 1;
+    for (;cont;) {
+	    if (backup_list[0] == 1)
+	    	list[0] = nandroidbackupbootyes;
+	    else
+	    	list[0] = nandroidbackupbootno;
+		
+
+	    if (backup_list[1] == 1)
+	    	list[1] = nandroidbackuprecyes;
+	    else
+	    	list[1] = nandroidbackuprecno;
+
+	    if (backup_list[2] == 1)
+    		list[2] = nandroidbackupsysyes;
+	    else
+	    	list[2] = nandroidbackupsysno;
+
+	    if (backup_list[3] == 1)
+	    	list[3] = nandroidbackupdatayes;
+	    else
+	    	list[3] = nandroidbackupdatano;
+
+	    if (backup_list[4] == 1)
+	    	list[4] = nandroidbackupcacheyes;
+	    else
+	    	list[4] = nandroidbackupcacheno;
+
+	    if (backup_list[5] == 1)
+	    	list[5] = nandroidbackupsdyes;
+	    else
+	    	list[5] = nandroidbackupsdno;
+
+    	int chosen_item = get_menu_selection (advancedheaders, list, 0, 0);
+	switch (chosen_item) {
+	    case GO_BACK: return;
+	    case 0: backup_list[0] = !backup_list[0];
+		    break;
+	    case 1: backup_list[1] = !backup_list[1];
+		    break;
+	    case 2: backup_list[2] = !backup_list[2];
+		    break;
+	    case 3: backup_list[3] = !backup_list[3];
+		    break;
+	    case 4: backup_list[4] = !backup_list[4];
+		    break;
+	    case 5: backup_list[5] = !backup_list[5];
+		    break;
+
+	    case 6: cont = 0;
+	    	    break;
+	}
+    }
+
+    char backup_path[PATH_MAX];
+    nandroid_generate_timestamp_path(backup_path);
+	return nandroid_advanced_backup(backup_path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
@@ -688,10 +783,16 @@ void show_nandroid_menu()
 
     static char* list[] = { "Backup",
                             "Restore",
+                            "Advanced Backup",
                             "Advanced Restore",
                             "Delete old backups",
                             NULL
     };
+
+    if (0 != ensure_path_mounted("/sdcard")) {
+	show_fallback_prompt();
+	return;
+    }
 
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -713,10 +814,16 @@ void show_nandroid_menu()
 			case 2:
 			{
 				nandroid_get_backup_path(backup_path);
+				show_nandroid_advanced_backup_menu(backup_path);
+				return;
+			}
+			case 3:
+			{
+				nandroid_get_backup_path(backup_path);
 				show_nandroid_advanced_restore_menu(backup_path);
 				return;
 			}
-			case 3: 
+			case 4:
 			{
 				nandroid_get_backup_path(backup_path);
 				delete_old_backups(backup_path);
@@ -826,13 +933,8 @@ void process_volumes() {
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
     struct stat st;
     char tmp[PATH_MAX];
-	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-		fscanf(file, "%s", &tmp);
-		fclose(file);
-	} else {
-		sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
-	}
+    nandroid_get_assigned_backup_path(tmp);
+
     sprintf(backup_path, "%s%s", tmp, backup_name);
 
     ui_set_show_text(1);

@@ -1,6 +1,3 @@
-ifneq ($(TARGET_SIMULATOR),true)
-ifeq ($(TARGET_ARCH),arm)
-
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -26,9 +23,9 @@ LOCAL_SRC_FILES := \
     settingshandler_lang.c \
     settingshandler.c \
     settings.c \
-	power.c \
 	utilities.c \
-    iniparse/ini.c
+    iniparse/ini.c \
+    adb_install.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -37,13 +34,40 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
+ifdef BOARD_HAS_SMALL_SCREEN
+LOCAL_CFLAGS += -DBOARD_HAS_SMALL_SCREEN=true
+RECOVERY_NAME := COT
+else
 RECOVERY_NAME := Cannibal Open Touch
+endif
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v2.0.2
+ifneq ($(BOARD_RECOVERY_RELEASE_TYPE),)
+  RECOVERY_RELEASE_TYPE := $(BOARD_RECOVERY_RELEASE_TYPE)
+else
+  RECOVERY_RELEASE_TYPE := Beta
+endif
+
+RECOVERY_VERSION := $(RECOVERY_NAME) v2.1 $(BOARD_RECOVERY_RELEASE_TYPE)
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
+
+ifneq ($(BOARD_TS_MAX_ROWS),)
+  LOCAL_CFLAGS += -DBOARD_TS_MAX_ROWS=$(BOARD_TS_MAX_ROWS)
+endif
+
+ifdef RECOVERY_BUILD_IN_LANDSCAPE
+  LOCAL_CFLAGS += -DBUILD_IN_LANDSCAPE=true
+endif
+
+ifdef BOARD_TS_NO_BOUNDARY
+  LOCAL_CFLAGS += -DBOARD_TS_NO_BOUNDARY=true
+endif
+
+ifdef BOARD_TS_XY_REVERSED
+  LOCAL_CFLAGS += -DBOARD_TS_XY_REVERSED=true
+endif
 
 BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_HAS_SMALL_RECOVERY BOARD_LDPI_RECOVERY BOARD_UMS_LUNFILE BOARD_RECOVERY_ALWAYS_WIPES BOARD_RECOVERY_HANDLES_MOUNT
 
@@ -55,9 +79,7 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 
 LOCAL_STATIC_LIBRARIES :=
 LOCAL_CFLAGS += -DUSE_EXT4
-# Use a local copy of the ICS ext4_utils for use by the retouch binaries
-LOCAL_C_INCLUDES += bootable/recovery/utilities/ext4_utils
-#LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_C_INCLUDES += system/extras/ext4_utils
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
@@ -67,19 +89,31 @@ LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 LOCAL_MODULE_TAGS := eng
 
-# Ignore custom mapping for now, will tweak it in the device repo later.
-#ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
+ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
   LOCAL_SRC_FILES += default_recovery_ui.c
-#else
-#  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
-#endif
+else
+  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
+endif
+
+ifeq ($(BOARD_CUSTOM_RECOVERY_POWER_PROFILE),)
+  LOCAL_SRC_FILES += power.c
+else
+  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_POWER_PROFILE)
+endif
+
+ifdef RECOVERY_DEVICE_DOES_NOT_SUPPORT_SDEXT
+  LOCAL_CFLAGS += -DDEVICE_DOES_NOT_SUPPORT_SD_EXT=true
+endif
+
+ifdef RECOVERY_DEVICE_HAS_NO_VIBRATE
+  LOCAL_CFLAGS += -DDEVICE_HAS_NO_VIBRATE=true
+endif
 
 LOCAL_STATIC_LIBRARIES += librebootrecovery
-LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libcannibal_e2fsck libcannibal_tune2fs libcannibal_mke2fs libcannibal_ext2fs libcannibal_ext2_blkid libcannibal_ext2_uuid libcannibal_ext2_profile libcannibal_ext2_com_err libcannibal_ext2_e2p
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
-LOCAL_STATIC_LIBRARIES += libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
+LOCAL_STATIC_LIBRARIES += libminadbd libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
 LOCAL_STATIC_LIBRARIES += libcrecovery libflashutils libmtdutils libmmcutils libbmlutils 
 
@@ -155,13 +189,14 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
-include $(commands_recovery_local_path)/dedupe/Android.mk
-
 include $(commands_recovery_local_path)/bmlutils/Android.mk
+include $(commands_recovery_local_path)/dedupe/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
 include $(commands_recovery_local_path)/libcrecovery/Android.mk
+include $(commands_recovery_local_path)/minadbd/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
+include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
@@ -171,7 +206,3 @@ include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/utilities/Android.mk
 commands_recovery_local_path :=
-
-endif   # TARGET_ARCH == arm
-endif    # !TARGET_SIMULATOR
-

@@ -336,4 +336,3 @@ gr_pixel *gr_fb_data(void)
 {
     return (unsigned short *) gr_mem_surface.data;
 }
-

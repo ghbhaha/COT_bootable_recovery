@@ -15,4 +15,5 @@
  */
 
 void show_power_options_menu();
-
+void pass_normal_reboot();
+void pass_shutdown_cmd();

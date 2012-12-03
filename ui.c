@@ -17,23 +17,7 @@
 #include <linux/input.h>
 #include "recovery_ui.h"
 
-// Include extendedcommands.h in order to get our custom ui colors
-#include "extendedcommands.h"
-
 //these are included in the original kernel's linux/input.h but are missing from AOSP
-
-/* 
-//FOR KindleFire
-gr_fb_width() is 1024
-gr_fb_height() is 600
-*/
-
-#define maxX 1024
-#define maxY 600
-
-#define MT_X(x) (x/4)		//Define max X axis range device recognises instead of 1024
-#define MT_Y(y) (y/4)		//Define max Y axis range device recognises instead of 1024
-
 #ifndef SYN_MT_REPORT
 #define SYN_MT_REPORT 2
 #define ABS_MT_TOUCH_MAJOR  0x30  /* Major axis of touching ellipse */
@@ -54,6 +38,7 @@ gr_fb_height() is 600
 #include <unistd.h>
 
 #include "common.h"
+#include "extendedcommands.h"
 #include "minui/minui.h"
 #include "recovery_ui.h"
 #include "settings.h"
@@ -69,7 +54,11 @@ static int gShowBackButton = 0;
 #endif
 
 #define MAX_COLS 96
+#ifdef BOARD_TS_MAX_ROWS
+#define MAX_ROWS BOARD_TS_MAX_ROWS
+#else
 #define MAX_ROWS 30
+#endif
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
@@ -98,141 +87,17 @@ static int selMenuIcon = 0;
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
 	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_background" },
+    	{ &gBackgroundIcon[BACKGROUND_ICON_TSCAL],	"tscal_step" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
     	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
 		{ &gMenuIcon[MENU_BACK],      "icon_back" },
+		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
     	{ &gMenuIcon[MENU_DOWN],  	  "icon_down" },
+    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
     	{ &gMenuIcon[MENU_UP], 		  "icon_up" },
+    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
     	{ &gMenuIcon[MENU_SELECT],    "icon_select" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_BLOODRED[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-		{ &gMenuIcon[MENU_BACK],      "icon_back_br" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_br" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_br" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_br" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_KEYLIME[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-		{ &gMenuIcon[MENU_BACK],      "icon_back_kl" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_kl" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_kl" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_kl" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_ORANGE[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-		{ &gMenuIcon[MENU_BACK],      "icon_back_co" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_co" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_co" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_co" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
-    	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
-    	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
-    	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
-    	{ &gProgressBarIndeterminate[2],    "indeterminate3" },
-    	{ &gProgressBarIndeterminate[3],    "indeterminate4" },
-    	{ &gProgressBarIndeterminate[4],    "indeterminate5" },
-    	{ &gProgressBarIndeterminate[5],    "indeterminate6" },
-    	{ &gProgressBarEmpty,               "progress_empty" },
-    	{ &gProgressBarFill,                "progress_fill" },
-    	{ NULL,                             NULL },
-};
-
-static const struct { gr_surface* surface; const char *name; } BITMAPS_DOODERBUTT[] = {
-	{ &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_BLOODRED],  "icon_bloodred" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_KEYLIMEPIE],  "icon_keylimepie" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_CITRUSORANGE],  "icon_citrusorange" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_DOODERBUTT],  "icon_dooderbutt" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_EASTER],  "icon_easter" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
-    	{ &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
-		{ &gMenuIcon[MENU_BACK],      "icon_back_db" },
-    	{ &gMenuIcon[MENU_DOWN],  	  "icon_down_db" },
-    	{ &gMenuIcon[MENU_UP], 		  "icon_up_db" },
-    	{ &gMenuIcon[MENU_SELECT],    "icon_select_db" },
-		{ &gMenuIcon[MENU_BACK_M],    "icon_backM" },
-    	{ &gMenuIcon[MENU_DOWN_M],    "icon_downM" },
-    	{ &gMenuIcon[MENU_UP_M], 	  "icon_upM" },
     	{ &gMenuIcon[MENU_SELECT_M],  "icon_selectM" },
     	{ &gProgressBarIndeterminate[0],    "indeterminate1" },
     	{ &gProgressBarIndeterminate[1],    "indeterminate2" },
@@ -367,22 +232,39 @@ static void draw_progress_locked()
     }
 }
 
-static void draw_text_line(int row, const char* t) {
-  if (t[0] != '\0') {
-    gr_text(0, (row+1)*CHAR_HEIGHT-1, t);
-  }
+static void draw_text_line(int row, const char* t, int align) {
+    int col = 0; 
+    if (t[0] != '\0') {
+        int length = strnlen(t, MENU_MAX_COLS) * CHAR_WIDTH;
+        switch(align)
+        {
+            case LEFT_ALIGN:
+                col = 1;
+                break;
+            case CENTER_ALIGN:
+                col = ((gr_fb_width() - length) / 2);
+                break;
+            case RIGHT_ALIGN:
+                col = gr_fb_width() - length - 1;
+                break;
+        }
+        gr_text(col, (row+1)*CHAR_HEIGHT-1, t);
+    }
 }
 
 //#define MENU_TEXT_COLOR 255, 0, 0, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
+int batt_level = 0;
+int BATT_LINE, TIME_LINE, BATT_POS, TIME_POS;
+
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
-static void draw_screen_locked(void)
+void draw_screen_locked(void)
 {
     if (!ui_has_initialized) return;
-
+#ifdef BUILD_IN_LANDSCAPE
 	//In this case MENU_SELECT icon has maximum possible height.
 	int menu_max_height = gr_get_height(gMenuIcon[MENU_SELECT]);
 	struct { int x; int y; } MENU_ICON[] = {
@@ -390,6 +272,14 @@ static void draw_screen_locked(void)
 		{  gr_fb_width() - menu_max_height,	5*gr_fb_height()/8 },
 		{  gr_fb_width() - menu_max_height,	3*gr_fb_height()/8 },
 		{  gr_fb_width() - menu_max_height,	1*gr_fb_height()/8 }, 
+#else
+//ToDo: Following structure should be global
+	struct { int x; int y; int xL; int xR; } MENU_ICON[] = {
+		{  get_menu_icon_info(MENU_BACK,MENU_ICON_X),	get_menu_icon_info(MENU_BACK,MENU_ICON_Y), get_menu_icon_info(MENU_BACK,MENU_ICON_XL), get_menu_icon_info(MENU_BACK,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_DOWN,MENU_ICON_X),	get_menu_icon_info(MENU_DOWN,MENU_ICON_Y), get_menu_icon_info(MENU_DOWN,MENU_ICON_XL), get_menu_icon_info(MENU_DOWN,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_UP,MENU_ICON_X),	get_menu_icon_info(MENU_UP,MENU_ICON_Y), get_menu_icon_info(MENU_UP,MENU_ICON_XL), get_menu_icon_info(MENU_UP,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_SELECT,MENU_ICON_X),	get_menu_icon_info(MENU_SELECT,MENU_ICON_Y), get_menu_icon_info(MENU_SELECT,MENU_ICON_XL), get_menu_icon_info(MENU_SELECT,MENU_ICON_XR) },
+#endif
 	};
 
     draw_background_locked(gCurrentIcon);
@@ -408,15 +298,41 @@ static void draw_screen_locked(void)
 			draw_icon_locked(gMenuIcon[MENU_DOWN], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
 			draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
 			draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
+
             // Setup our text colors
             gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
+            // Show battery level
+            batt_level = get_batt_stats();
+            if(batt_level < 21) {
+                gr_color(255, 0, 0, 255);
+            }
+            char batt_text[40];
+            char time_gmt[40];
+
+            // Get a usable time
+            struct tm *current;
+            time_t now;
+            now = time(0);
+            current = localtime(&now);
+            sprintf(batt_text, "[%d%%]", batt_level);
+            sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
+
+            draw_text_line(BATT_LINE, batt_text, BATT_POS);
+            draw_text_line(TIME_LINE, time_gmt, TIME_POS);
+
+            gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
+
             gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
-				gr_fb_width()-menu_max_height*2, (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+#ifdef BUILD_IN_LANDSCAPE
+			gr_fb_width()-menu_max_height*2, (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+#else
+			gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*CHAR_HEIGHT+1);
+#endif
 
             gr_color(HEADER_TEXT_COLOR);
             for (i = 0; i < menu_top; ++i) {
-                draw_text_line(i, menu[i]);
+                draw_text_line(i, menu[i], LEFT_ALIGN);
                 row++;
             }
 
@@ -429,28 +345,32 @@ static void draw_screen_locked(void)
             for (i = menu_show_start + menu_top; i < (menu_show_start + menu_top + j); ++i) {
                 if (i == menu_top + menu_sel) {
                     gr_color(255, 255, 255, 255);
-                    draw_text_line(i - menu_show_start , menu[i]);
+                    draw_text_line(i - menu_show_start , menu[i], LEFT_ALIGN);
                     gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
                 } else {
                     gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
-                    draw_text_line(i - menu_show_start, menu[i]);
+                    draw_text_line(i - menu_show_start, menu[i], LEFT_ALIGN);
                 }
                 row++;
             }
             gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
+#ifdef BUILD_IN_LANDSCAPE
 				gr_fb_width()-menu_max_height*2, row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+#else
+				gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
+#endif
         }
 
         gr_color(NORMAL_TEXT_COLOR);
         for (; row < text_rows; ++row) {
-            draw_text_line(row, text[(row+text_top) % text_rows]);
+            draw_text_line(row, text[(row+text_top) % text_rows], LEFT_ALIGN);
         }
     }
 }
 
 // Redraw everything on the screen and flip the screen (make it visible).
 // Should only be called with gUpdateMutex locked.
-static void update_screen_locked(void)
+void update_screen_locked(void)
 {
     if (!ui_has_initialized) return;
     draw_screen_locked();
@@ -504,15 +424,29 @@ static void *progress_thread(void *cookie)
 // handle the action associated with user input touch events inside the ui handler
 int device_handle_mouse(struct keyStruct *key, int visible)
 {
-struct { int xL; int xR; } MENU_ICON[] = {
-	{  3*gr_fb_height()/4, 4*gr_fb_height()/4 },
-	{  2*gr_fb_height()/4, 3*gr_fb_height()/4 },
-	{  1*gr_fb_height()/4, 2*gr_fb_height()/4 },
-	{  0*gr_fb_height()/4, 1*gr_fb_height()/4 },
-};
+// ToDo: Following structures should be global
+#ifdef BUILD_IN_LANDSCAPE
+	struct { int xL; int xR; } MENU_ICON[] = {
+		{  3*gr_fb_height()/4, 4*gr_fb_height()/4 },
+		{  2*gr_fb_height()/4, 3*gr_fb_height()/4 },
+		{  1*gr_fb_height()/4, 2*gr_fb_height()/4 },
+		{  0*gr_fb_height()/4, 1*gr_fb_height()/4 },
+#else
+	struct { int x; int y; int xL; int xR; } MENU_ICON[] = {
+		{  get_menu_icon_info(MENU_BACK,MENU_ICON_X),	get_menu_icon_info(MENU_BACK,MENU_ICON_Y), get_menu_icon_info(MENU_BACK,MENU_ICON_XL), get_menu_icon_info(MENU_BACK,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_DOWN,MENU_ICON_X),	get_menu_icon_info(MENU_DOWN,MENU_ICON_Y), get_menu_icon_info(MENU_DOWN,MENU_ICON_XL), get_menu_icon_info(MENU_DOWN,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_UP,MENU_ICON_X),	get_menu_icon_info(MENU_UP,MENU_ICON_Y), get_menu_icon_info(MENU_UP,MENU_ICON_XL), get_menu_icon_info(MENU_UP,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_SELECT,MENU_ICON_X),	get_menu_icon_info(MENU_SELECT,MENU_ICON_Y), get_menu_icon_info(MENU_SELECT,MENU_ICON_XL), get_menu_icon_info(MENU_SELECT,MENU_ICON_XR) },
+#endif
+	};
 
 	if (visible) {	
-		int position = gr_fb_height() - key->x;
+		int position;
+#ifdef BUILD_IN_LANDSCAPE
+		position = gr_fb_height() - key->x;
+#else
+		position = key->x;
+#endif
 		// DEBUG code
 		/*
 		ui_print("[2] wdth: %d, hgth: %d, x: %d, y: %d, position: %d \n", gr_fb_width(), gr_fb_height(), key->x, key->y, position);
@@ -524,7 +458,7 @@ struct { int xL; int xR; } MENU_ICON[] = {
 			ui_print("HIGHLIGHT_UP\n");
 		else if(position > MENU_ICON[MENU_SELECT].xL && position < MENU_ICON[MENU_SELECT].xR)
 			ui_print("SELECT_ITEM\n");
-		*/
+		*/ // End DEBUG code
 		if(position > MENU_ICON[MENU_BACK].xL && position < MENU_ICON[MENU_BACK].xR)
 			return GO_BACK;
 		else if(position > MENU_ICON[MENU_DOWN].xL && position < MENU_ICON[MENU_DOWN].xR)
@@ -541,6 +475,8 @@ struct { int xL; int xR; } MENU_ICON[] = {
 static void ui_handle_mouse_input(int* curPos)
 {
 	pthread_mutex_lock(&key_queue_mutex);
+// ToDo: Following structure should be global
+#ifdef BUILD_IN_LANDSCAPE
 	//In this case MENU_SELECT icon has maximum possible height.
 	int menu_max_height = gr_get_height(gMenuIcon[MENU_SELECT]);
 	struct { int x; int y; int xL; int xR; } MENU_ICON[] = {
@@ -548,32 +484,66 @@ static void ui_handle_mouse_input(int* curPos)
 		{  gr_fb_width() - menu_max_height,	5*gr_fb_height()/8, 2*gr_fb_height()/4, 3*gr_fb_height()/4  },
 		{  gr_fb_width() - menu_max_height,	3*gr_fb_height()/8, 1*gr_fb_height()/4, 2*gr_fb_height()/4  },
 		{  gr_fb_width() - menu_max_height,	1*gr_fb_height()/8, 0*gr_fb_height()/4, 1*gr_fb_height()/4  },
+#else
+	struct { int x; int y; int xL; int xR; } MENU_ICON[] = {
+		{  get_menu_icon_info(MENU_BACK,MENU_ICON_X),	get_menu_icon_info(MENU_BACK,MENU_ICON_Y), get_menu_icon_info(MENU_BACK,MENU_ICON_XL), get_menu_icon_info(MENU_BACK,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_DOWN,MENU_ICON_X),	get_menu_icon_info(MENU_DOWN,MENU_ICON_Y), get_menu_icon_info(MENU_DOWN,MENU_ICON_XL), get_menu_icon_info(MENU_DOWN,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_UP,MENU_ICON_X),	get_menu_icon_info(MENU_UP,MENU_ICON_Y), get_menu_icon_info(MENU_UP,MENU_ICON_XL), get_menu_icon_info(MENU_UP,MENU_ICON_XR) },
+		{  get_menu_icon_info(MENU_SELECT,MENU_ICON_X),	get_menu_icon_info(MENU_SELECT,MENU_ICON_Y), get_menu_icon_info(MENU_SELECT,MENU_ICON_XL), get_menu_icon_info(MENU_SELECT,MENU_ICON_XR) },
+#endif
 	};
+
+if(TOUCH_CONTROL_DEBUG)
+{
+	ui_print("Touch gr_fb_width:\t%d,\tgr_fb_height:\t%d\n",gr_fb_width(),gr_fb_height());
+	ui_print("Touch X:\t%d,\tY:\t%d\n",curPos[1],curPos[2]);
+}
 
   if (show_menu) {
     if (curPos[0] > 0) {
-		int position = gr_fb_height() - curPos[1];
-		//ui_print("Pressure:%d\tX:%d\tY:%d\n",mousePos[0],mousePos[1],mousePos[2]);
+		int position;
+#ifdef BUILD_IN_LANDSCAPE
+		position = gr_fb_height() - curPos[1];
+#else
+		position = curPos[1];
+#endif
+
 		pthread_mutex_lock(&gUpdateMutex);
+#ifdef BUILD_IN_LANDSCAPE
 		if(position > MENU_ICON[MENU_BACK].xL && position < MENU_ICON[MENU_BACK].xR && selMenuIcon != MENU_BACK) {
+#else
+		if(position > MENU_ICON[MENU_BACK].xL && position < MENU_ICON[MENU_BACK].xR ) {
+#endif
 			draw_icon_locked(gMenuIcon[selMenuIcon], MENU_ICON[selMenuIcon].x, MENU_ICON[selMenuIcon].y );
 			draw_icon_locked(gMenuIcon[MENU_BACK_M], MENU_ICON[MENU_BACK].x, MENU_ICON[MENU_BACK].y );
 			selMenuIcon = MENU_BACK;
 			gr_flip();
 		}
+#ifdef BUILD_IN_LANDSCAPE
 		else if(position > MENU_ICON[MENU_DOWN].xL && position < MENU_ICON[MENU_DOWN].xR && selMenuIcon != MENU_DOWN) {			
+#else
+		else if(position > MENU_ICON[MENU_DOWN].xL && position < MENU_ICON[MENU_DOWN].xR ) {
+#endif
 			draw_icon_locked(gMenuIcon[selMenuIcon], MENU_ICON[selMenuIcon].x, MENU_ICON[selMenuIcon].y );
 			draw_icon_locked(gMenuIcon[MENU_DOWN_M], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
 			selMenuIcon = MENU_DOWN;
 			gr_flip();
 		}
+#ifdef BUILD_IN_LANDSCAPE
 		else if(position > MENU_ICON[MENU_UP].xL && position < MENU_ICON[MENU_UP].xR && selMenuIcon != MENU_UP) {
+#else
+		else if(position > MENU_ICON[MENU_UP].xL && position < MENU_ICON[MENU_UP].xR ) {
+#endif
 			draw_icon_locked(gMenuIcon[selMenuIcon], MENU_ICON[selMenuIcon].x, MENU_ICON[selMenuIcon].y );			
 			draw_icon_locked(gMenuIcon[MENU_UP_M], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
 			selMenuIcon = MENU_UP;
 			gr_flip();
 		}
+#ifdef BUILD_IN_LANDSCAPE
 		else if(position > MENU_ICON[MENU_SELECT].xL && position < MENU_ICON[MENU_SELECT].xR && selMenuIcon != MENU_SELECT) {
+#else
+		else if(position > MENU_ICON[MENU_SELECT].xL && position < MENU_ICON[MENU_SELECT].xR ) {
+#endif
 			draw_icon_locked(gMenuIcon[selMenuIcon], MENU_ICON[selMenuIcon].x, MENU_ICON[selMenuIcon].y );			
 			draw_icon_locked(gMenuIcon[MENU_SELECT_M], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
 			selMenuIcon = MENU_SELECT;
@@ -606,9 +576,19 @@ static void *input_thread(void *cookie)
           } while (got_data==-1);
 
             if (ev.type == EV_SYN) {
-                // end of a multitouch point
+                // end of a touch point
                 if (ev.code == SYN_MT_REPORT) {
-                  if (actPos.num>=0 && actPos.num<MAX_MT_POINTS) {
+#ifndef BUILD_IN_LANDSCAPE
+				  if (touchY > 0 && actPos.y < touchY) {
+					actPos.num = 0;
+					actPos.x = 0;
+					actPos.y = 0;
+					actPos.pressure = 0;
+					actPos.size = 0;
+				  }
+#endif
+                  if (actPos.num>=-1 && actPos.num<MAX_MT_POINTS) {
+					actPos.num = 0;
                     // create a fake keyboard event. We will use BTN_WHEEL, BTN_GEAR_DOWN and BTN_GEAR_UP key events to fake
                     // TOUCH_MOVE, TOUCH_DOWN and TOUCH_UP in this order
                     int type = BTN_WHEEL;
@@ -654,7 +634,7 @@ static void *input_thread(void *cookie)
 
                   memset(&actPos,0,sizeof(actPos));
                 } else {
-                  continue;
+                  	continue;
                 }
             } else if (ev.type == EV_ABS) {
               // multitouch records are sent as ABS events. Well at least on the SGS-i9000
@@ -662,6 +642,9 @@ static void *input_thread(void *cookie)
                 actPos.x = MT_X(ev.value);
               } else if (ev.code == ABS_MT_POSITION_Y) {
                 actPos.y = MT_Y(ev.value);
+#ifndef BUILD_IN_LANDSCAPE
+				if (touchY > 0 && actPos.y < touchY) { actPos.y = 0; }
+#endif
               } else if (ev.code == ABS_MT_TOUCH_MAJOR) {
                 actPos.pressure = ev.value; // on SGS-i9000 this is 0 for not-pressed and 40 for pressed
               } else if (ev.code == ABS_MT_WIDTH_MAJOR) {
@@ -725,11 +708,7 @@ static void *input_thread(void *cookie)
         }
 
         if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
-#if TARGET_BOOTLOADER_BOARD_NAME == otter
-			__system("/sbin/reboot_system");
-#else
-			reboot(RB_AUTOBOOT);
-#endif
+			pass_normal_reboot();
         }
     }
     return NULL;
@@ -738,67 +717,41 @@ static void *input_thread(void *cookie)
 void ui_init_icons()
 {
 	int i;
-	switch(UITHEME) {
-		case BLOOD_RED_UI:
-			for (i = 0; BITMAPS_BLOODRED[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_BLOODRED[i].name, BITMAPS_BLOODRED[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_BLOODRED[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_BLOODRED[i].name, result);
-            			}
-            		*BITMAPS_BLOODRED[i].surface = NULL;
-        			}
-    			}
-			break;
-		case KEY_LIME_PIE_UI:
-			for (i = 0; BITMAPS_KEYLIME[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_KEYLIME[i].name, BITMAPS_KEYLIME[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_KEYLIME[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_KEYLIME[i].name, result);
-            			}
-            		*BITMAPS_KEYLIME[i].surface = NULL;
-        			}
-    			}
-			break;
-		case CITRUS_ORANGE_UI:
-			for (i = 0; BITMAPS_ORANGE[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_ORANGE[i].name, BITMAPS_ORANGE[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_ORANGE[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_ORANGE[i].name, result);
-            			}
-            		*BITMAPS_ORANGE[i].surface = NULL;
-        			}
-    			}
-			break;
-		case DOODERBUTT_BLUE_UI:
-			for (i = 0; BITMAPS_DOODERBUTT[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS_DOODERBUTT[i].name, BITMAPS_DOODERBUTT[i].surface);
-        			if (result < 0) {
-            			if (result == -2) {
-                			LOGI("Bitmap %s missing header\n", BITMAPS_DOODERBUTT[i].name);
-            			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS_DOODERBUTT[i].name, result);
-            			}
-            		*BITMAPS_DOODERBUTT[i].surface = NULL;
-        			}
-    			}
-			break;
-		default:
+	switch(is_sd_theme) {
+		case 0:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
+        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, themename);
         			if (result < 0) {
             			if (result == -2) {
                 			LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
             			} else {
-                			LOGE("Missing bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+                			LOGE("Missing internal bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+            			}
+            		*BITMAPS[i].surface = NULL;
+        			}
+    			}
+			break;
+		case 1:
+			for (i = 0; BITMAPS[i].name != NULL; ++i) {
+				int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 1, themename);
+					if (result < 0) {
+						if (result == -2) {
+							LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
+						} else {
+							LOGE("Missing sdcard bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
+						}
+					*BITMAPS[i].surface = NULL;
+					}
+				}
+			break;
+		default:
+			for (i = 0; BITMAPS[i].name != NULL; ++i) {
+        		int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, "hydro");
+        			if (result < 0) {
+            			if (result == -2) {
+                			LOGI("Bitmap %s missing header\n", BITMAPS[i].name);
+            			} else {
+                			LOGE("Missing internal bitmap %s\n(Code %d)\n", BITMAPS[i].name, result);
             			}
             		*BITMAPS[i].surface = NULL;
         			}
@@ -913,32 +866,35 @@ void ui_reset_progress()
 
 void ui_print(const char *fmt, ...)
 {
-    char buf[256];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, 256, fmt, ap);
-    va_end(ap);
+    if(TOUCH_NOSHOW_LOG);
+    else {
+		char buf[256];
+    	va_list ap;
+    	va_start(ap, fmt);
+    	vsnprintf(buf, 256, fmt, ap);
+    	va_end(ap);
 
-    if (ui_log_stdout)
-        fputs(buf, stdout);
+    	if (ui_log_stdout)
+        	fputs(buf, stdout);
 
-    // This can get called before ui_init(), so be careful.
-    pthread_mutex_lock(&gUpdateMutex);
-    if (text_rows > 0 && text_cols > 0) {
-        char *ptr;
-        for (ptr = buf; *ptr != '\0'; ++ptr) {
-            if (*ptr == '\n' || text_col >= text_cols) {
-                text[text_row][text_col] = '\0';
-                text_col = 0;
-                text_row = (text_row + 1) % text_rows;
-                if (text_row == text_top) text_top = (text_top + 1) % text_rows;
-            }
-            if (*ptr != '\n') text[text_row][text_col++] = *ptr;
-        }
-        text[text_row][text_col] = '\0';
-        update_screen_locked();
+    	// This can get called before ui_init(), so be careful.
+    	pthread_mutex_lock(&gUpdateMutex);
+    	if (text_rows > 0 && text_cols > 0) {
+        	char *ptr;
+        	for (ptr = buf; *ptr != '\0'; ++ptr) {
+            	if (*ptr == '\n' || text_col >= text_cols) {
+                	text[text_row][text_col] = '\0';
+                	text_col = 0;
+                	text_row = (text_row + 1) % text_rows;
+                	if (text_row == text_top) text_top = (text_top + 1) % text_rows;
+            	}
+            	if (*ptr != '\n') text[text_row][text_col++] = *ptr;
+        	}
+        	text[text_row][text_col] = '\0';
+        	update_screen_locked();
+    	}
+    	pthread_mutex_unlock(&gUpdateMutex);
     }
-    pthread_mutex_unlock(&gUpdateMutex);
 }
 
 void ui_printlogtail(int nb_lines) {
@@ -1076,6 +1032,10 @@ struct keyStruct *ui_wait_key()
     }
 	key.code = key_queue[0];
     memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
+
+if(TOUCH_CONTROL_DEBUG)
+	ui_print("[UI_WAIT_KEY] key code:\t%d\n",key.code);
+
 	if((key.code == BTN_GEAR_UP || key.code == BTN_MOUSE) && !actPos.pressure && oldMousePos[actPos.num].pressure && key_queue_len_back != (key_queue_len -1))
 	{	
 		key.code = ABS_MT_POSITION_X;
@@ -1108,4 +1068,23 @@ void ui_set_showing_back_button(int showBackButton) {
 
 int ui_get_showing_back_button() {
     return gShowBackButton;
+}
+
+int get_batt_stats(void) {
+    static int level = -1;
+    
+    char value[4];
+    FILE * capacity = fopen(batt_cap,"rt");
+    if (capacity) {
+        fgets(value, 4, capacity);
+        fclose(capacity);
+        level = atoi(value);
+        
+        if (level > 100)
+            level = 100;
+        if (level < 0)
+            level = 0;
+        
+    }
+    return level;
 }
