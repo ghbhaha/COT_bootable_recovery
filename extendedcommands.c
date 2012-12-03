@@ -86,15 +86,19 @@ int install_zip(const char* packagefilepath)
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
+#ifndef DEVICE_HAS_NO_VIBRATE
         int err_i = 0;
         for ( err_i = 0; err_i < 4; err_i++ ) {
             vibrate(15);
         }
+#endif
         ui_print("%s\n", installabort);
         return 1;
     }
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+#ifndef DEVICE_HAS_NO_VIBRATE
     vibrate(60);
+#endif
     ui_print("\n%s\n", installcomplete);
     return 0;
 }
@@ -102,34 +106,30 @@ int install_zip(const char* packagefilepath)
 void show_install_update_menu()
 {
 	#define ITEM_CHOOSE_ZIP       0
-	#define ITEM_APPLY_SDCARD     1
-	#define ITEM_ASSERTS          2
+	#define ITEM_APPLY_SIDELOAD	  1
+	#define ITEM_APPLY_SDCARD     2
 
-	static char* INSTALL_MENU_ITEMS[3];
+	static char* INSTALL_MENU_ITEMS[4];
 	INSTALL_MENU_ITEMS[0] = zipchoosezip;
-	INSTALL_MENU_ITEMS[1] = zipapplyupdatezip;
-	INSTALL_MENU_ITEMS[2] = NULL;
+	INSTALL_MENU_ITEMS[1] = "Update via sideload";
+	INSTALL_MENU_ITEMS[2] = zipapplyupdatezip;
+	INSTALL_MENU_ITEMS[3] = NULL;
 
     static char* headers[2];
 	headers[0] = zipinstallheader;
 	headers[1] = "\n";
     headers[2] = NULL;
 
-    if(fallback_settings) {
-		ui_print("Menu not available...\nInsert an sdcard and reboot.\n");
-		return;
-	}
+    if (0 != ensure_path_mounted("/sdcard")) {
+	show_fallback_prompt();
+        return;
+    }
 
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, INSTALL_MENU_ITEMS, 0, 0);
         switch (chosen_item)
         {
-            /*
-			case ITEM_ASSERTS:
-                toggle_script_asserts();
-                break;
-			*/
             case ITEM_APPLY_SDCARD:
             {
                 if (confirm_selection(installconfirm, yesinstallupdate))
@@ -139,6 +139,9 @@ void show_install_update_menu()
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
                 break;
+            case ITEM_APPLY_SIDELOAD:
+				apply_from_adb();
+				break;
             default:
                 return;
         }
@@ -773,10 +776,10 @@ void show_nandroid_menu()
                             NULL
     };
 
-    if(fallback_settings) {
-		ui_print("Menu not available...\nInsert an sdcard and reboot.\n");
-		return;
-	}
+    if (0 != ensure_path_mounted("/sdcard")) {
+	show_fallback_prompt();
+	return;
+    }
 
 	for (;;) {
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -917,13 +920,8 @@ void process_volumes() {
     sprintf(backup_name, "before-ext4-convert-%d", tp.tv_sec);
     struct stat st;
     char tmp[PATH_MAX];
-	if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
-		FILE *file = fopen_path(USER_DEFINED_BACKUP_MARKER, "r");
-		fscanf(file, "%s", &tmp);
-		fclose(file);
-	} else {
-		sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
-	}
+    nandroid_get_assigned_backup_path(tmp);
+
     sprintf(backup_path, "%s%s", tmp, backup_name);
 
     ui_set_show_text(1);

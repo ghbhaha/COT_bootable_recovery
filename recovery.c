@@ -47,6 +47,9 @@
 #include "power.h"
 #include "utilities.h"
 
+#include "adb_install.h"
+#include "minadbd/adb.h"
+
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 #include "eraseandformat.h"
@@ -80,9 +83,10 @@ static int poweroff = 0;
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
-/* Leave directory separating forward slashes out of the default path
- * they will be added when the path is determined in nandroid.c */
-const char *DEFAULT_BACKUP_PATH = "sdcard/cotrecovery/backup";
+/* specify a main directory only, the root of sdcard or other_sd will be added as
+ * well as the suffix for backup or blobs */
+const char *DEFAULT_BACKUP_PATH = "cotrecovery";
+// We should make this check the other_sd as well...
 const char *USER_DEFINED_BACKUP_MARKER = "/sdcard/cotrecovery/.userdefinedbackups";
 
 /*
@@ -1055,6 +1059,10 @@ int run_script_file(void) {
 
 int
 main(int argc, char **argv) {
+	if (argc == 2 && strcmp(argv[1], "adbd") == 0) {
+		adb_main();
+		return 0;
+	}
 	if (strcmp(basename(argv[0]), "recovery") != 0)
 	{
 	    if (strstr(argv[0], "flash_image") != NULL)
@@ -1102,6 +1110,7 @@ main(int argc, char **argv) {
     printf("Starting recovery on %s", ctime(&start));
 	load_volume_table();
     process_volumes();
+    parse_settings();
     ui_init();
     //ui_print(EXPAND(RECOVERY_VERSION)"\n");
 
@@ -1157,11 +1166,13 @@ main(int argc, char **argv) {
             strlcat(modified_path, update_package+6, len);
             printf("(replacing path \"%s\" with \"%s\")\n",
                    update_package, modified_path);
-	    if (update_package = "CACHE:") {
-		update_package = NULL;
-	    } else {
-		update_package = modified_path;
-	    }
+			update_package = modified_path;
+			/* Single quotes for comparing characters rather than strings,
+			 * instead of worrying about if else just set it and only
+			 * reassign it if it's cache otherwise don't touch it again */
+			if (update_package == '/cache/') {
+				update_package = NULL;
+			}
         }
     }
     printf("\n");
@@ -1235,6 +1246,16 @@ main(int argc, char **argv) {
         is_user_initiated_recovery = 1;
         ui_set_show_text(1);
         parse_settings();
+        // Is the first_boot flag set?
+        if (first_boot == 1) {
+			// Run the touchscreen calibration routine
+			ts_calibrate();
+			update_cot_settings();
+			// Clear the screen
+			clear_screen();
+			// Show the welcom text
+			show_welcome_text();
+		}
 
         if (check_for_script_file()) run_script_file();
         if (extendedcommand_file_exists()) {

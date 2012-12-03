@@ -39,41 +39,18 @@
 #include "flashutils/flashutils.h"
 #include <libgen.h>
 #include "eraseandformat.h"
+#include "settingshandler.h"
 
-void get_android_version(const char* backup_path)
+/* After getting the root path of "/sdcard" or similar we need to add
+ * a storage folder; default of course will be cotrecovery but this is
+ * where the user_defined backup options come into play.
+ * possible return would be "/sdcard/cotrecovery" */
+void nandroid_get_assigned_backup_path(const char* backup_path)
 {
-    char* result;
-    FILE * vers = fopen_path("/system/build.prop", "r");
-    int which = 0;
-    if (vers == NULL)
-        return;
-        
-    char line[512];
-    char* strptr;
-    while(fgets(line, sizeof(line), vers) != NULL && fgets(line, sizeof(line), vers) != EOF) {
-        if (strstr(line, "ro.goo.rom") != NULL) {
-            strptr = strstr(line, "=") + 1;
-            break;
-        }
-        else if (strstr(line, "ro.build.id") != NULL) {
-            strptr = strstr(line, "=") + 1;
-            break;
-        }
-    }
-    result = calloc(strlen(strptr) + 1, sizeof(char));
-    strcpy(result, strptr);
-    fclose(vers);
-    ensure_path_unmounted("/system");
-    
-    if(result == NULL)
-        return;
-    
-    strcat(result, "-");
-    strcat(backup_path, result);
-}
-
-void nandroid_get_backup_path(const char* backup_path)
-{
+	/* JB backport (we're leaving out other_sd for now but it could probably be implemented)
+	 * for now assume sdcard for root_path. */
+    char root_path[PATH_MAX] = "/sdcard";
+//    nandroid_get_root_backup_path(root_path, other_sd);
     char tmp[PATH_MAX];
     struct stat st;
     if (stat(USER_DEFINED_BACKUP_MARKER, &st) == 0) {
@@ -83,26 +60,35 @@ void nandroid_get_backup_path(const char* backup_path)
     } else {
         sprintf(tmp, "%s", DEFAULT_BACKUP_PATH);
     }
-    sprintf(backup_path, "/%s/", tmp);
+    sprintf(backup_path, "%s/%s", root_path, tmp);
 }
 
+/* Grab the full path from assigned_backup_path than add /backup/ to
+ * the end. */
+void nandroid_get_backup_path(const char* backup_path)
+{
+    char tmp[PATH_MAX];
+	nandroid_get_assigned_backup_path(tmp);
+    sprintf(backup_path, "%s/backup/", tmp);
+}
+
+/* Take our final backup path from get_backup_path and add a timestamp
+ * folder location */
 void nandroid_generate_timestamp_path(const char* backup_path)
 {
 	nandroid_get_backup_path(backup_path);
-	//get_android_version(backup_path);
-
     time_t t = time(NULL);
     struct tm *bktime = localtime(&t);
-    char tmp[PATH_MAX];
+	char tmp[PATH_MAX];
     if (bktime == NULL) {
         struct timeval tp;
         gettimeofday(&tp, NULL);
         sprintf(tmp, "%d", tp.tv_sec);
-        strcat(backup_path, tmp);
-	} else {
-		strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
 		strcat(backup_path, tmp);
-	}
+    } else {
+        strftime(tmp, sizeof(tmp), "%F.%H.%M.%S", bktime);
+		strcat(backup_path, tmp);
+    }
 }
 
 static int print_and_error(const char* message) {
@@ -355,7 +341,7 @@ int nandroid_backup(const char* backup_path)
     if (0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
         return ret;
 
-#if TARGET_BOOTLOADER_BOARD_NAME != otter
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     Volume *vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s)) {
         //ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -375,7 +361,7 @@ int nandroid_backup(const char* backup_path)
     }
 
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     ui_reset_progress();
     ui_print("\nBackup complete!\n");
     return 0;
@@ -435,6 +421,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     if (cache && 0 != (ret = nandroid_backup_partition_extended(backup_path, "/cache", 0)))
         return ret;
 
+#ifndef DEVICE_DOES_NOT_SUPPORT_SD_EXT
     Volume *vol = volume_for_path("/sd-ext");
     if (sdext && vol == NULL || 0 != stat(vol->device, &s)) {
         ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -444,6 +431,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
             return ret;
     }
+#endif
 
     ui_print("Generating md5 sum...\n");
     sprintf(tmp, "nandroid-md5.sh %s", backup_path);
@@ -453,7 +441,7 @@ int nandroid_advanced_backup(const char* backup_path, int boot, int recovery, in
     }
 
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     ui_reset_progress();
     ui_print("\nBackup complete!\n");
     return 0;
@@ -695,7 +683,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return ret;
 
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     ui_reset_progress();
     ui_print("\nRestore complete!\n");
     return 0;
