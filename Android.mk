@@ -22,7 +22,8 @@ LOCAL_SRC_FILES := \
     settingshandler_lang.c \
     settings.c \
     verifier.c \
-    iniparse/ini.c
+    iniparse/ini.c \
+    adb_install.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -33,7 +34,13 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_NAME := Cannibal Open Touch
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v2.1-dev
+ifneq ($(BOARD_RECOVERY_RELEASE_TYPE),)
+  RECOVERY_RELEASE_TYPE := $(BOARD_RECOVERY_RELEASE_TYPE)
+else
+  RECOVERY_RELEASE_TYPE := Beta
+endif
+
+RECOVERY_VERSION := $(RECOVERY_NAME) v2.1 $(BOARD_RECOVERY_RELEASE_TYPE)
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
@@ -41,6 +48,14 @@ LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 
 ifneq ($(BOARD_TS_MAX_ROWS),)
   LOCAL_CFLAGS += -DBOARD_TS_MAX_ROWS="$(BOARD_TS_MAX_ROWS)"
+endif
+
+ifdef RECOVERY_BUILD_IN_LANDSCAPE
+  LOCAL_CFLAGS += -DBUILD_IN_LANDSCAPE=true
+endif
+
+ifdef BOARD_TS_NO_BOUNDARY
+  LOCAL_CFLAGS += -DBOARD_TS_NO_BOUNDARY=true
 endif
 
 ifneq ($(BOARD_HAS_QUICKFIXES),)
@@ -104,7 +119,7 @@ endif
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
-LOCAL_STATIC_LIBRARIES += libminizip libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
+LOCAL_STATIC_LIBRARIES += libminizip libminadbd libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
 LOCAL_STATIC_LIBRARIES += libdedupe libcrypto_static libcrecovery libflashutils libmtdutils libmmcutils libbmlutils
 
@@ -183,6 +198,7 @@ include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/gui/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
+include $(commands_recovery_local_path)/minadbd/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk

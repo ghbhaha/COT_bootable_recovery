@@ -10,12 +10,14 @@
 	* User defined backup locations.
 	* Support for Open Recovery Scripts (http://www.teamw.in/OpenRecoveryScript).
 	* Persistent settings.
+	* Sideloadable (sdcard) theme support.
+	* ADB Sideload.
 
 <pre> Please note the following in regards to this branch.
-=========================================================
+====================================================
 
 <ul>
 <li>If you are building for the Kindle Fire (first edition) you may also checkout https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/hybrid for stable builds instead.</li>
 <li>If you are looking for one of our Legacy Devices please checkout https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/gingerbread instead.</li>
-<li>This branch is broken right now do to resource conflicts, do NOT use it; please see our [Jellybean-dev](https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/jellybean-dev) branch for the most up to date (beta) source.</li>
+<li>The following repos are required for all current builds: https://github.com/ProjectOpenCannibal/android_bootable_recovery_res and https://github.com/ProjectOpenCannibal/android_bootable_recovery_gui/tree/jellybean.</li>
 </ul>

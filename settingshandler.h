@@ -22,6 +22,7 @@ void handle_theme(char * theme_name);
 
 int settings_handler(void* user, const char* section, const char* name, const char* value);
 int theme_handler(void* user, const char* section, const char* name, const char* value);
+int themename_handler(void* user, const char* section, const char* name, const char* value);
 
 extern int fallback_settings;
 
@@ -29,8 +30,12 @@ extern int backupprompt;
 extern int orswipeprompt;
 extern int orsreboot;
 extern int signature_check_enabled;
+extern int is_sd_theme;
+extern int first_boot;
 extern int backupfmt;
 extern char* currenttheme;
 extern char* language;
+extern char* themename;
 
 void update_cot_settings(void);
+void show_welcome_text();

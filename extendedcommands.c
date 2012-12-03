@@ -128,7 +128,7 @@ int install_zip(const char* packagefilepath)
     int status = install_package(packagefilepath);
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
-        ui_dyn_background();
+        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
         ui_print("Installation aborted.\n");
         return 1;
     }
@@ -138,8 +138,9 @@ int install_zip(const char* packagefilepath)
 }
 
 #define ITEM_CHOOSE_ZIP       0
-#define ITEM_APPLY_SDCARD     1
-#define ITEM_CHOOSE_ZIP_INT   2
+#define ITEM_APPLY_SIDELOAD   1
+#define ITEM_APPLY_SDCARD     2
+#define ITEM_CHOOSE_ZIP_INT   3
 
 void show_install_update_menu()
 {
@@ -149,6 +150,7 @@ void show_install_update_menu()
     };
     
     char* install_menu_items[] = {  "Choose ZIP from SD Card",
+                                    "Update via sideload",
                                     "Install /sdcard/update.zip",
                                     NULL,
                                     NULL };
@@ -156,11 +158,11 @@ void show_install_update_menu()
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc/";
-        install_menu_items[2] = "Choose ZIP from internal SD Card";
+        install_menu_items[3] = "Choose ZIP from internal SD Card";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd/";
-        install_menu_items[2] = "Choose ZIP from external SD Card";
+        install_menu_items[3] = "Choose ZIP from external SD Card";
     }
     
     for (;;)
@@ -176,6 +178,9 @@ void show_install_update_menu()
             }
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
+                break;
+            case ITEM_APPLY_SIDELOAD:
+                apply_from_adb();
                 break;
             case ITEM_CHOOSE_ZIP_INT:
                 if (other_sd != NULL)
@@ -481,6 +486,8 @@ void show_nandroid_delete_menu(const char* path)
         sprintf(tmp, "rm -rf %s", file);
         __system(tmp);
         ui_print("Backup deleted!\n");
+        uint64_t sdcard_free_mb = recalc_sdcard_space(path);
+		ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
     }
 }
 
@@ -513,10 +520,10 @@ int show_choose_delete_menu()
         int chosen_item = get_menu_selection(headers, CHOOSE_DELETE_MENU_ITEMS, 0, 0);
         switch(chosen_item) {
             case ITEM_VIEW_BACKUPS_ON_SDCARD:
-                nandroid_get_assigned_backup_path(base_path, 0);
+                nandroid_get_backup_path(base_path, 0);
                 break;
             case ITEM_VIEW_BACKUPS_ON_OTHERSD:
-                nandroid_get_assigned_backup_path(base_path, 1);
+                nandroid_get_backup_path(base_path, 1);
                 break;
             default:
                 ui_print("Cancelling backup.\n");
@@ -526,14 +533,39 @@ int show_choose_delete_menu()
     }
 }
 
+static void run_dedupe_gc(const char* other_sd) {
+    ensure_path_mounted("/sdcard");
+	char path[PATH_MAX], tmp[PATH_MAX];
+	nandroid_get_assigned_backup_path(path, 0);
+    if (other_sd) {
+        ensure_path_mounted(other_sd);
+		nandroid_get_assigned_backup_path(path, 1);
+    }
+	sprintf(tmp, "%s/blobs", path);
+	nandroid_dedupe_gc(tmp);
+    uint64_t sdcard_free_mb = recalc_sdcard_space(path);
+    ui_print("SD Card space free: %lluMB\n", sdcard_free_mb);
+}
+
 int show_lowspace_menu(int i, const char* backup_path)
 {
-	static char *LOWSPACE_MENU_ITEMS[] = { "Continue with backup",
+	static char *LOWSPACE_MENU_ITEMS[5] = { "Continue with backup",
 											"View and delete old backups",
-											"Cancel backup",
+                                            NULL,
+                                            NULL,
 											NULL };
+
 	#define ITEM_CONTINUE_BACKUP 0
 	#define ITEM_VIEW_DELETE_BACKUPS 1
+    #define ITEM_FREE_DATA_OR_CANCEL 2
+
+    if(!backupfmt) {
+        LOWSPACE_MENU_ITEMS[2] = "Free unused backup data";
+        LOWSPACE_MENU_ITEMS[3] = "Cancel backup";
+    } else {
+        LOWSPACE_MENU_ITEMS[2] = "Cancel backup";
+        LOWSPACE_MENU_ITEMS[3] = NULL;
+    }
 
 	static char* headers[] = { "Limited space available!",
 								"",
@@ -557,10 +589,29 @@ int show_lowspace_menu(int i, const char* backup_path)
                     show_choose_delete_menu();
                 } else {
                     char base_path[PATH_MAX];
-                    nandroid_get_assigned_backup_path(base_path, 0);
+                    nandroid_get_backup_path(base_path, 0);
 				    show_nandroid_delete_menu(base_path);
                 }
 				break;
+            }
+            case ITEM_FREE_DATA_OR_CANCEL: {
+                if(backupfmt) {
+                    ui_print("Cancelling backup.\n");
+                    return 1;
+                }
+                char *other_sd = NULL;
+                if(OTHER_SD_CARD) {
+                    switch(OTHER_SD_CARD) {
+                        case EMMC:
+                            other_sd = "/emmc";
+                            break;
+                        case EXTERNALSD:
+                            other_sd = "/external_sd";
+                            break;
+                    }
+                }
+                run_dedupe_gc(other_sd);
+                break;
             }
 			default:
 				ui_print("Cancelling backup.\n");
@@ -581,8 +632,7 @@ static struct lun_node *lun_head = NULL;
 static struct lun_node *lun_tail = NULL;
 
 int control_usb_storage_set_lun(Volume* vol, bool enable, const char *lun_file) {
-    char c = 0;
-    const char *vol_device = enable ? vol->device : &c;
+    const char *vol_device = enable ? vol->device : "";
     int fd;
     struct lun_node *node;
 
@@ -602,7 +652,7 @@ int control_usb_storage_set_lun(Volume* vol, bool enable, const char *lun_file) 
     }
 
     // Write the volume path to the LUN file
-    if ((write(fd, vol_device, strlen(vol_device)) < 0) &&
+    if ((write(fd, vol_device, strlen(vol_device) + 1) < 0) &&
        (!enable || !vol->device2 || (write(fd, vol->device2, strlen(vol->device2)) < 0))) {
         LOGW("Unable to write to ums lunfile %s (%s)\n", lun_file, strerror(errno));
         close(fd);
@@ -919,18 +969,6 @@ void show_nandroid_advanced_restore_menu(const char* path)
     }
 }
 
-static void run_dedupe_gc(const char* other_sd) {
-    ensure_path_mounted("/sdcard");
-	char path[PATH_MAX], tmp[PATH_MAX];
-	nandroid_get_assigned_backup_path(path, 0);
-    if (other_sd) {
-        ensure_path_mounted(other_sd);
-		nandroid_get_assigned_backup_path(path, 1);
-    }
-	sprintf(tmp, "%s/blobs", path);
-	nandroid_dedupe_gc(tmp);
-}
-
 void show_nandroid_menu()
 {
     static char* headers[] = {  "Nandroid",
@@ -943,7 +981,7 @@ void show_nandroid_menu()
                             "Delete old backups",
                             "Advanced Backup",
                             "Advanced Restore",
-                            "Free unused backup data",
+                            NULL,
                             NULL,
                             NULL,
                             NULL,
@@ -952,6 +990,8 @@ void show_nandroid_menu()
                             NULL,
                             NULL
     };
+    
+    if(!backupfmt) list[5] = "Free unused backup data";
 
     char *other_sd = NULL;
     if(OTHER_SD_CARD == EMMC) {
@@ -1097,7 +1137,20 @@ int can_partition(const char* volume) {
         return 0;
     }
 
+    /* Forbid partitioning anything that can't be formatted (the Kindle
+     * Fire as mentioned below isn't handled properly; since we shouldn't
+     * really be formatting it either, we can go ahead and block both
+     * functions using the system.prop) */
+    if (!is_safe_to_format(volume)) {
+		LOGI("Can't partition, format forbidden on: %s\n", volume);
+		return 0;
+	}
+
     int vol_len = strlen(vol->device);
+
+    /* This does not work properly with the Kindle Fire (otter); instead of
+     * removing the option it shows up in fubard text. Device ends in p12 */
+
     // do not allow partitioning of a device that isn't mmcblkX or mmcblkXp1
     if (vol->device[vol_len - 2] == 'p' && vol->device[vol_len - 2] != '1') {
         LOGI("Can't partition unsafe device: %s\n", vol->device);

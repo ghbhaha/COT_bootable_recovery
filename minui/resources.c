@@ -41,7 +41,7 @@ double pow(double x, double y) {
     return x;
 }
 
-int res_create_surface(const char* name, gr_surface* pSurface) {
+int res_create_surface(const char* name, gr_surface* pSurface, int sd, const char* theme_name) {
     char resPath[256];
     GGLSurface* surface = NULL;
     int result = 0;
@@ -51,7 +51,11 @@ int res_create_surface(const char* name, gr_surface* pSurface) {
 
     *pSurface = NULL;
 
-    snprintf(resPath, sizeof(resPath)-1, "/res/images/%s.png", name);
+    if (sd == 1) {
+		snprintf(resPath, sizeof(resPath)-1, "/sdcard/cotrecovery/theme/%s/%s.png", theme_name, name);
+	} else {
+		snprintf(resPath, sizeof(resPath)-1, "/res/theme/%s/%s.png", theme_name, name);
+	}
     resPath[sizeof(resPath)-1] = '\0';
     FILE* fp = fopen(resPath, "rb");
     if (fp == NULL) {

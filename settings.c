@@ -68,7 +68,6 @@ int UICOLOR0 = 0;
 int UICOLOR1 = 0;
 int UICOLOR2 = 0;
 int UITHEME = 0;
-int easter = 0;
 
 int UI_COLOR_DEBUG = 0;
 
@@ -222,9 +221,9 @@ void show_settings_menu() {
     #define SETTINGS_ITEM_ORS_WIPE      4
     #define SETTINGS_ITEM_NAND_PROMPT   5
     #define SETTINGS_ITEM_SIGCHECK      6
-    #define SETTINGS_ITEM_DEV_OPTIONS   7
+    #define SETTINGS_ITEM_TS_CAL		7
 
-    static char* list[8];
+    static char* list[9];
 	
     list[0] = "Language";
     list[1] = "Theme";
@@ -253,7 +252,8 @@ void show_settings_menu() {
 	} else {
 		list[6] = "Enable md5 signature check";
 	}
-    list[7] = NULL;
+    list[7] = "Calibrate Touchscreen";
+    list[8] = NULL;
 
     for (;;) {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -261,12 +261,10 @@ void show_settings_menu() {
             case GO_BACK:
                 return;
             case SETTINGS_ITEM_THEME:
-			{
+            {
                 static char* ui_colors[] = {"Hydro (default)",
                                                     "Blood Red",
-                                                    "Lloyd Green",
-                                                    "Citrus Orange",
-                                                    "Dooderbutt Blue",
+                                                    "Custom Theme (sdcard)",
                                                     NULL
                 };
                 static char* ui_header[] = {"COT Theme", "", NULL};
@@ -278,22 +276,19 @@ void show_settings_menu() {
                     switch(ui_color) {
                         case 0:
                             currenttheme = "hydro";
+                            is_sd_theme = 0;
                             break;
                         case 1:
                             currenttheme = "bloodred";
+							is_sd_theme = 0;
                             break;
                         case 2:
-                            currenttheme = "lloyd";
-                            break;
-                        case 3:
-                            currenttheme = "citrusorange";
-                            break;
-                        case 4:
-                            currenttheme = "dooderbuttblue";
-                            break;
-					}
-					break;
-				}
+							currenttheme = "custom";
+							is_sd_theme = 1;
+							break;
+                    }
+                    break;
+                }
             }
             case SETTINGS_CHOOSE_BACKUP_FMT:
             {
@@ -307,7 +302,6 @@ void show_settings_menu() {
 					switch(cb_fmt) {
 						case 0:
 							backupfmt = 0;
-							//write_string_to_file(NANDROID_BACKUP_FORMAT_FILE, "dup");
 							ui_print("Backup format set to dedupe.\n");
 							nandroid_switch_backup_handler(0);
 							list[2] = "Choose Backup Format (currently dup)";
@@ -336,8 +330,8 @@ void show_settings_menu() {
                 break;
             }
             case SETTINGS_ITEM_ORS_WIPE:
-			{
-                if (orswipeprompt == 1) {
+            {
+				if (orswipeprompt == 1) {
 					ui_print("Disabling wipe prompt.\n");
 					list[4] = "Enable wipe prompt";
 					orswipeprompt = 0;
@@ -346,11 +340,11 @@ void show_settings_menu() {
 					list[4] = "Disable wipe prompt";
 					orswipeprompt = 1;
 				}
-                break;
+				break;
             }
             case SETTINGS_ITEM_NAND_PROMPT:
-			{
-                if (backupprompt == 1) {
+            {
+				if (backupprompt == 1) {
 					ui_print("Disabling zip flash nandroid prompt.\n");
 					list[5] = "Enable zip flash nandroid prompt";
 					backupprompt = 0;
@@ -359,16 +353,10 @@ void show_settings_menu() {
 					list[5] = "Disable zip flash nandroid prompt";
 					backupprompt = 1;
 				}
-                break;
+				break;
             }
             case SETTINGS_ITEM_SIGCHECK:
             {
-				easter++;
-				if (easter == EASTEREGG) {
-					UITHEME = EASTEREGG;
-					ui_dyn_background();
-					easter = 0;
-				}
 				if (signature_check_enabled == 1) {
 					ui_print("Disabling md5 signature check.\n");
 					list[6] = "Enable md5 signature check";
@@ -401,6 +389,11 @@ void show_settings_menu() {
 
                 break;
             }
+            case SETTINGS_ITEM_TS_CAL:
+            {
+				ts_calibrate();
+				break;
+			}
             default:
                 return;
         }
@@ -408,30 +401,90 @@ void show_settings_menu() {
     }
 }
 
-void ui_dyn_background()
-{
-	if(UI_COLOR_DEBUG) {
-		LOGI("%s %i\n", "DYN_BG:", UITHEME);
-	}
-	switch(UITHEME) {
-		case BLOOD_RED_UI:
-			ui_set_background(BACKGROUND_ICON_BLOODRED);
-			break;
-		case LLOYD_UI:
-			ui_set_background(BACKGROUND_ICON_LLOYD);
-			break;
-		case CITRUS_ORANGE_UI:
-			ui_set_background(BACKGROUND_ICON_CITRUSORANGE);
-			break;
-		case DOODERBUTT_BLUE_UI:
-			ui_set_background(BACKGROUND_ICON_DOODERBUTT);
-			break;
-		case EASTEREGG:
-			ui_set_background(BACKGROUND_ICON_EASTER);
-			break;
-		// Anything else is the clockwork icon
-		default:
-			ui_set_background(BACKGROUND_ICON_CLOCKWORK);
-			break;
-	}
+void ts_calibrate() {
+	ui_set_background(BACKGROUND_ICON_TSCAL);
+	ui_print("Beginning touchscreen calibration.\n");
+	ui_print("Tap the red dot. 3 taps remaining.\n");
+	struct keyStruct{
+		int code;
+		int x;
+		int y;
+	}*key;
+	int step = 1;
+	int prev_touch_y, prev_max_x, prev_max_y;
+	int sum_x, sum_y;
+	int final_x, final_y;
+	int ts_x_1, ts_x_2, ts_x_3;
+	int ts_y_1, ts_y_2, ts_y_3;
+	prev_touch_y = touchY;
+	prev_max_x = maxX;
+	prev_max_y = maxY;
+	maxX = 0;
+	maxY = 0;
+	touchY = 0;
+	do {
+		key = ui_wait_key();
+		switch(step) {
+			case 1:
+			{
+				if(key->code == ABS_MT_POSITION_X) {
+					ts_x_1 = key->x;
+					ts_y_1 = key->y;
+					step = 2;
+					ui_print("Tap the red dot. 2 taps remaining.\n");
+					break;
+				}
+			}
+			case 2:
+			{
+				if(key->code == ABS_MT_POSITION_X) {
+					ts_x_2 = key->x;
+					ts_y_2 = key->y;
+					step = 3;
+					ui_print("Tap the red dot. 1 tap remaining.\n");
+					break;
+				}
+			}
+			case 3:
+			{
+				if(key->code == ABS_MT_POSITION_X) {
+					ts_x_3 = key->x;
+					ts_y_3 = key->y;
+					step = 4;
+					ui_print("Now calculating calibration data...\n");
+					break;
+				}
+			}
+			default:
+			{
+				break;
+			}
+		}
+	} while (step != 4);
+	sum_x = ts_x_1+ts_x_2+ts_x_3;
+	sum_y = ts_y_1+ts_y_2+ts_y_3;
+	final_x = sum_x/3;
+	final_y = sum_y/3;
+	final_x = final_x*2;
+	final_y = final_y*2;
+	maxX = final_x;
+	maxY = final_y;
+#ifndef BOARD_TS_NO_BOUNDARY
+	int y_calc;
+	int fb_height;
+	int fb_limit;
+	fb_height = gr_fb_height();
+	y_calc = fb_height/6;
+	fb_limit = fb_height-y_calc;
+	touchY = fb_limit;
+#else
+	touchY = 0;
+#endif
+	ui_print("Calibration complete!\n");
+	ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+	return;
+}
+
+void clear_screen() {
+	ui_print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 }

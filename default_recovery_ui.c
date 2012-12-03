@@ -66,6 +66,15 @@ int touchY=0;
  */
 int minimum_storage=512;
 
+// define what line to draw the battery indicator on
+int BATT_LINE=0;
+// define the screen position of the battery indicator
+int BATT_POS=RIGHT_ALIGN;
+// define what line to draw the clock on
+int TIME_LINE=1;
+// define the screen position of the clock
+int TIME_POS=RIGHT_ALIGN;
+
 char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "Boot Android",
@@ -154,15 +163,21 @@ return 0;
 int MT_X(int x)
 {
 	int out;
-	out = maxX ? (x*gr_fb_width()/maxX) : x;		
-
+#ifndef BUILD_IN_LANDSCAPE
+	out = maxX ? (x*resX/maxX) : x;
+#else
+	out = x/4;
+#endif
 	return out;
 }
 
 int MT_Y(int y)
 {
 	int out;
-	out = maxY ? (y*gr_fb_height()/maxY) : y;		
-
+#ifndef BUILD_IN_LANDSCAPE
+	out = maxY ? (y*resY/maxY) : y;
+#else
+	out = y/4;
+#endif
 	return out;
 }
