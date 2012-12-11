@@ -372,175 +372,242 @@ int is_safe_to_format(char* name)
     return 1;
 }
 
-void show_partition_menu()
-{
-    static char* headers[] = {  "Storage Management",
-                                "",
-                                NULL
+static void show_partition_mount_menu() {
+    static char* headers[] = {  "Mount Options",
+		"",
+		NULL
     };
+	static MountMenuEntry* mount_menu = NULL;
+	static int i, mountable_volumes = 0;
+	static int num_volumes;
+	Volume* device_volumes;
+	num_volumes = get_num_volumes();
+	device_volumes = get_device_volumes();
+	static char options[255];
 
-    static MountMenuEntry* mount_menu = NULL;
-    static FormatMenuEntry* format_menu = NULL;
+	if(!device_volumes)
+		return;
 
-    typedef char* string;
+	mount_menu = malloc(num_volumes * sizeof(MountMenuEntry));
 
-    int i, mountable_volumes, formatable_volumes;
-    int num_volumes;
-    Volume* device_volumes;
-
-    num_volumes = get_num_volumes();
-    device_volumes = get_device_volumes();
-
-    string options[255];
-
-    if(!device_volumes)
-        return;
-
-    mountable_volumes = 0;
-    formatable_volumes = 0;
-
-    mount_menu = malloc(num_volumes * sizeof(MountMenuEntry));
-    format_menu = malloc(num_volumes * sizeof(FormatMenuEntry));
-
-    for (i = 0; i < num_volumes; ++i) {
-        Volume* v = &device_volumes[i];
-        if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
-            sprintf(&mount_menu[mountable_volumes].mount, "Mount %s", v->mount_point);
-            sprintf(&mount_menu[mountable_volumes].unmount, "Unmount %s", v->mount_point);
-            mount_menu[mountable_volumes].v = &device_volumes[i];
-            ++mountable_volumes;
-            if (is_safe_to_format(v->mount_point)) {
-                sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
-                format_menu[formatable_volumes].v = &device_volumes[i];
-                ++formatable_volumes;
-            }
-        }
-        else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
-        {
-            sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
-            format_menu[formatable_volumes].v = &device_volumes[i];
-            ++formatable_volumes;
-        }
-    }
-
-    static char* confirm_format  = "Confirm format?";
-    static char* confirm = "Yes - Format";
-    char confirm_string[255];
-
-    for (;;)
-    {
-        for (i = 0; i < mountable_volumes; i++)
-        {
-            MountMenuEntry* e = &mount_menu[i];
-            Volume* v = e->v;
-            if(is_path_mounted(v->mount_point))
-                options[i] = e->unmount;
-            else
-                options[i] = e->mount;
-        }
-
-        for (i = 0; i < formatable_volumes; i++)
-        {
-            FormatMenuEntry* e = &format_menu[i];
-
-            options[mountable_volumes+i] = e->txt;
-        }
-
-		/* CWM moved dalvik cache (I haven't cared to look where); it's been
-		 * requested that we bring all the format options together in the list
-		 * to that end dalvik has been moved to before the partition and mass
-		 * storage options */
-		options[mountable_volumes + formatable_volumes] = "Format dalvik cache";
-
-		if (!is_data_media()) {
-			options[mountable_volumes + formatable_volumes + 1] = "Mount USB storage";
-		} else {
-			options[mountable_volumes + formatable_volumes + 1] = "Format /data and /data/media (/sdcard)";
+	for (i = 0; i < num_volumes; ++i) {
+		Volume* v = &device_volumes[i];
+		if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
+			sprintf(&mount_menu[mountable_volumes].mount, "Mount %s", v->mount_point);
+			sprintf(&mount_menu[mountable_volumes].unmount, "Unmount %s", v->mount_point);
+			mount_menu[mountable_volumes].v = &device_volumes[i];
+			++mountable_volumes;
 		}
+	}
 
-		if (!can_partition("/sdcard")) {
-			options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
+	if(!is_data_media())
+		options[mountable_volumes] = "Mount USB storage";
+	else
+		options[mountable_volumes] = NULL;
+
+	for(;;) {
+		for (i = 0; i < mountable_volumes; i++) {
+			MountMenuEntry* e = &mount_menu[i];
+			Volume* v = e->v;
+			if(is_path_mounted(v->mount_point))
+				options[i] = e->unmount;
+			else
+				options[i] = e->mount;
 		}
-		if (!can_partition("/external_sd")) {
-			options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
-		}
-		if (!can_partition("/emmc")) {
-			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
-		}
-
-		options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1 + 1] = NULL;
-
-        int chosen_item = get_menu_selection(headers, &options, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        if (chosen_item == (mountable_volumes+formatable_volumes)) {
-			erase_dalvik_cache(NULL);
-		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1)) {
-			if (!is_data_media()) {
-                show_mount_usb_storage_menu();
-            } else {
-                if (!confirm_selection("format /data and /data/media (/sdcard)", confirm))
-                    continue;
-
-                handle_data_media_format(1);
-                ui_print("Formatting /data...\n");
-
-                if (0 != format_volume("/data"))
-                    ui_print("Error formatting /data!\n");
-                else
-                    ui_print("Done.\n");
-
-                handle_data_media_format(0);  
-            }
-        } else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1)) {
-			if (!is_data_media()) {
-				partition_sdcard("/sdcard");
+		int chosen_item = get_menu_selection(headers, &options, 0, 0);
+		if (chosen_item == GO_BACK)
+			break;
+		if (chosen_item < mountable_volumes) {
+			MountMenuEntry* e = &mount_menu[chosen_item];
+			Volume* v = e->v;
+			
+			if (is_path_mounted(v->mount_point)) {
+				if (0 != ensure_path_unmounted(v->mount_point))
+					ui_print("Error unmounting %s!\n", v->mount_point);
 			} else {
-				partition_sdcard("/external_sd");
+				if (0 != ensure_path_mounted(v->mount_point))
+					ui_print("Error mounting %s!\n",  v->mount_point);
 			}
-		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1 + 1)) {
-			if (!is_data_media()) {
-				partition_sdcard("/external_sd");
-			} else {
-				partition_sdcard("/emmc");
-			}
-		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1 + 1 + 1)) {
-			if (!is_data_media()) {
-				partition_sdcard("/emmc");
-			}
-        } else if (chosen_item < mountable_volumes) {
-            MountMenuEntry* e = &mount_menu[chosen_item];
-            Volume* v = e->v;
-
-            if (is_path_mounted(v->mount_point))
-            {
-                if (0 != ensure_path_unmounted(v->mount_point))
-                    ui_print("Error unmounting %s!\n", v->mount_point);
-            }
-            else
-            {
-                if (0 != ensure_path_mounted(v->mount_point))
-                    ui_print("Error mounting %s!\n",  v->mount_point);
-            }
-        }
-        else if (chosen_item < (mountable_volumes + formatable_volumes))
-        {
-            chosen_item = chosen_item - mountable_volumes;
-            FormatMenuEntry* e = &format_menu[chosen_item];
-            Volume* v = e->v;
-
-            sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
-
-            if (!confirm_selection(confirm_string, confirm))
-                continue;
-            ui_print("Formatting %s...\n", v->mount_point);
-            if (0 != format_volume(v->mount_point))
-                ui_print("Error formatting %s!\n", v->mount_point);
-            else
-                ui_print("Done.\n");
-        }
-    }
-
+		}
+		if (chosen_item == mountable_volumes && !is_data_media())
+			show_mount_usb_storage_menu();
+	}
     free(mount_menu);
-    free(format_menu);
 }
+
+static void show_partition_format_menu() {
+    static char* headers[] = {  "Format Options",
+		"",
+		NULL
+    };
+	static FormatMenuEntry* format_menu = NULL;
+	static int i, formatable_volumes = 0;
+	static int num_volumes;
+	Volume* device_volumes;
+	num_volumes = get_num_volumes();
+	device_volumes = get_device_volumes();
+	static char options[255];
+
+	if(!device_volumes)
+		return;
+
+	format_menu = malloc(num_volumes * sizeof(FormatMenuEntry));
+	
+	for (i = 0; i < num_volumes; ++i) {
+		Volume* v = &device_volumes[i];
+		if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point)) {
+			sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
+			format_menu[formatable_volumes].v = &device_volumes[i];
+			++formatable_volumes;
+		}
+	}
+	options[formatable_volumes] = "Format dalvik cache";
+
+	if(is_data_media())
+		options[formatable_volumes++] = "Format /data and /data/media (/sdcard)";
+	else
+		options[formatable_volumes++] = NULL;
+
+	static char* confirm_format  = "Confirm format?";
+	static char* confirm = "Yes - Format";
+	char confirm_string[255];
+	
+	for(;;) {
+		for (i = 0; i < formatable_volumes; i++) {
+			FormatMenuEntry* e = &format_menu[i];
+			options[i] = e->txt;
+		}
+		int chosen_item = get_menu_selection(headers, &options, 0, 0);
+		if (chosen_item == GO_BACK)
+			break;
+		if (chosen_item < formatable_volumes) {
+			FormatMenuEntry* e = &format_menu[chosen_item];
+			Volume* v = e->v;
+
+			sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
+
+			if (!confirm_selection(confirm_string, confirm))
+				continue;
+			
+			ui_print("Formatting %s...\n", v->mount_point);
+			
+			if (0 != format_volume(v->mount_point))
+				ui_print("Error formatting %s!\n", v->mount_point);
+			else
+				ui_print("Done.\n");
+		}
+		if (chosen_item == formatable_volumes)
+			erase_dalvik_cache(NULL);
+		if (chosen_item == formatable_volumes++ && is_data_media()) {
+			if (!confirm_selection("format /data and /data/media (/sdcard)", confirm))
+				continue;
+
+			handle_data_media_format(1);
+			ui_print("Formatting /data...\n");
+			
+			if (0 != format_volume("/data"))
+				ui_print("Error formatting /data!\n");
+			else
+				ui_print("Done.\n");
+			
+			handle_data_media_format(0);  	
+		}
+	}
+	free(format_menu);
+}
+
+static void show_partition_sdcard_menu() {
+	static char* headers[] = { "SD Card Options",
+		"",
+		NULL,
+	};
+	static char* sdcard_menu_options[] = { NULL,
+		NULL,
+		NULL,
+		NULL,
+	};
+	static char options[255];
+
+	if(!is_data_media() && can_partition("/sdcard")) {
+		sdcard_menu_options[0] = "Partition SD Card";
+		if(can_partition("/external_sd")) {
+			sdcard_menu_options[1] = "Partition external SD Card";
+			if(can_partition("/emmc"))
+				sdcard_menu_options[2] = "Partition emmc";
+		} else if (can_partition("/emmc"))
+			sdcard_menu_options[1] = "Partition emmc";
+	} else if (can_partition("/external_sd")) {
+		sdcard_menu_options[0] = "Partition external SD Card";
+		if(can_partition("/emmc"))
+			sdcard_menu_options[1] = "Partition emmc";
+	} else if (can_partition("/emmc"))
+		sdcard_menu_options[0] = "Partition emmc";
+
+	int chosen_item = get_menu_selection(headers, &options, 0, 0);
+	switch(chosen_item) {
+		case 0: {
+			if(!is_data_media() && can_partition("/sdcard"))
+				partition_sdcard("/sdcard");
+			else if(can_partition("/external_sd"))
+				partition_sdcard("/external_sd");
+			else if(can_partition("/emmc"))
+				partition_sdcard("/emmc");
+			break;
+		}
+		case 1: {
+			if(can_partition("/external_sd"))
+				partition_sdcard("/external_sd");
+			else if(can_partition("/emmc"))
+				partition_sdcard("/emmc");
+			break;
+		}
+		case 2: {
+			if(can_partition("/emmc"))
+				partition_sdcard("/emmc");
+			break;
+		}
+		default:
+			return;
+	}
+}
+
+void show_partition_menu() {
+	#define MOUNT_OPTIONS 0
+	#define FORMAT_OPTIONS 1
+	#define SDCARD_OPTIONS 2
+	
+	static char* headers[] = {  "Storage Management",
+		"",
+		NULL
+	};
+	static char* partition_menu_options[] = { "Mount Options",
+		"Fomart Options",
+		NULL,
+		NULL,
+	};
+	
+#ifndef RECOVERY_DEVICE_HAS_INTERNAL_SDCARD
+	partition_menu_options[2] = "SD Card Options";
+#else
+	if(can_partition("/sdcard") || can_partition("/external_sd") || can_partition("/emmc"))
+		partition_menu_options[2] = "SD Card Options";
+#endif
+
+	for(;;) {
+		int chosen_item = get_menu_selection(headers, partition_menu_options, 0, 0);
+		switch(chosen_item) {
+			case MOUNT_OPTIONS:
+				show_partition_mount_menu();
+				break;
+			case FORMAT_OPTIONS:
+				show_partition_format_menu();
+				break;
+			case SDCARD_OPTIONS:
+				show_partition_sdcard_menu();
+				break;
+			default:
+				return;
+		}
+	}
+}
+
