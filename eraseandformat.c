@@ -383,7 +383,7 @@ static void show_partition_mount_menu() {
 	Volume* device_volumes;
 	num_volumes = get_num_volumes();
 	device_volumes = get_device_volumes();
-	static char options[255];
+	static char* options[255];
 
 	if(!device_volumes)
 		return;
@@ -446,7 +446,7 @@ static void show_partition_format_menu() {
 	Volume* device_volumes;
 	num_volumes = get_num_volumes();
 	device_volumes = get_device_volumes();
-	static char options[255];
+	static char* options[255];
 
 	if(!device_volumes)
 		return;
@@ -526,7 +526,7 @@ static void show_partition_sdcard_menu() {
 		NULL,
 		NULL,
 	};
-	static char options[255];
+	static char* options[255];
 
 	if(!is_data_media() && can_partition("/sdcard")) {
 		sdcard_menu_options[0] = "Partition SD Card";
