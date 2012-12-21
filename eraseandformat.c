@@ -380,7 +380,7 @@ static void show_partition_mount_menu() {
 	static MountMenuEntry* mount_menu = NULL;
 	static int i, mountable_volumes = 0;
 	static int num_volumes;
-	Volume* device_volumes;
+	static Volume* device_volumes;
 	num_volumes = get_num_volumes();
 	device_volumes = get_device_volumes();
 	static char* options[255];
@@ -455,7 +455,7 @@ static void show_partition_format_menu() {
 	
 	for (i = 0; i < num_volumes; ++i) {
 		Volume* v = &device_volumes[i];
-		if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point)) {
+		if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0  && is_safe_to_format(v->mount_point)) {
 			sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
 			format_menu[formatable_volumes].v = &device_volumes[i];
 			++formatable_volumes;
@@ -581,7 +581,7 @@ void show_partition_menu() {
 		NULL
 	};
 	static char* partition_menu_options[] = { "Mount Options",
-		"Fomart Options",
+		"Format Options",
 		NULL,
 		NULL,
 	};
