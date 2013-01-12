@@ -377,13 +377,13 @@ static void show_partition_mount_menu() {
 		"",
 		NULL
     };
-	static MountMenuEntry* mount_menu = NULL;
-	static int i, mountable_volumes = 0;
-	static int num_volumes;
-	static Volume* device_volumes;
+	MountMenuEntry* mount_menu = NULL;
+	int i, mountable_volumes = 0;
+	int num_volumes;
+	Volume* device_volumes;
 	num_volumes = get_num_volumes();
 	device_volumes = get_device_volumes();
-	static char* options[255];
+	char* options[255];
 
 	if(!device_volumes)
 		return;
@@ -440,13 +440,13 @@ static void show_partition_format_menu() {
 		"",
 		NULL
     };
-	static FormatMenuEntry* format_menu = NULL;
-	static int i, formatable_volumes = 0;
-	static int num_volumes;
+	FormatMenuEntry* format_menu = NULL;
+	int i, formatable_volumes = 0;
+	int num_volumes;
 	Volume* device_volumes;
 	num_volumes = get_num_volumes();
 	device_volumes = get_device_volumes();
-	static char* options[255];
+	char* options[255];
 
 	if(!device_volumes)
 		return;
