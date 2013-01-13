@@ -470,7 +470,7 @@ static void show_partition_format_menu() {
 
 	static char* confirm_format  = "Confirm format?";
 	static char* confirm = "Yes - Format";
-	char confirm_string[255];
+	static char confirm_string[255];
 	
 	for(;;) {
 		for (i = 0; i < formatable_volumes; i++) {
@@ -521,12 +521,12 @@ static void show_partition_sdcard_menu() {
 		"",
 		NULL,
 	};
-	static char* sdcard_menu_options[] = { NULL,
+	char* sdcard_menu_options[] = { NULL,
 		NULL,
 		NULL,
 		NULL,
 	};
-	static char* options[255];
+	char* options[255];
 
 	if(!is_data_media() && can_partition("/sdcard")) {
 		sdcard_menu_options[0] = "Partition SD Card";
@@ -580,7 +580,7 @@ void show_partition_menu() {
 		"",
 		NULL
 	};
-	static char* partition_menu_options[] = { "Mount Options",
+	char* partition_menu_options[] = { "Mount Options",
 		"Format Options",
 		NULL,
 		NULL,
