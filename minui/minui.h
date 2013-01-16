@@ -63,4 +63,10 @@ int ev_wait(int timeout);
 int ev_get_input(int fd, short revents, struct input_event *ev);
 void ev_dispatch(void);
 
+// Resources
+
+// Returns 0 if no error, else negative.
+int res_create_surface(const char* name, gr_surface* pSurface, int sd, const char* theme_name);
+void res_free_surface(gr_surface surface);
+
 #endif
