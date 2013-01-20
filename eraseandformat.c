@@ -446,53 +446,60 @@ void show_partition_menu()
             options[mountable_volumes+i] = e->txt;
         }
 
-		/* CWM moved dalvik cache (I haven't cared to look where); it's been
-		 * requested that we bring all the format options together in the list
-		 * to that end dalvik has been moved to before the partition and mass
-		 * storage options */
-		options[mountable_volumes + formatable_volumes] = "Format dalvik cache";
-
-		if (!is_data_media()) {
-			options[mountable_volumes + formatable_volumes + 1] = "Mount USB storage";
-		} else {
-			options[mountable_volumes + formatable_volumes + 1] = "Format /data and /data/media (/sdcard)";
-		}
-
-		if (!can_partition("/sdcard")) {
-			options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
-		}
-		if (!can_partition("/external_sd")) {
-			options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
-		}
-		if (!can_partition("/emmc")) {
+        if (!is_data_media()) {
+			options[mountable_volumes + formatable_volumes] = "Mount USB Storage";
+			options[mountable_volumes + formatable_volumes + 1] = "Erase dalvik-cache";
+			if (!can_partition("/sdcard")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
+			}
+			if (!can_partition("/external_sd")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
+			}
+			if (!can_partition("/emmc")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
+			}
+			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1 + 1] = NULL;
+        }
+        else {
+			options[mountable_volumes + formatable_volumes] = "Erase dalvik-cache";
+			if (!can_partition("/sdcard")) {
+				options[mountable_volumes + formatable_volumes + 1 ] = NULL;
+			}
+			if (!can_partition("/external_sd")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
+			}
+			if (!can_partition("/emmc")) {
+				options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
+			}
 			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
-		}
-
-		options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1 + 1] = NULL;
+        }
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
         if (chosen_item == (mountable_volumes+formatable_volumes)) {
-			erase_dalvik_cache(NULL);
+			if (!is_data_media()) {
+				show_mount_usb_storage_menu();
+			} else {
+				erase_dalvik_cache(NULL);
+			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1)) {
 			if (!is_data_media()) {
-                show_mount_usb_storage_menu();
-            } else {
-                if (!confirm_selection("format /data and /data/media (/sdcard)", confirm))
-                    continue;
-
-                handle_data_media_format(1);
-                ui_print("Formatting /data...\n");
-
-                if (0 != format_volume("/data"))
-                    ui_print("Error formatting /data!\n");
-                else
-                    ui_print("Done.\n");
-
-                handle_data_media_format(0);  
-            }
-        } else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1)) {
+				if (0 != ensure_path_mounted("/data"))
+					break;
+				ensure_path_mounted("/sd-ext");
+				ensure_path_mounted("/cache");
+				if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+					__system("rm -r /data/dalvik-cache");
+					__system("rm -r /cache/dalvik-cache");
+					__system("rm -r /sd-ext/dalvik-cache");
+					ui_print("Dalvik Cache wiped.\n");
+				}
+				ensure_path_unmounted("/data");
+			} else {
+				partition_sdcard("/sdcard");
+			}
+		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1)) {
 			if (!is_data_media()) {
 				partition_sdcard("/sdcard");
 			} else {
