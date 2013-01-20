@@ -14,35 +14,16 @@
  * limitations under the License.
  */
  
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <getopt.h>
 #include <limits.h>
-#include <linux/input.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/reboot.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
 
-#include <sys/wait.h>
-#include <sys/limits.h>
-#include <dirent.h>
 #include <sys/stat.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
-#include "bootloader.h"
 #include "common.h"
 #include "cutils/properties.h"
-#include "firmware.h"
-#include "install.h"
 #include "make_ext4fs.h"
-#include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
@@ -52,10 +33,8 @@
 #include "mounts.h"
 #include "flashutils/flashutils.h"
 #include "edify/expr.h"
-#include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-#include "cutils/android_reboot.h"
 #include "settings.h"
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
@@ -139,15 +118,10 @@ void erase_cache(int orscallback) {
 }
 
 void erase_dalvik_cache(int orscallback) {
-	if(orscallback) {
-		if(orswipeprompt && !confirm_selection("Confirm wipe?","Yes- Wipe Dalvik Cache")) {
-			ui_print("Skipping dalvik cache wipe...\n");
-			return;
-		}
-	} else if (!confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+	if(orscallback && orswipeprompt && !confirm_selection("Confirm wipe?","Yes- Wipe Dalvik Cache")) {
+		ui_print("Skipping dalvik cache wipe...\n");
 		return;
 	}
-
 	if (0 != ensure_path_mounted("/data"))
 		return;
 
@@ -461,22 +435,17 @@ static void show_partition_format_menu() {
 			++formatable_volumes;
 		}
 	}
-	options[formatable_volumes] = "Format dalvik cache";
-
-	if(is_data_media())
-		options[formatable_volumes++] = "Format /data and /data/media (/sdcard)";
-	else
-		options[formatable_volumes++] = NULL;
-
-	static char* confirm_format  = "Confirm format?";
-	static char* confirm = "Yes - Format";
-	static char confirm_string[255];
 	
 	for(;;) {
 		for (i = 0; i < formatable_volumes; i++) {
 			FormatMenuEntry* e = &format_menu[i];
 			options[i] = e->txt;
 		}
+		options[formatable_volumes] = "Format dalvik cache";
+
+		if(is_data_media())
+			options[formatable_volumes++] = "Format /data and /data/media (/sdcard)";
+
 		int chosen_item = get_menu_selection(headers, &options, 0, 0);
 		if (chosen_item == GO_BACK)
 			break;
@@ -484,9 +453,10 @@ static void show_partition_format_menu() {
 			FormatMenuEntry* e = &format_menu[chosen_item];
 			Volume* v = e->v;
 
-			sprintf(confirm_string, "%s - %s", v->mount_point, confirm_format);
+			static char confirm_string[PATH_MAX];
+			sprintf(confirm_string, "%s - Confirm format?", v->mount_point);
 
-			if (!confirm_selection(confirm_string, confirm))
+			if (!confirm_selection(confirm_string, "Yes - Format"))
 				continue;
 			
 			ui_print("Formatting %s...\n", v->mount_point);
@@ -496,10 +466,13 @@ static void show_partition_format_menu() {
 			else
 				ui_print("Done.\n");
 		}
-		if (chosen_item == formatable_volumes)
+		if (chosen_item == formatable_volumes) {
+			if (!confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache"))
+				continue;
 			erase_dalvik_cache(NULL);
+		}
 		if (chosen_item == formatable_volumes++ && is_data_media()) {
-			if (!confirm_selection("format /data and /data/media (/sdcard)", confirm))
+			if (!confirm_selection("format /data and /data/media (/sdcard)", "Yes - Format"))
 				continue;
 
 			handle_data_media_format(1);
