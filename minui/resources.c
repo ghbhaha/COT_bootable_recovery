@@ -41,12 +41,7 @@ double pow(double x, double y) {
     return x;
 }
 
-// Returns 0 if no error, else negative.
-int res_create_surface(const char* name, gr_surface* pSurface);
-void res_free_surface(gr_surface surface);
-
-
-int res_create_surface(const char* name, gr_surface* pSurface) {
+int res_create_surface(const char* name, gr_surface* pSurface, int sd, const char* theme_name) {
     char resPath[256];
     GGLSurface* surface = NULL;
     int result = 0;
@@ -55,7 +50,6 @@ int res_create_surface(const char* name, gr_surface* pSurface) {
     png_infop info_ptr = NULL;
 
     *pSurface = NULL;
-
     if (sd == 1) {
 		snprintf(resPath, sizeof(resPath)-1, "/sdcard/cotrecovery/theme/%s/%s.png", theme_name, name);
 	} else {
