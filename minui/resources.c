@@ -41,7 +41,7 @@ double pow(double x, double y) {
     return x;
 }
 
-int res_create_surface(const char* name, gr_surface* pSurface, int sd, const char* theme_name) {
+int res_create_surface(const char* name, gr_surface* pSurface) {
     char resPath[256];
     GGLSurface* surface = NULL;
     int result = 0;
