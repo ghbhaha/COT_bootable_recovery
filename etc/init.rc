@@ -5,7 +5,9 @@ on init
     export PATH /sbin
     export ANDROID_ROOT /system
     export ANDROID_DATA /data
-    export EXTERNAL_STORAGE /sdcard
+    export EXTERNAL_STORAGE /external_sd
+    export SECONDARY_STORAGE /sdcard
+
 
     symlink /system/etc /etc
 
@@ -13,7 +15,7 @@ on init
     mkdir /sdcard
     mkdir /sd-ext
     mkdir /datadata
-    mkdir /emmc
+    mkdir /external_sd
     mkdir /system
     mkdir /data
     mkdir /cache
