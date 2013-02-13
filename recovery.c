@@ -69,8 +69,8 @@ static const struct option OPTIONS[] = {
 
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
-static const char *LOG_FILE = "/cache/recovery/log";
-static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
+static const char *LOG_FILE = "/sdcard/cotrecovery/log";
+static const char *LAST_LOG_FILE = "/sdcard/cotrecovery/last_log";
 static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 0;
