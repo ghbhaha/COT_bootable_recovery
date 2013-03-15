@@ -99,16 +99,20 @@ void write_string_to_file(const char* filename, const char* string) {
     sprintf(tmp, "mkdir -p $(dirname %s)", filename);
     __system(tmp);
     FILE *file = fopen(filename, "w");
-    fprintf(file, "%s", string);
-    fclose(file);
+    if( file != NULL) {
+        fprintf(file, "%s", string);
+        fclose(file);
+    }
 }
 
 /* Only valid reason for this is application recognition so, we'll want to store
  * these values using the same locations as CWM, regardless of our file
  * locations. */
 void write_recovery_version() {
-    write_string_to_file("/sdcard/0/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION));
-    write_string_to_file("/sdcard/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION));
+    if(is_data_media()) {
+        write_string_to_file("/sdcard/0/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION) "\n" EXPAND(TARGET_DEVICE));
+    }
+    write_string_to_file("/sdcard/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION) "\n" EXPAND(TARGET_DEVICE));
 }
 
 void toggle_ui_debugging()
