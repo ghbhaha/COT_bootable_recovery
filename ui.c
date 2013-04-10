@@ -1236,6 +1236,16 @@ void ui_reset_icons()
 }
 
 struct keyStruct *ui_wait_key()
+
+void ui_cancel_wait_key() {
+    pthread_mutex_lock(&key_queue_mutex);
+    key_queue[key_queue_len] = -2;
+    key_queue_len++;
+    pthread_cond_signal(&key_queue_cond);
+    pthread_mutex_unlock(&key_queue_mutex);
+}
+
+int ui_wait_key()
 {
     if (boardEnableKeyRepeat) return ui_wait_key_with_repeat();
     pthread_mutex_lock(&key_queue_mutex);
