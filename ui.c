@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2013-2015 Project Open Cannibal
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -812,17 +813,17 @@ void ui_init_icons(void) {
     switch(is_sd_theme) {
 		case 0:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, themename);
+				result = res_create_recovery_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, themename);
 			}
 			break;
 		case 1:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 1, themename);
+				result = res_create_recovery_surface(BITMAPS[i].name, BITMAPS[i].surface, 1, themename);
 			}
 			break;
 		default:
 			for (i = 0; BITMAPS[i].name != NULL; ++i) {
-				result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, "hydro");
+				result = res_create_recovery_surface(BITMAPS[i].name, BITMAPS[i].surface, 0, "hydro");
 			}
 			break;
     }
@@ -859,13 +860,13 @@ void ui_init(void)
         sprintf(filename, "indeterminate%02d", i+1);
         switch(is_sd_theme) {
 			case 0:
-				frame_result = res_create_surface(filename, gProgressBarIndeterminate+i, 0, themename);
+				frame_result = res_create_recovery_surface(filename, gProgressBarIndeterminate+i, 0, themename);
 				break;
 			case 1:
-				frame_result = res_create_surface(filename, gProgressBarIndeterminate+i, 1, themename);
+				frame_result = res_create_recovery_surface(filename, gProgressBarIndeterminate+i, 1, themename);
 				break;
 			default:
-				frame_result = res_create_surface(filename, gProgressBarIndeterminate+i, 0, "hydro");
+				frame_result = res_create_recovery_surface(filename, gProgressBarIndeterminate+i, 0, "hydro");
 				break;
 		}
         if (frame_result < 0) {
@@ -883,13 +884,13 @@ void ui_init(void)
             sprintf(filename, "icon_installing_overlay%02d", i+1);
             switch(is_sd_theme) {
 				case 0:
-					frame_result = res_create_surface(filename, gInstallationOverlay+i, 0, themename);
+					frame_result = res_create_recovery_surface(filename, gInstallationOverlay+i, 0, themename);
 					break;
 				case 1:
-					frame_result = res_create_surface(filename, gInstallationOverlay+i, 1, themename);
+					frame_result = res_create_recovery_surface(filename, gInstallationOverlay+i, 1, themename);
 					break;
 				default:
-					frame_result = res_create_surface(filename, gInstallationOverlay+i, 0, "hydro");
+					frame_result = res_create_recovery_surface(filename, gInstallationOverlay+i, 0, "hydro");
 					break;
 			}
             if (frame_result < 0) {
