@@ -150,5 +150,8 @@ apply_from_adb() {
         ui_set_background(BACKGROUND_ICON_ERROR);
         ui_print("Installation aborted.\n");
     }
+
+    remove(ADB_SIDELOAD_FILENAME);
+
     return install_status;
 }
