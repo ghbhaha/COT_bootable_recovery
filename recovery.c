@@ -641,6 +641,59 @@ update_directory(const char* path, const char* unmount_when_done) {
     return result;
 }
 
+static void
+wipe_data(int confirm) {
+    if (confirm) {
+        static char** title_headers = NULL;
+
+        if (title_headers == NULL) {
+            char* headers[] = { "Confirm wipe of all user data?",
+                                "  THIS CAN NOT BE UNDONE.",
+                                "",
+                                NULL };
+            title_headers = prepend_title((const char**)headers);
+        }
+
+        char* items[] = { " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " No",
+                          " Yes -- delete all user data",   // [7]
+                          " No",
+                          " No",
+                          " No",
+                          NULL };
+
+        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
+        if (chosen_item != 7) {
+            return;
+        }
+    }
+
+    ui_print("\n-- Wiping data...\n");
+    device_wipe_data();
+    erase_volume("/data");
+    erase_volume("/cache");
+    if (has_datadata()) {
+        erase_volume("/datadata");
+    }
+    erase_volume("/sd-ext");
+    erase_volume("/sdcard/.android_secure");
+    ui_print("Data wipe complete.\n");
+}
+
+static void headless_wait() {
+  ui_show_text(0);
+  char** headers = prepend_title((const char**)MENU_HEADERS);
+  for (;;) {
+    finish_recovery(NULL);
+    get_menu_selection(headers, MENU_ITEMS, 0, 0);
+  }
+}
+
 int ui_menu_level = 1;
 int ui_root_menu = 0;
 static void
@@ -1192,6 +1245,7 @@ main(int argc, char **argv) {
         signature_check_enabled = 0;	/* I think these are deprecated but */
         script_assert_enabled = 0;		/* I'm too lazy to look just now */
         is_user_initiated_recovery = 1;
+
         ui_set_show_text(1);
         // Append cases as neccessary
         if (volume_for_path("/emmc") != NULL) {
@@ -1212,6 +1266,12 @@ main(int argc, char **argv) {
 		}
 
         if (check_for_script_file()) run_script_file();
+
+        if (!headless) {
+          ui_set_show_text(1);
+          ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+        }
+
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
             int ret;
@@ -1229,11 +1289,14 @@ main(int argc, char **argv) {
 
     setup_adbd();
 
+    if (headless) {
+      headless_wait();
+    }
     if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) {
         ui_set_show_text(1);
         ui_set_background(BACKGROUND_ICON_CLOCKWORK);
     }
-    if (status != INSTALL_SUCCESS || ui_text_visible()) {
+    else if (status != INSTALL_SUCCESS || ui_text_visible()) {
         prompt_and_wait();
     }
 
