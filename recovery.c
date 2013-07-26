@@ -1,6 +1,7 @@
-/*
+/**
  * Copyright (C) 2007 The Android Open Source Project
  * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2013, Project Open Cannibal
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -70,7 +70,7 @@ static const struct option OPTIONS[] = {
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
-static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
+static const char *LAST_LOG_FILE = "/sdcard/cotrecovery/recovery_log";
 static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 0;
@@ -807,7 +807,7 @@ int run_script_file(void) {
 						ret_val = 1;
 					}
 				}
-				
+
 			} else if (strcmp(command, "wipe") == 0) {
 				// Wipe -- ToDo: Make this use the same wipe functionality as normal wipes
 				if (strcmp(value, "cache") == 0 || strcmp(value, "/cache") == 0) {
@@ -1167,11 +1167,11 @@ main(int argc, char **argv) {
 
     sync();
     if(!poweroff) {
-        ui_print("Rebooting...\n");
+        ui_print("Rebooting to system...\n");
         pass_normal_reboot();
     }
     else {
-        ui_print("Shutting down...\n");
+        ui_print("Powering down...\n");
         pass_shutdown_cmd();
     }
     return EXIT_SUCCESS;
