@@ -1,6 +1,9 @@
 <pre> Cannibal Open Touch Recovery
 ==================================
 
+For building instructions, visit:
+http://projectopencannibal.github.io/android_bootable_recovery/ or check out the Project Open Cannibal IRC Channel!
+
 <ul>
 <li>Originally ClockworkMod based recovery we have incorporated and updated touch controls originally written by Napstar of Team Utter Chaos.</li>
 <li>Combines features of well-known recoveries like TWRP, ClockworkMod and AmonRA to allow users to easily and effortlessly manage their Android-powered devices.</li>
