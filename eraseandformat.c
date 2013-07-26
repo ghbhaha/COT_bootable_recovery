@@ -1,5 +1,6 @@
-/*
+/**
  * Copyright (C) 2012 Drew Walton & Nathan Bass
+ * Copyright (c) 2013, Project Open Cannibal
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <getopt.h>
 #include <limits.h>
-#include <linux/input.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/reboot.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
 
-#include <sys/wait.h>
-#include <sys/limits.h>
-#include <dirent.h>
 #include <sys/stat.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
-#include "bootloader.h"
 #include "common.h"
 #include "cutils/properties.h"
-#include "firmware.h"
-#include "install.h"
 #include "make_ext4fs.h"
-#include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
@@ -52,10 +33,8 @@
 #include "mounts.h"
 #include "flashutils/flashutils.h"
 #include "edify/expr.h"
-#include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "bmlutils/bmlutils.h"
-#include "cutils/android_reboot.h"
 #include "settings.h"
 #include "settingshandler.h"
 #include "settingshandler_lang.h"
@@ -139,15 +118,10 @@ void erase_cache(int orscallback) {
 }
 
 void erase_dalvik_cache(int orscallback) {
-	if(orscallback) {
-		if(orswipeprompt && !confirm_selection("Confirm wipe?","Yes- Wipe Dalvik Cache")) {
-			ui_print("Skipping dalvik cache wipe...\n");
-			return;
-		}
-	} else if (!confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+	if(orscallback && orswipeprompt && !confirm_selection("Confirm wipe?","Yes- Wipe Dalvik Cache")) {
+		ui_print("Skipping dalvik cache wipe...\n");
 		return;
 	}
-
 	if (0 != ensure_path_mounted("/data"))
 		return;
 
@@ -427,10 +401,8 @@ void show_partition_menu()
     static char* confirm = "Yes - Format";
     char confirm_string[255];
 
-    for (;;)
-    {
-        for (i = 0; i < mountable_volumes; i++)
-        {
+    for (;;) {
+        for (i = 0; i < mountable_volumes; i++) {
             MountMenuEntry* e = &mount_menu[i];
             Volume* v = e->v;
             if(is_path_mounted(v->mount_point))
@@ -438,41 +410,29 @@ void show_partition_menu()
             else
                 options[i] = e->mount;
         }
-
-        for (i = 0; i < formatable_volumes; i++)
-        {
+        for (i = 0; i < formatable_volumes; i++) {
             FormatMenuEntry* e = &format_menu[i];
-
             options[mountable_volumes+i] = e->txt;
         }
 
         if (!is_data_media()) {
 			options[mountable_volumes + formatable_volumes] = "Mount USB Storage";
 			options[mountable_volumes + formatable_volumes + 1] = "Erase dalvik-cache";
-			if (!can_partition("/sdcard")) {
-				options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
-			}
-			if (!can_partition("/external_sd")) {
-				options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
-			}
-			if (!can_partition("/emmc")) {
-				options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
-			}
-			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1 + 1] = NULL;
-        }
-        else {
+        } else {
 			options[mountable_volumes + formatable_volumes] = "Erase dalvik-cache";
-			if (!can_partition("/sdcard")) {
-				options[mountable_volumes + formatable_volumes + 1 ] = NULL;
-			}
-			if (!can_partition("/external_sd")) {
-				options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
-			}
-			if (!can_partition("/emmc")) {
-				options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
-			}
-			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
+			options[mountable_volumes + formatable_volumes + 1] = "Format /data and /data/media (/sdcard)";
         }
+		if (!can_partition("/sdcard")) {
+			options[mountable_volumes + formatable_volumes + 1 + 1] = NULL;
+		}
+		if (!can_partition("/external_sd")) {
+			options[mountable_volumes + formatable_volumes + 1 + 1 + 1] = NULL;
+		}
+		if (!can_partition("/emmc")) {
+			options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1] = NULL;
+		}
+		options[mountable_volumes + formatable_volumes + 1 + 1 + 1 + 1 + 1] = NULL;
+
 
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
@@ -481,57 +441,47 @@ void show_partition_menu()
 			if (!is_data_media()) {
 				show_mount_usb_storage_menu();
 			} else {
+				if(!confirm_selection("Confirm wipe?", "Yes - Wipe Dalvik Cache"))
+					continue;
 				erase_dalvik_cache(NULL);
 			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1)) {
 			if (!is_data_media()) {
-				if (0 != ensure_path_mounted("/data"))
-					break;
-				ensure_path_mounted("/sd-ext");
-				ensure_path_mounted("/cache");
-				if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
-					__system("rm -r /data/dalvik-cache");
-					__system("rm -r /cache/dalvik-cache");
-					__system("rm -r /sd-ext/dalvik-cache");
-					ui_print("Dalvik Cache wiped.\n");
-				}
-				ensure_path_unmounted("/data");
+				if(!confirm_selection("Confirm wipe?", "Yes - Wipe Dalvik Cache"))
+					continue;
+				erase_dalvik_cache(NULL);
 			} else {
-				partition_sdcard("/sdcard");
+				if (!confirm_selection("format /data and /data/media (/sdcard)", "Yes - Format"))
+					continue;
+				handle_data_media_format(1);
+				ui_print("Formatting /data...\n");
+
+				if (0 != format_volume("/data"))
+					ui_print("Error formatting /data!\n");
+				else
+					ui_print("Done.\n");
+
+				handle_data_media_format(0);
 			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1)) {
-			if (!is_data_media()) {
 				partition_sdcard("/sdcard");
-			} else {
-				partition_sdcard("/external_sd");
-			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1 + 1)) {
-			if (!is_data_media()) {
 				partition_sdcard("/external_sd");
-			} else {
-				partition_sdcard("/emmc");
-			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1 + 1 + 1)) {
-			if (!is_data_media()) {
 				partition_sdcard("/emmc");
-			}
         } else if (chosen_item < mountable_volumes) {
             MountMenuEntry* e = &mount_menu[chosen_item];
             Volume* v = e->v;
 
-            if (is_path_mounted(v->mount_point))
-            {
+            if (is_path_mounted(v->mount_point)) {
                 if (0 != ensure_path_unmounted(v->mount_point))
                     ui_print("Error unmounting %s!\n", v->mount_point);
-            }
-            else
-            {
+            } else {
                 if (0 != ensure_path_mounted(v->mount_point))
                     ui_print("Error mounting %s!\n",  v->mount_point);
             }
         }
-        else if (chosen_item < (mountable_volumes + formatable_volumes))
-        {
+        else if (chosen_item < (mountable_volumes + formatable_volumes)) {
             chosen_item = chosen_item - mountable_volumes;
             FormatMenuEntry* e = &format_menu[chosen_item];
             Volume* v = e->v;
