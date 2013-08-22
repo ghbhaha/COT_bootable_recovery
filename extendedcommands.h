@@ -1,6 +1,9 @@
 extern int script_assert_enabled;
 
 void
+write_recovery_version();
+
+void
 show_choose_zip_menu();
 
 int

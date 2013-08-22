@@ -103,6 +103,14 @@ void write_string_to_file(const char* filename, const char* string) {
     fclose(file);
 }
 
+/* Only valid reason for this is application recognition so, we'll want to store
+ * these values using the same locations as CWM, regardless of our file
+ * locations. */
++void write_recovery_version() {
+    write_string_to_file("/sdcard/0/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION));
+    write_string_to_file("/sdcard/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION));
++}
+
 void toggle_ui_debugging()
 {
 	switch(UI_COLOR_DEBUG) {
@@ -178,6 +186,7 @@ void show_install_update_menu()
             }
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
+                write_recovery_version();
                 break;
             case ITEM_APPLY_SIDELOAD:
                 apply_from_adb();
@@ -832,7 +841,12 @@ int confirm_nandroid_backup(const char* title, const char* confirm)
     return chosen_item == 7;
 }
 
-void show_nandroid_advanced_backup_menu() {
+void show_nandroid_advanced_backup_menu(const char *path, int other_sd) {
+	if (ensure_path_mounted(path) != 0) {
+		LOGE ("Can't mount %s\n", path);
+		return;
+	}
+
 	static char* advancedheaders[] = { "Choose the partitions to backup.",
 					NULL
     };
@@ -896,9 +910,8 @@ void show_nandroid_advanced_backup_menu() {
 		}
 	}
 	
-	char backup_path[PATH_MAX];
-	nandroid_generate_timestamp_path(backup_path, 0);
-	return nandroid_advanced_backup(backup_path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
+	nandroid_generate_timestamp_path(path, other_sd);
+	return nandroid_advanced_backup(path, backup_list[0], backup_list[1], backup_list[2], backup_list[3], backup_list[4], backup_list[5]);
 }
 
 void show_nandroid_advanced_restore_menu(const char* path)
@@ -998,16 +1011,18 @@ void show_nandroid_menu()
 
     char *other_sd = NULL;
     if(OTHER_SD_CARD == EMMC) {
-		list[6] = "backup to internal sdcard";
-		list[7] = "restore from internal sdcard";
-		list[8] = "advanced restore from internal sdcard";
-		list[9] = "delete from internal sdcard";
+		list[6] = "Backup to internal sdcard";
+		list[7] = "Restore from internal sdcard";
+		list[8] = "Delete from internal sdcard";
+		list[9] = "Advanced backup to internal sdcard";
+		list[10] = "Advanced restore from internal sdcard";
 		other_sd = "/emmc";
 	} else if (OTHER_SD_CARD == EXTERNALSD) {
-		list[6] = "backup to external sdcard";
-		list[7] = "restore from external sdcard";
-		list[8] = "advanced restore from external sdcard";
-		list[9] = "delete from external sdcard";
+		list[6] = "Backup to external sdcard";
+		list[7] = "Restore from external sdcard";
+		list[8] = "Delete from external sdcard";
+		list[9] = "Advanced backup to external sdcard";
+		list[10] = "Advanced restore from external sdcard";
 		other_sd = "/external_sd";
 	}
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
@@ -1025,29 +1040,35 @@ void show_nandroid_menu()
                 {
 					nandroid_generate_timestamp_path(backup_path, 0);
                     nandroid_backup(backup_path);
+                    write_recovery_version();
 					break;
                 }
             case 1:
 				{
 					nandroid_get_backup_path(backup_path, 0);
                 	show_nandroid_restore_menu(backup_path);
+					write_recovery_version();
                 	break;
 				}
             case 2:
 				{
 					nandroid_get_backup_path(backup_path, 0);
                 	show_nandroid_delete_menu(backup_path);
+                	write_recovery_version();
                 	break;
 				}
 			case 3:
 				{
-					show_nandroid_advanced_backup_menu();
+					nandroid_get_backup_path(backup_path, 0);
+					show_nandroid_advanced_backup_menu(backup_path);
+					write_recovery_version();
 					break;
 				}
             case 4:
 				{
 					nandroid_get_backup_path(backup_path, 0);
                 	show_nandroid_advanced_restore_menu(backup_path);
+                	write_recovery_version();
                 	break;
 				}
             case 5:
@@ -1057,29 +1078,41 @@ void show_nandroid_menu()
                 {
 					nandroid_generate_timestamp_path(backup_path, 1);
                     nandroid_backup(backup_path);
+                    write_recovery_version();
 					break;
                 }
             case 7:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
                     show_nandroid_restore_menu(backup_path);
+                    write_recovery_version();
                 }
                 break;
             case 8:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
-                    show_nandroid_advanced_restore_menu(backup_path);
+                    show_nandroid_delete_menu(backup_path);
+                    write_recovery_version();
                 }
-                break;
             case 9:
                 if (other_sd != NULL) {
 					nandroid_get_backup_path(backup_path, 1);
-                    show_nandroid_delete_menu(backup_path);
+					show_nandroid_advanced_backup_menu(backup_path, 1);
+					write_recovery_version();
+					break;
+				}
+            case 10:
+                if (other_sd != NULL) {
+					nandroid_get_backup_path(backup_path, 1);
+                    show_nandroid_advanced_restore_menu(backup_path);
+                    write_recovery_version();
                 }
+                break;
+
                 break;
             default:
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
-                handle_nandroid_menu(10, chosen_item);
+                handle_nandroid_menu(11, chosen_item);
 #endif
                 break;
         }
