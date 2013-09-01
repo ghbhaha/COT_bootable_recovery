@@ -106,10 +106,10 @@ void write_string_to_file(const char* filename, const char* string) {
 /* Only valid reason for this is application recognition so, we'll want to store
  * these values using the same locations as CWM, regardless of our file
  * locations. */
-+void write_recovery_version() {
+void write_recovery_version() {
     write_string_to_file("/sdcard/0/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION));
     write_string_to_file("/sdcard/clockworkmod/.recovery_version",EXPAND(CWM_RECOVERY_VERSION));
-+}
+}
 
 void toggle_ui_debugging()
 {
@@ -1060,7 +1060,7 @@ void show_nandroid_menu()
 			case 3:
 				{
 					nandroid_get_backup_path(backup_path, 0);
-					show_nandroid_advanced_backup_menu(backup_path);
+					show_nandroid_advanced_backup_menu(backup_path, 0);
 					write_recovery_version();
 					break;
 				}
