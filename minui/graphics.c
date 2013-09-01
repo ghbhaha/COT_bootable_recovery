@@ -49,6 +49,8 @@
 #define PIXEL_SIZE   2
 #endif
 
+#define NUM_BUFFERS 2
+
 typedef struct {
     GGLSurface texture;
     unsigned cwidth;
