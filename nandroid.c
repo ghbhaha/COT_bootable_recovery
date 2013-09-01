@@ -491,6 +491,9 @@ int nandroid_backup(const char* backup_path)
         ui_print("Error while generating md5 sum!\n");
         return ret;
     }
+    
+    sprintf(tmp, "cp /tmp/recovery.log %s/recovery.log", backup_path);
+    __system(tmp);
 
 	get_post_backup_cmd(tmp, 0);
     __system(tmp);
