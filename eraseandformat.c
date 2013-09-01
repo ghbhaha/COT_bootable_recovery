@@ -379,10 +379,12 @@ void show_partition_menu()
     for (i = 0; i < num_volumes; ++i) {
         Volume* v = &device_volumes[i];
         if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
-            sprintf(&mount_menu[mountable_volumes].mount, "Mount %s", v->mount_point);
-            sprintf(&mount_menu[mountable_volumes].unmount, "Unmount %s", v->mount_point);
-            mount_menu[mountable_volumes].v = &device_volumes[i];
-            ++mountable_volumes;
+			if(strcmp("datamedia", v->fs_type) != 0) {
+				sprintf(&mount_menu[mountable_volumes].mount, "Mount %s", v->mount_point);
+				sprintf(&mount_menu[mountable_volumes].unmount, "Unmount %s", v->mount_point);
+				mount_menu[mountable_volumes].v = &device_volumes[i];
+				++mountable_volumes;
+			}
             if (is_safe_to_format(v->mount_point)) {
                 sprintf(&format_menu[formatable_volumes].txt, "Format %s", v->mount_point);
                 format_menu[formatable_volumes].v = &device_volumes[i];
