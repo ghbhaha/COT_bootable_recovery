@@ -76,6 +76,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <package>\n", argv[0]);
         return 2;
     }
+    
+    RSAPublicKey* key = &test_key;
+    ++argv;
 
     int result = verify_file(argv[1], &test_key, 1);
     if (result == VERIFY_SUCCESS) {

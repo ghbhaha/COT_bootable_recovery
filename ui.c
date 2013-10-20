@@ -56,7 +56,11 @@
 
 extern int __system(const char *command);
 
+#if defined(BOARD_HAS_NO_SELECT_BUTTON) || defined(BOARD_TOUCH_RECOVERY)
+static int gShowBackButton = 1;
+#else
 static int gShowBackButton = 0;
+#endif
 
 #define MAX_COLS 96
 #ifdef BOARD_TS_MAX_ROWS
@@ -70,8 +74,8 @@ static int gShowBackButton = 0;
 
 #define MIN_LOG_ROWS 3
 
-#define CHAR_WIDTH BOARD_RECOVERY_CHAR_WIDTH
-#define CHAR_HEIGHT BOARD_RECOVERY_CHAR_HEIGHT
+#define CHAR_WIDTH 15
+#define CHAR_HEIGHT 30
 
 #define UI_WAIT_KEY_TIMEOUT_SEC    3600
 #define UI_KEY_REPEAT_INTERVAL 80
@@ -301,8 +305,6 @@ static void draw_text_line(int row, const char* t, int align) {
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
-int BATT_LINE, TIME_LINE, BATT_POS, TIME_POS;
-
 // Redraw everything on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
 void draw_screen_locked(void)
@@ -332,7 +334,7 @@ void draw_screen_locked(void)
 		if (show_text) {
 	        	gr_color(0, 0, 0, 160);
         		gr_fill(0, 0, gr_fb_width(), gr_fb_height());
-
+        		
         		int i = 0;
         		int j = 0;
         		int row = 0;            // current row that we are drawing on
@@ -340,30 +342,9 @@ void draw_screen_locked(void)
 				draw_icon_locked(gMenuIcon[MENU_BACK], MENU_ICON[MENU_BACK].x, MENU_ICON[MENU_BACK].y );
 				draw_icon_locked(gMenuIcon[MENU_DOWN], MENU_ICON[MENU_DOWN].x, MENU_ICON[MENU_DOWN].y);
 				draw_icon_locked(gMenuIcon[MENU_UP], MENU_ICON[MENU_UP].x, MENU_ICON[MENU_UP].y );
-				draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y );
-            			// Setup our text colors
-            			gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
-            
-            			// Show battery level
-            			int batt_level = 0;
-            			batt_level = get_batt_stats();
-            			if(batt_level < 21) {
-					gr_color(255, 0, 0, 255);
-				}
-				char batt_text[40];
-				char time_gmt[40];
-			
-				// Get a usable time
-				struct tm *current;
-				time_t now;
-				now = time(0);
-				current = localtime(&now);
-				sprintf(batt_text, "[%d%%]", batt_level);
-				sprintf(time_gmt, "[%02D:%02D GMT]", current->tm_hour, current->tm_min);
-
-       			draw_text_line(BATT_LINE, batt_text, BATT_POS);
-       			draw_text_line(TIME_LINE, time_gmt, TIME_POS);
-
+				draw_icon_locked(gMenuIcon[MENU_SELECT], MENU_ICON[MENU_SELECT].x, MENU_ICON[MENU_SELECT].y ); 
+				            // Setup our text colors
+            			    gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 				gr_color(UICOLOR0, UICOLOR1, UICOLOR2, 255);
 
             		gr_fill(0, (menu_top + menu_sel - menu_show_start) * CHAR_HEIGHT,
@@ -1429,21 +1410,3 @@ void ui_increment_frame() {
         (gInstallingFrame + 1) % ui_parameters.installing_frames;
 }
 
-int get_batt_stats(void) {
-	static int level = -1;
-	
-	char value[4];
-	FILE * capacity = fopen("/sys/class/power_supply/battery/capacity","rt");
-	if (capacity) {
-		fgets(value, 4, capacity);
-		fclose(capacity);
-		level = atoi(value);
-		
-		if (level > 100)
-			level = 100;
-		if (level < 0)
-			level = 0;
-		
-	}
-	return level;
-}

@@ -172,7 +172,7 @@ void create_default_settings(void) {
     "ORSReboot = 0 ;\n"
     "ORSWipePrompt = 1 ;\n"
     "BackupPrompt = 1 ;\n"
-    "SignatureCheckEnabled = 1 ;\n"
+    "SignatureCheckEnabled = 0 ;\n"
     "BackupFormat = 0 ;\n"
     "maxX = 0 ;\n"
     "maxY = 0 ;\n"

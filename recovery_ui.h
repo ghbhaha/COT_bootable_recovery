@@ -107,11 +107,6 @@ extern int maxX;
 extern int maxY;
 extern int touchY;
 
-extern int BATT_LINE;
-extern int TIME_LINE;
-extern int BATT_POS;
-extern int BATT_LINE;
-
 int get_menu_icon_info(int indx1, int indx2);
 
 // Loosely track the depth of the current menu

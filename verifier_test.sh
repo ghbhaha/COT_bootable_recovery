@@ -80,6 +80,9 @@ expect_fail() {
 expect_fail unsigned.zip
 expect_fail jarsigned.zip
 expect_succeed otasigned.zip
+expect_fail_f4 otasigned.zip
+expect_succeed_f4 otasigned_f4.zip
+expect_fail otasigned_f4.zip
 expect_fail random.zip
 expect_fail fake-eocd.zip
 expect_fail alter-metadata.zip

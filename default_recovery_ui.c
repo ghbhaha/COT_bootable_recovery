@@ -66,22 +66,13 @@ int touchY=0;
  */
 int minimum_storage=512;
 
-// define what line to draw the battery indicator on
-int BATT_LINE=0;
-// define the screen position of the battery indicator
-int BATT_POS=RIGHT_ALIGN;
-// define what line to draw the clock on
-int TIME_LINE=1;
-// define the screen position of the clock
-int TIME_POS=RIGHT_ALIGN;
-
 char* MENU_HEADERS[] = { NULL };
 
-char* MENU_ITEMS[] = { "Boot Android",
-                       "ZIP Flashing",
+char* MENU_ITEMS[] = { "Reboot Phone",
+                       "Install ZIP",
                        "Factory Reset",
                        "Pre-flash Wipe",
-                       "Nandroid",
+                       "Backup and Restore",
                        "Storage Management",
                        "COT Options",
                        "Power Options",
@@ -103,6 +94,10 @@ int device_perform_action(int which) {
 }
 
 int device_wipe_data() {
+    return 0;
+}
+
+int ui_should_log_stdout() {
     return 0;
 }
 

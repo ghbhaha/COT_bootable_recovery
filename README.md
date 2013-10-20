@@ -16,15 +16,3 @@ http://projectopencannibal.github.io/android_bootable_recovery/ or check out the
 	* Sideloadable (sdcard) theme support.
 	* ADB Sideload.
 
-<pre> Please note the following in regards to this branch.
-====================================================
-
-<ul>
-<li>If you are building for the Kindle Fire (first edition) you may also checkout https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/hybrid for stable builds instead.</li>
-<li>If you are looking for one of our Legacy Devices please checkout https://github.com/ProjectOpenCannibal/android_bootable_recovery/tree/gingerbread instead.</li>
-<li>The following repos are required for all current builds: https://github.com/ProjectOpenCannibal/android_bootable_recovery_res and https://github.com/ProjectOpenCannibal/android_bootable_recovery_gui/tree/jellybean.</li>
-</ul>
-
-<ul>
-<li>You may checkout all the required resources as well as the most recent stable tag by using one of the included local_manifests here: https://github.com/ProjectOpenCannibal/cotr-local_manifests</li>
-</ul>
