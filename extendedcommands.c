@@ -144,6 +144,7 @@ int install_zip(const char* packagefilepath)
         ui_print("Installation aborted.\n");
         return 1;
     }
+    
     ui_print("\nInstall from sdcard complete.\n");
     ui_init_icons();
     return 0;
@@ -296,7 +297,7 @@ char** gather_files(const char* directory, const char* fileExtensionOrDirectory,
     }
 
     if(closedir(dir) < 0) {
-        LOGE("Failed to close directory.");
+        LOGE("Failed to close directory.\n");
     }
 
     if (total==0) {
@@ -801,14 +802,8 @@ int confirm_selection(const char* title, const char* confirm)
         return 1;
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
-    if (0 == stat("/sdcard/cotrecovery/.one_confirm", &info)) {
-        char* items[] = { "No",
-                        confirm, //" Yes -- wipe partition",   // [1]
-                        NULL };
-        int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-        return chosen_item == 1;
-    }
-    else {
+    int many_confirm = 0 == stat("/sdcard/cotrecovery/.many_confirm", &info);
+    if (many_confirm) {
         char* items[] = { "No",
                         "No",
                         "No",
@@ -823,6 +818,13 @@ int confirm_selection(const char* title, const char* confirm)
                         NULL };
         int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
         return chosen_item == 7;
+    }
+    else {
+        char* items[] = { "No",
+                        confirm, //" Yes -- wipe partition",   // [1]
+                        NULL };
+        int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
+        return chosen_item == 1;
     }
 }
 
@@ -1145,8 +1147,14 @@ void partition_sdcard(const char* volume) {
                                   "256M",
                                   NULL };
 
+    static char* partition_types[] = { "ext3",
+                                       "ext4",
+                                       NULL
+    };
+
     static char* ext_headers[] = { "Ext Size", "", NULL };
     static char* swap_headers[] = { "Swap Size", "", NULL };
+    static char* fstype_headers[] = {"Partition Type", "", NULL };
 
     int ext_size = get_menu_selection(ext_headers, ext_sizes, 0, 0);
     if (ext_size == GO_BACK)
@@ -1156,6 +1164,10 @@ void partition_sdcard(const char* volume) {
     if (swap_size == GO_BACK)
         return;
 
+    int partition_type = get_menu_selection(fstype_headers, partition_types, 0, 0);
+    if (partition_type == GO_BACK)
+        return;
+
     char sddevice[256];
     Volume *vol = volume_for_path(volume);
     strcpy(sddevice, vol->device);
@@ -1163,7 +1175,7 @@ void partition_sdcard(const char* volume) {
     sddevice[strlen("/dev/block/mmcblkX")] = NULL;
     char cmd[PATH_MAX];
     setenv("SDPATH", sddevice, 1);
-    sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
+    sprintf(cmd, "sdparted -es %s -ss %s -efs %s -s", ext_sizes[ext_size], swap_sizes[swap_size], partition_types[partition_type]);
     ui_print("Partitioning SD Card... please wait...\n");
     if (0 == __system(cmd))
         ui_print("Done!\n");
@@ -1388,6 +1400,8 @@ int volume_main(int argc, char **argv) {
 }
 
 int verify_root_and_recovery() {
+    write_recovery_version();
+	
     if (ensure_path_mounted("/system") != 0)
         return 0;
 

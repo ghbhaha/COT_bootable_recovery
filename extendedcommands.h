@@ -23,16 +23,13 @@ void show_nandroid_advanced_backup_menu();
 void
 show_nandroid_menu();
 
-void
-show_choose_zip_menu();
-
 int
 install_zip(const char* packagefilepath);
 
 int
 __system(const char *command);
 
-void
+int
 show_advanced_menu();
 
 void create_fstab();

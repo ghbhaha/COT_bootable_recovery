@@ -11,7 +11,6 @@ void ensure_directory(const char* dir);
 void nandroid_get_base_backup_path(const char* backup_path, int other_sd);
 void nandroid_get_root_backup_path(const char* backup_path, int other_sd);
 void nandroid_get_backup_path(const char* backup_path, int other_sd);
-void nandroid_generate_timestamp_path(const char* backup_path, int other_sd);
 void nandroid_switch_backup_handler(int bfmt);
 int recalc_sdcard_space();
 

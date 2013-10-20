@@ -43,15 +43,15 @@ int TOUCH_NOSHOW_LOG = 0;
 	check the values returned by on screen touch output by click on the 
 	touch panel extremeties
 */
-int maxX=0;		//Set to 0 for debugging
-int maxY=0;		//Set to 0 for debugging
+int maxX=540;		//Set to 0 for debugging
+int maxY=960;		//Set to 0 for debugging
 
 /*
 	the values of following two variables are dependent on specifc device resolution
 	and can be obtained using the outputs of the gr_fb functions
 */
-int resX=0;		//Value obtained from function 'gr_fb_width()'
-int resY=0;		//Value obtained from function 'gr_fb_height()'
+int resX=564;		//Value obtained from function 'gr_fb_width()'
+int resY=966;		//Value obtained from function 'gr_fb_height()'
 
 /*
 	set the following value to restrict the touch boundaries so that

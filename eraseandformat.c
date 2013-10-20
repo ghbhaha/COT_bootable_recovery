@@ -58,35 +58,8 @@ int erase_volume(const char *volume) {
 }
 
 void wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title((const char**)headers);
-        }
-
-        char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
-            return;
-        }
-    }
+    if (confirm && !confirm_selection( "Confirm wipe of all user data?", "Yes - Wipe all user data"))
+        return;
 
     ui_print("\n-- Wiping data...\n");
     device_wipe_data();
@@ -98,7 +71,6 @@ void wipe_data(int confirm) {
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
-    return;
 }
 
 void erase_cache(int orscallback) {
@@ -229,12 +201,22 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         reset_ext4fs_info();
         int result = make_ext4fs(device, length, v->mount_point, sehandle);
         if (result != 0) {
-            LOGE("format_volume: make_extf4fs failed on %s\n", device);
+            LOGE("format_volume: make_ext4fs failed on %s\n", device);
             return -1;
         }
         return 0;
     }
 
+#ifdef USE_F2FS
+    if (strcmp(fs_type, "f2fs") == 0) {
+        int result = make_f2fs_main(device, v->mount_point);
+        if (result != 0) {
+            LOGE("format_volume: mkfs.f2f2 failed on %s\n", device);
+            return -1;
+        }
+        return 0;
+    }
+#endif
     return format_unknown_device(device, path, fs_type);
 }
 
@@ -252,7 +234,7 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
         Volume *vol = volume_for_path("/sd-ext");
         if (vol == NULL || 0 != stat(vol->device, &st))
         {
-            ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
+            LOGI("No app2sd partition found. Skipping format of /sd-ext.\n");
             return 0;
         }
     }
@@ -455,15 +437,14 @@ void show_partition_menu()
 			} else {
 				if (!confirm_selection("format /data and /data/media (/sdcard)", "Yes - Format"))
 					continue;
-				handle_data_media_format(1);
+				ignore_data_media_workaround(1);
 				ui_print("Formatting /data...\n");
 
 				if (0 != format_volume("/data"))
 					ui_print("Error formatting /data!\n");
 				else
 					ui_print("Done.\n");
-
-				handle_data_media_format(0);
+				ignore_data_media_workaround(0);
 			}
 		} else if (chosen_item == (mountable_volumes+formatable_volumes + 1 + 1)) {
 				partition_sdcard("/sdcard");

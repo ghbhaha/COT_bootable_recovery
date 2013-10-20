@@ -95,7 +95,7 @@ void nandroid_get_backup_path(const char* backup_path, int other_sd)
 
 /* Take our final backup path from get_backup_path and add a timestamp
  * folder location */
-void nandroid_generate_timestamp_path(const char* backup_path, int other_sd)
+void nandroid_generate_timestamp_path(char* backup_path, int other_sd)
 {
 	nandroid_get_backup_path(backup_path, other_sd);
     time_t t = time(NULL);
@@ -127,7 +127,7 @@ void ensure_directory(const char* dir) {
 }
 
 static int print_and_error(const char* message) {
-    ui_print("%s", message);
+    ui_print("%s\n", message);
     return 1;
 }
 
@@ -480,12 +480,12 @@ int nandroid_backup(const char* backup_path)
     vol = volume_for_path("/sd-ext");
     if (vol == NULL || 0 != stat(vol->device, &s))
     {
-        ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
+        LOGI("No sd-ext found. Skipping backup of sd-ext.\n");
     }
     else
     {
         if (0 != ensure_path_mounted("/sd-ext"))
-            ui_print("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
+            LOGI("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
         else if (0 != (ret = nandroid_backup_partition(backup_path, "/sd-ext")))
             return ret;
     }
@@ -678,7 +678,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     char* name = basename(mount_point);
 
     nandroid_restore_handler restore_handler = NULL;
-    const char *filesystems[] = { "yaffs2", "ext2", "ext3", "ext4", "vfat", "rfs", NULL };
+    const char *filesystems[] = { "yaffs2", "ext2", "ext3", "ext4", "vfat", "rfs", "f2fs", NULL };
     const char* backup_filesystem = NULL;
     Volume *vol = volume_for_path(mount_point);
     const char *device = NULL;
@@ -692,7 +692,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
         // can't find the backup, it may be the new backup format?
         // iterate through the backup types
         printf("couldn't find default\n");
-        char *filesystem;
+        const char *filesystem;
         int i = 0;
         while ((filesystem = filesystems[i]) != NULL) {
             sprintf(tmp, "%s/%s.%s.img", backup_path, name, filesystem);
@@ -800,7 +800,7 @@ int nandroid_restore_partition(const char* backup_path, const char* root) {
         sprintf(tmp, "%s%s.img", backup_path, root);
         ui_print("Restoring %s image...\n", name);
         if (0 != (ret = restore_raw_partition(vol->fs_type, vol->device, tmp))) {
-            ui_print("Error while flashing %s image!", name);
+            ui_print("Error while flashing %s image!\n", name);
             return ret;
         }
         return 0;
