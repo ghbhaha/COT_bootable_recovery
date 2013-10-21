@@ -179,6 +179,60 @@ Value* BackupFn(const char* name, State* state, int argc, Expr* argv[]) {
     return StringValue(strdup(path));
 }
 
+#ifdef BOARD_HAS_CUSTPACK
+Value* RestoreFn(const char* name, State* state, int argc, Expr* argv[]) {
+    if (argc < 1) {
+        return ErrorAbort(state, "%s() expects at least 1 arg", name);
+    }
+    char** args = ReadVarArgs(state, argc, argv);
+    if (args == NULL) {
+        return NULL;
+    }
+
+    char** args2 = malloc(sizeof(char*) * (argc+1));
+    memcpy(args2, args, sizeof(char*) * argc);
+    args2[argc] = NULL;
+    
+    char* path = strdup(args2[0]);
+    int restoreboot = 1;
+    int restoresystem = 1;
+    int restorecustpack = 1;
+    int restoredata = 1;
+    int restorecache = 1;
+    int restoresdext = 1;
+    int i;
+    for (i = 1; i < argc; i++)
+    {
+        if (args2[i] == NULL)
+            continue;
+        if (strcmp(args2[i], "noboot") == 0)
+            restoreboot = 0;
+        else if (strcmp(args2[i], "nosystem") == 0)
+            restoresystem = 0;
+        else if (strcmp(args2[i], "nocustpack") == 0)
+            restorecustpack = 0; 
+        else if (strcmp(args2[i], "nodata") == 0)
+            restoredata = 0;
+        else if (strcmp(args2[i], "nocache") == 0)
+            restorecache = 0;
+        else if (strcmp(args2[i], "nosd-ext") == 0)
+            restoresdext = 0;
+    }
+    
+    for (i = 0; i < argc; ++i) {
+        free(args[i]);
+    }
+    free(args);
+    free(args2);
+
+    if (0 != nandroid_restore(path, restoreboot, restoresystem, restorecustpack, restoredata, restorecache, restoresdext, 0)) {
+        free(path);
+        return StringValue(strdup(""));
+    }
+    
+    return StringValue(path);
+}
+#else
 Value* RestoreFn(const char* name, State* state, int argc, Expr* argv[]) {
     if (argc < 1) {
         return ErrorAbort(state, "%s() expects at least 1 arg", name);
@@ -228,6 +282,7 @@ Value* RestoreFn(const char* name, State* state, int argc, Expr* argv[]) {
     
     return StringValue(path);
 }
+#endif
 
 Value* InstallZipFn(const char* name, State* state, int argc, Expr* argv[]) {
     char* result = NULL;
