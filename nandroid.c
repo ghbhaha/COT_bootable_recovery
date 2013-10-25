@@ -1028,9 +1028,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
 
         if (NULL != volume_for_path("/uboot") && 0 != (ret = nandroid_restore_partition(backup_path, "/uboot")))
             return ret;
-
-        if (NULL != volume_for_path("/recovery") && 0 != (ret = nandroid_restore_partition(backup_path, "/recovery")))
-            return ret;
+            
     } else {
 		ui_print("No boot image present, skipping...\n");
 	}
@@ -1122,8 +1120,6 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         if (NULL != volume_for_path("/uboot") && 0 != (ret = nandroid_restore_partition(backup_path, "/uboot")))
             return ret;
 
-        if (NULL != volume_for_path("/recovery") && 0 != (ret = nandroid_restore_partition(backup_path, "/recovery")))
-            return ret;
     } else {
 		ui_print("No boot image present, skipping...\n");
 	}
